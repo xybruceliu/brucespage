@@ -6,15 +6,6 @@ type Project = {
   id: string
 }
 
-type WorkExperience = {
-  company: string
-  title: string
-  start: string
-  end: string
-  link: string
-  id: string
-}
-
 type BlogPost = {
   title: string
   description: string
@@ -25,6 +16,7 @@ type BlogPost = {
 type SocialLink = {
   label: string
   link: string
+  icon: string
 }
 
 export const PROJECTS: Project[] = [
@@ -44,33 +36,6 @@ export const PROJECTS: Project[] = [
     video:
       'https://res.cloudinary.com/read-cv/video/upload/t_v_b/v1/1/profileItems/W2azTw5BVbMXfj7F53G92hMVIn32/XSfIvT7BUWbPRXhrbLed/ee6871c9-8400-49d2-8be9-e32675eabf7e.mp4?_a=DATAdtAAZAA0',
     id: 'project2',
-  },
-]
-
-export const WORK_EXPERIENCE: WorkExperience[] = [
-  {
-    company: 'Reglazed Studio',
-    title: 'CEO',
-    start: '2024',
-    end: 'Present',
-    link: 'https://ibelick.com',
-    id: 'work1',
-  },
-  {
-    company: 'Freelance',
-    title: 'Design Engineer',
-    start: '2022',
-    end: '2024',
-    link: 'https://ibelick.com',
-    id: 'work2',
-  },
-  {
-    company: 'Freelance',
-    title: 'Front-end Developer',
-    start: '2017',
-    end: 'Present',
-    link: 'https://ibelick.com',
-    id: 'work3',
   },
 ]
 
@@ -106,20 +71,24 @@ export const BLOG_POSTS: BlogPost[] = [
 export const SOCIAL_LINKS: SocialLink[] = [
   {
     label: 'Github',
-    link: 'https://github.com/ibelick',
+    link: 'https://github.com/xybruceliu',
+    icon: 'Github',
   },
   {
     label: 'Twitter',
-    link: 'https://twitter.com/ibelick',
+    link: 'https://x.com/liu_xingyu',
+    icon: 'Twitter',
   },
   {
     label: 'LinkedIn',
-    link: 'https://www.linkedin.com/in/ibelick',
+    link: 'https://www.linkedin.com/in/xingyuliu1997/',
+    icon: 'Linkedin',
   },
   {
-    label: 'Instagram',
-    link: 'https://www.instagram.com/ibelick',
+    label: 'Scholar',
+    link: 'https://scholar.google.com/citations?user=CTDSuK0AAAAJ',
+    icon: 'GraduationCap',
   },
 ]
 
-export const EMAIL = 'your@email.com'
+export const EMAIL = 'xingyuliu@ucla.edu'

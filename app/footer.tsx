@@ -15,12 +15,7 @@ const THEMES_OPTIONS = [
     label: 'Dark',
     id: 'dark',
     icon: <MoonIcon className="h-4 w-4" />,
-  },
-  {
-    label: 'System',
-    id: 'system',
-    icon: <MonitorIcon className="h-4 w-4" />,
-  },
+  }
 ]
 
 function ThemeSwitch() {
@@ -53,7 +48,7 @@ function ThemeSwitch() {
         return (
           <button
             key={theme.id}
-            className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors duration-100 focus-visible:outline-2 data-[checked=true]:text-foreground"
+            className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors duration-100 focus-visible:outline-2 data-[checked=true]:text-yellow-500 dark:data-[checked=true]:text-blue-700 cursor-pointer hover:text-blue-700 dark:hover:text-yellow-500"
             type="button"
             aria-label={`Switch to ${theme.label} theme`}
             data-id={theme.id}
@@ -69,13 +64,8 @@ function ThemeSwitch() {
 export function Footer() {
   return (
     <footer className="mt-24 border-t border-border px-0 py-4">
-      <div className="flex items-center justify-between">
-        <a href="https://github.com/ibelick/nim" target="_blank">
-          <TextLoop className="text-xs text-muted-foreground">
-            <span>© 2024 Nim.</span>
-            <span>Built with Motion-Primitives.</span>
-          </TextLoop>
-        </a>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      © 2025 Bruce Liu.
         <div className="text-xs text-muted-foreground">
           <ThemeSwitch />
         </div>

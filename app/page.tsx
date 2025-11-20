@@ -1,7 +1,6 @@
 'use client'
 import { motion } from 'motion/react'
-import { XIcon } from 'lucide-react'
-import { Spotlight } from '@/components/ui/spotlight'
+import { XIcon, Github, Twitter, Linkedin, GraduationCap } from 'lucide-react'
 import { Magnetic } from '@/components/ui/magnetic'
 import {
   MorphingDialog,
@@ -14,7 +13,6 @@ import Link from 'next/link'
 import { AnimatedBackground } from '@/components/ui/animated-background'
 import {
   PROJECTS,
-  WORK_EXPERIENCE,
   BLOG_POSTS,
   EMAIL,
   SOCIAL_LINKS,
@@ -89,19 +87,32 @@ function ProjectVideo({ src }: ProjectVideoProps) {
   )
 }
 
+const iconMap = {
+  Github,
+  Twitter,
+  Linkedin,
+  GraduationCap,
+}
+
 function MagneticSocialLink({
   children,
   link,
+  icon,
 }: {
   children: React.ReactNode
   link: string
+  icon: keyof typeof iconMap
 }) {
+  const IconComponent = iconMap[icon]
+  
   return (
     <Magnetic springOptions={{ bounce: 0 }} intensity={0.3}>
       <a
         href={link}
-        className="group relative inline-flex shrink-0 items-center gap-[1px] rounded-full bg-secondary px-2.5 py-1 text-sm text-secondary-foreground transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
+        target="_blank"
+        className="group relative inline-flex shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-sm text-secondary-foreground transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
       >
+        <IconComponent className="h-3.5 w-3.5" />
         {children}
         <svg
           width="15"
@@ -176,44 +187,6 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
-        <h3 className="mb-5 text-lg font-medium">Work Experience</h3>
-        <div className="flex flex-col space-y-2">
-          {WORK_EXPERIENCE.map((job) => (
-            <a
-              className="relative overflow-hidden rounded-[calc(var(--radius)+0.5rem)] bg-border/30 p-[1px]"
-              href={job.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              key={job.id}
-            >
-              <Spotlight
-                className="from-foreground/80 via-foreground/60 to-foreground/40 blur-2xl"
-                size={64}
-              />
-              <div className="relative h-full w-full rounded-[var(--radius-xl)] bg-background p-4">
-                <div className="relative flex w-full flex-row justify-between">
-                  <div>
-                    <h4 className="font-normal text-foreground">
-                      {job.title}
-                    </h4>
-                    <p className="text-muted-foreground">
-                      {job.company}
-                    </p>
-                  </div>
-                  <p className="text-muted-foreground">
-                    {job.start} - {job.end}
-                  </p>
-                </div>
-              </div>
-            </a>
-          ))}
-        </div>
-      </motion.section>
-
-      <motion.section
-        variants={VARIANTS_SECTION}
-        transition={TRANSITION_SECTION}
-      >
         <h3 className="mb-3 text-lg font-medium">Blog</h3>
         <div className="flex flex-col space-y-0">
           <AnimatedBackground
@@ -259,7 +232,7 @@ export default function Personal() {
         </p>
         <div className="flex items-center justify-start space-x-3">
           {SOCIAL_LINKS.map((link) => (
-            <MagneticSocialLink key={link.label} link={link.link}>
+            <MagneticSocialLink key={link.label} link={link.link} icon={link.icon as keyof typeof iconMap}>
               {link.label}
             </MagneticSocialLink>
           ))}

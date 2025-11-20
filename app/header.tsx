@@ -1,5 +1,5 @@
 'use client'
-import { TextEffect } from '@/components/ui/text-effect'
+import { TextScramble } from '@/components/ui/text-scramble'
 import Link from 'next/link'
 
 export function Header() {
@@ -7,17 +7,14 @@ export function Header() {
     <header className="mb-8 flex items-center justify-between">
       <div>
         <Link href="/" className="font-medium text-foreground">
-          Julien Nim
+          Bruce Liu
         </Link>
-        <TextEffect
-          as="p"
-          preset="fade"
-          per="char"
+        <TextScramble
           className="text-muted-foreground"
-          delay={0.5}
+          characterSet="Ph.D.Candidate@UCLA"
         >
-          Design Engineer
-        </TextEffect>
+          Ph.D. Candidate @ UCLA
+        </TextScramble>
       </div>
     </header>
   )
