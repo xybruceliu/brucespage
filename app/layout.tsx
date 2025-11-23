@@ -5,6 +5,7 @@ import { Header } from './header'
 import { Footer } from './footer'
 import { ThemeProvider } from 'next-themes'
 import { ThemeColor } from './theme-color'
+import { PERSONAL_INFO, SITE_URL } from './data'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -13,15 +14,15 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://liubruce.me/'),
+  metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: '/'
   },
   title: {
-    default: 'Bruce Liu',
-    template: '%s | Bruce Liu'
+    default: PERSONAL_INFO.name.english,
+    template: `%s | ${PERSONAL_INFO.name.english}`
   },
-  description:  'Bruce Liu\'s personal website. HCI PhD student at UCLA.',
+  description:  `${PERSONAL_INFO.name.english}'s personal website.`,
 };
 
 const geist = Geist({

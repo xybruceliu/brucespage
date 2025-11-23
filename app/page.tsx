@@ -1,16 +1,9 @@
 'use client'
 import { motion } from 'motion/react'
-import { XIcon, Github, Twitter, Linkedin, GraduationCap } from 'lucide-react'
+import { FileText, Twitter, Linkedin, GraduationCap, Award } from 'lucide-react'
 import { Magnetic } from '@/components/ui/magnetic'
-import {
-  MorphingDialog,
-  MorphingDialogTrigger,
-  MorphingDialogContent,
-  MorphingDialogClose,
-  MorphingDialogContainer,
-} from '@/components/ui/morphing-dialog'
-import Link from 'next/link'
-import { AnimatedBackground } from '@/components/ui/animated-background'
+import { AnimatedLink } from '@/components/ui/animated-link'
+import Image from 'next/image'
 import {
   PROJECTS,
   BLOG_POSTS,
@@ -37,58 +30,8 @@ const TRANSITION_SECTION = {
   duration: 0.3,
 }
 
-type ProjectVideoProps = {
-  src: string
-}
-
-function ProjectVideo({ src }: ProjectVideoProps) {
-  return (
-    <MorphingDialog
-      transition={{
-        type: 'spring',
-        bounce: 0,
-        duration: 0.3,
-      }}
-    >
-      <MorphingDialogTrigger>
-        <video
-          src={src}
-          autoPlay
-          loop
-          muted
-          className="aspect-video w-full cursor-zoom-in rounded-[var(--radius-xl)]"
-        />
-      </MorphingDialogTrigger>
-      <MorphingDialogContainer>
-        <MorphingDialogContent className="relative aspect-video rounded-[calc(var(--radius)+0.5rem)] bg-card p-1 ring-1 ring-border/50 ring-inset">
-          <video
-            src={src}
-            autoPlay
-            loop
-            muted
-            className="aspect-video h-[50vh] w-full rounded-[var(--radius-xl)] md:h-[70vh]"
-          />
-        </MorphingDialogContent>
-        <MorphingDialogClose
-          className="fixed top-6 right-6 h-fit w-fit rounded-full bg-background p-1"
-          variants={{
-            initial: { opacity: 0 },
-            animate: {
-              opacity: 1,
-              transition: { delay: 0.3, duration: 0.1 },
-            },
-            exit: { opacity: 0, transition: { duration: 0 } },
-          }}
-        >
-          <XIcon className="h-5 w-5 text-muted-foreground" />
-        </MorphingDialogClose>
-      </MorphingDialogContainer>
-    </MorphingDialog>
-  )
-}
-
 const iconMap = {
-  Github,
+  FileText,
   Twitter,
   Linkedin,
   GraduationCap,
@@ -110,11 +53,11 @@ function MagneticSocialLink({
       <a
         href={link}
         target="_blank"
-        className="group relative inline-flex shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-sm text-secondary-foreground transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
+        className="group relative inline-flex shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-sm text-secondary-foreground transition-colors duration-200 hover:bg-foreground hover:text-background"
       >
         <IconComponent className="h-3.5 w-3.5" />
         {children}
-        <svg
+        {/* <svg
           width="15"
           height="15"
           viewBox="0 0 15 15"
@@ -128,7 +71,7 @@ function MagneticSocialLink({
             fillRule="evenodd"
             clipRule="evenodd"
           ></path>
-        </svg>
+        </svg> */}
       </a>
     </Magnetic>
   )
@@ -148,9 +91,41 @@ export default function Personal() {
       >
         <div className="flex-1">
           <p className="text-muted-foreground">
-            Focused on creating intuitive and performant web experiences.
-            Bridging the gap between design and development.
+            Hola! I'm a PhD candidate in{' '}
+            <AnimatedLink href="https://hci.ucla.edu/#team">
+              UCLA HCI lab
+            </AnimatedLink>
+            {' '}advised by Professor {' '}
+            <AnimatedLink href="https://hci.prof/">
+              Xiang 'Anthony' Chen
+            </AnimatedLink>
+            .{' '}
+            My research explores future forms of Large Language Models and AI agents beyond a turn-based chatbot.
           </p>
+           <br />
+           <p className="text-muted-foreground">
+             My work has been recognized and supported by an{' '}
+             <AnimatedLink href="https://www.sciencehub.ucla.edu/2023-amazon-fellows/" isStatic={true} imageSrc="/img/amazon-fellowship.png">
+               Amazon Ph.D. Fellowship
+             </AnimatedLink>
+             , an{' '}
+             <AnimatedLink href="https://dl.acm.org/doi/10.1145/3526113.3545703" isStatic={true} imageSrc="/img/uist-best-paper.png">
+               ACM UIST Best Paper Award
+             </AnimatedLink>
+             , two{' '}
+             <AnimatedLink href="https://dl.acm.org/doi/10.1145/3613904.3642065" isStatic={true} imageSrc="/img/chi-best-paper.png">
+               ACM CHI Best Paper Honorable Mentions
+             </AnimatedLink>
+             . I've also done internships at Adobe Research, Google, Meta Reality Labs and Snap Research.
+           </p>
+           <br />
+           <p className="text-muted-foreground">
+             Here's my{' '}
+             <AnimatedLink href="/pdf/bruce_liu_cv.pdf" showPreview={false}>
+               CV
+             </AnimatedLink>
+             .
+           </p>
         </div>
       </motion.section>
 
@@ -159,31 +134,72 @@ export default function Personal() {
         transition={TRANSITION_SECTION}
       >
         <h3 className="mb-5 text-lg font-medium">Selected Projects</h3>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {PROJECTS.map((project) => (
-            <div key={project.name} className="space-y-2">
-              <div className="relative rounded-[calc(var(--radius)+0.5rem)] bg-card/40 p-1 ring-1 ring-border/50 ring-inset">
-                <ProjectVideo src={project.video} />
-              </div>
-              <div className="px-1">
-                <a
-                  className="font-base group relative inline-block font-[450] text-foreground"
-                  href={project.link}
-                  target="_blank"
-                >
-                  {project.name}
-                  <span className="absolute bottom-0.5 left-0 block h-[1px] w-full max-w-0 bg-foreground transition-all duration-200 group-hover:max-w-full"></span>
-                </a>
-                <p className="text-base text-muted-foreground">
-                  {project.description}
+        <div className="space-y-8">
+          {PROJECTS.map((pub) => (
+            <div key={pub.id} className="flex flex-col gap-4 sm:flex-row sm:items-start">
+              <div className="flex-1">
+                <h4 className="font-medium text-foreground">
+                  {pub.title}
+                </h4>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {pub.authors.join(', ')}
                 </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {pub.award && (
+                    <span className="inline-flex items-center gap-1 rounded-full py-0.5 text-sm">
+                      <Award className="h-3 w-3" />
+                      {pub.award}
+                    </span>
+                  )}
+                </div>
+                {pub.links && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {Object.entries(pub.links).map(([type, url]) => (
+                      <a
+                        key={type}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground transition-colors hover:bg-foreground hover:text-background"
+                      >
+                        {type}
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 15 15"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3 w-3 ml-0.5"
+                        >
+                          <path
+                            d="M3.64645 11.3536C3.45118 11.1583 3.45118 10.8417 3.64645 10.6465L10.2929 4L6 4C5.72386 4 5.5 3.77614 5.5 3.5C5.5 3.22386 5.72386 3 6 3L11.5 3C11.6326 3 11.7598 3.05268 11.8536 3.14645C11.9473 3.24022 12 3.36739 12 3.5L12 9.00001C12 9.27615 11.7761 9.50001 11.5 9.50001C11.2239 9.50001 11 9.27615 11 9.00001V4.70711L4.35355 11.3536C4.15829 11.5488 3.84171 11.5488 3.64645 11.3536Z"
+                            fill="currentColor"
+                            fillRule="evenodd"
+                            clipRule="evenodd"
+                          ></path>
+                        </svg>
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
+              {pub.image && (
+                <div className="w-full shrink-0 sm:w-48">
+                  <Image
+                    src={pub.image}
+                    alt={pub.title}
+                    width={192}
+                    height={128}
+                    className="h-auto w-full rounded-lg ring-1 ring-border/50"
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>
       </motion.section>
 
-      <motion.section
+      {/* <motion.section
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
@@ -217,7 +233,7 @@ export default function Personal() {
             ))}
           </AnimatedBackground>
         </div>
-      </motion.section>
+      </motion.section> */}
 
       <motion.section
         variants={VARIANTS_SECTION}

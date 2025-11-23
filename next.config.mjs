@@ -4,6 +4,11 @@ import createMDX from '@next/mdx';
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
+  images: {
+    domains: [
+      "api.microlink.io", // Microlink Image Preview
+    ],
+  },
 };
 
 const withMDX = createMDX({
@@ -11,3 +16,5 @@ const withMDX = createMDX({
 });
 
 export default withMDX(nextConfig);
+
+
