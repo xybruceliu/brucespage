@@ -161,7 +161,7 @@ export default function Personal() {
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {pub.award && (
                     <span className="inline-flex items-center gap-1 py-0.5 text-sm font-medium">
-                      <Award className="h-3 w-3" />
+                      <Award className="h-3 w-3 text-rose-500" />
                       {pub.award}
                     </span>
                   )}

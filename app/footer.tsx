@@ -37,23 +37,25 @@ function ThemeSwitch() {
       transition={{
         type: 'spring',
         bounce: 0,
-        duration: 0.2,
+        duration: 0.4,
       }}
-      enableHover={false}
-      onValueChange={(id) => {
-        setTheme(id as string)
-      }}
+      enableHover={true}
     >
-      {THEMES_OPTIONS.map((theme) => {
+      {THEMES_OPTIONS.map((themeOption) => {
         return (
           <button
-            key={theme.id}
-            className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors duration-200 focus-visible:outline-2 data-[checked=true]:text-yellow-500 dark:data-[checked=true]:text-blue-700 cursor-pointer hover:text-blue-700 dark:hover:text-yellow-500"
+            key={themeOption.id}
+            className={`inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors duration-200 focus-visible:outline-2 cursor-pointer ${
+              themeOption.id === 'light'
+                ? 'data-[checked=true]:text-amber-500 hover:text-amber-500'
+                : 'data-[checked=true]:text-blue-700 hover:text-blue-700'
+            }`}
             type="button"
-            aria-label={`Switch to ${theme.label} theme`}
-            data-id={theme.id}
+            aria-label={`Switch to ${themeOption.label} theme`}
+            data-id={themeOption.id}
+            onClick={() => setTheme(themeOption.id)}
           >
-            {theme.icon}
+            {themeOption.icon}
           </button>
         )
       })}

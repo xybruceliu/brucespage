@@ -49,14 +49,20 @@ export function AnimatedBackground({
   return Children.map(children, (child: any, index) => {
     const id = child.props['data-id'];
 
-    const interactionProps = enableHover
-      ? {
-          onMouseEnter: () => handleSetActiveId(id),
-          onMouseLeave: () => handleSetActiveId(null),
-        }
-      : {
-          onClick: () => handleSetActiveId(id),
-        };
+  const interactionProps = enableHover
+    ? {
+        onMouseEnter: () => handleSetActiveId(id),
+        onMouseLeave: () => {
+          if (defaultValue) {
+            handleSetActiveId(defaultValue)
+          } else {
+            handleSetActiveId(null)
+          }
+        },
+      }
+    : {
+        onClick: () => handleSetActiveId(id),
+      }
 
     return cloneElement(
       child,
