@@ -48,7 +48,7 @@ function ThemeSwitch() {
         return (
           <button
             key={theme.id}
-            className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors duration-100 focus-visible:outline-2 data-[checked=true]:text-yellow-500 dark:data-[checked=true]:text-blue-700 cursor-pointer hover:text-blue-700 dark:hover:text-yellow-500"
+            className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors duration-200 focus-visible:outline-2 data-[checked=true]:text-yellow-500 dark:data-[checked=true]:text-blue-700 cursor-pointer hover:text-blue-700 dark:hover:text-yellow-500"
             type="button"
             aria-label={`Switch to ${theme.label} theme`}
             data-id={theme.id}

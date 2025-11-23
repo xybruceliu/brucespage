@@ -53,7 +53,7 @@ function MagneticSocialLink({
       <a
         href={link}
         target="_blank"
-        className="group relative inline-flex shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-sm text-secondary-foreground transition-colors duration-200 hover:bg-foreground hover:text-background"
+        className="group relative inline-flex shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-sm text-secondary-foreground transition-all duration-200 hover:bg-foreground hover:text-background"
       >
         <IconComponent className="h-3.5 w-3.5" />
         {children}
@@ -123,8 +123,22 @@ export default function Personal() {
              Here's my{' '}
              <AnimatedLink href="/pdf/bruce_liu_cv.pdf" showPreview={false}>
                CV
+               <svg
+                 width="15"
+                 height="15"
+                 viewBox="0 0 15 15"
+                 fill="none"
+                 xmlns="http://www.w3.org/2000/svg"
+                 className="h-4 w-4 inline mb-0.5"
+               >
+                 <path
+                   d="M3.64645 11.3536C3.45118 11.1583 3.45118 10.8417 3.64645 10.6465L10.2929 4L6 4C5.72386 4 5.5 3.77614 5.5 3.5C5.5 3.22386 5.72386 3 6 3L11.5 3C11.6326 3 11.7598 3.05268 11.8536 3.14645C11.9473 3.24022 12 3.36739 12 3.5L12 9.00001C12 9.27615 11.7761 9.50001 11.5 9.50001C11.2239 9.50001 11 9.27615 11 9.00001V4.70711L4.35355 11.3536C4.15829 11.5488 3.84171 11.5488 3.64645 11.3536Z"
+                   fill="currentColor"
+                   fillRule="evenodd"
+                   clipRule="evenodd"
+                 ></path>
+               </svg>
              </AnimatedLink>
-             .
            </p>
         </div>
       </motion.section>
@@ -146,7 +160,7 @@ export default function Personal() {
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {pub.award && (
-                    <span className="inline-flex items-center gap-1 rounded-full py-0.5 text-sm">
+                    <span className="inline-flex items-center gap-1 py-0.5 text-sm font-medium">
                       <Award className="h-3 w-3" />
                       {pub.award}
                     </span>
@@ -155,30 +169,74 @@ export default function Personal() {
                 {pub.links && (
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     {Object.entries(pub.links).map(([type, url]) => (
-                      <a
+                      <motion.a
                         key={type}
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground transition-colors hover:bg-foreground hover:text-background"
+                        className="inline-flex items-center rounded-full border border-border px-2.5 py-1 text-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+                        initial="initial"
+                        whileHover="hover"
                       >
                         {type}
-                        <svg
-                          width="15"
-                          height="15"
-                          viewBox="0 0 15 15"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3 w-3 ml-0.5"
+                        <motion.span
+                          variants={{
+                            initial: { width: 0, opacity: 0, marginLeft: 0 },
+                            hover: { 
+                              width: "auto", 
+                              opacity: 1, 
+                              marginLeft: 2,
+                              transition: { duration: 0.2 } 
+                            }
+                          }}
+                          className="flex items-center overflow-hidden"
                         >
-                          <path
-                            d="M3.64645 11.3536C3.45118 11.1583 3.45118 10.8417 3.64645 10.6465L10.2929 4L6 4C5.72386 4 5.5 3.77614 5.5 3.5C5.5 3.22386 5.72386 3 6 3L11.5 3C11.6326 3 11.7598 3.05268 11.8536 3.14645C11.9473 3.24022 12 3.36739 12 3.5L12 9.00001C12 9.27615 11.7761 9.50001 11.5 9.50001C11.2239 9.50001 11 9.27615 11 9.00001V4.70711L4.35355 11.3536C4.15829 11.5488 3.84171 11.5488 3.64645 11.3536Z"
-                            fill="currentColor"
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      </a>
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 15 15"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-3 w-3 shrink-0"
+                          >
+                            <motion.path
+                              d="M3.5 11.5L11.5 3.5"
+                              stroke="currentColor"
+                              strokeWidth="1.2"
+                              strokeLinecap="round"
+                              variants={{
+                                initial: { pathLength: 0, opacity: 0 },
+                                hover: { 
+                                  pathLength: 1, 
+                                  opacity: 1,
+                                  transition: { 
+                                    pathLength: { duration: 0.2, ease: "easeOut" },
+                                    opacity: { duration: 0.05 }
+                                  } 
+                                }
+                              }}
+                            />
+                            <motion.path
+                              d="M6.5 3.5H11.5V8.5"
+                              stroke="currentColor"
+                              strokeWidth="1.2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              variants={{
+                                initial: { pathLength: 0, opacity: 0 },
+                                hover: { 
+                                  pathLength: 1, 
+                                  opacity: 1,
+                                  transition: { 
+                                    pathLength: { duration: 0.2, ease: "easeOut", delay: 0.2 },
+                                    opacity: { duration: 0.05, delay: 0.2 }
+                                  } 
+                                }
+                              }}
+                            />
+                          </svg>
+                        </motion.span>
+                      </motion.a>
                     ))}
                   </div>
                 )}
@@ -190,7 +248,7 @@ export default function Personal() {
                     alt={pub.title}
                     width={192}
                     height={128}
-                    className="h-auto w-full rounded-lg ring-1 ring-border/50"
+                    className="h-auto w-full rounded-lg ring-1 ring-border"
                   />
                 </div>
               )}

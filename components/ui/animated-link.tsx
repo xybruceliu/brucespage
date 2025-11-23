@@ -73,15 +73,17 @@ export function AnimatedLink({
   // If preview is disabled, render simple animated link
   if (!showPreview) {
     return (
-      <a
+      <motion.a
         className={`group relative inline-block text-foreground ${className}`}
         href={href}
         target="_blank"
         rel="noopener noreferrer"
+        initial="initial"
+        whileHover="hover"
       >
         {children}
         <span className="absolute bottom-0.5 left-0 block h-[1px] w-full max-w-0 bg-foreground transition-all duration-200 group-hover:max-w-full"></span>
-      </a>
+      </motion.a>
     );
   }
 
@@ -154,7 +156,7 @@ export function AnimatedLink({
                       src={isStatic ? imageSrc : src}
                       width={width}
                       height={height}
-                      className="rounded-lg ring-1 ring-border/50"
+                      className="rounded-lg ring-1 ring-border"
                       alt="preview image"
                     />
                   </a>
