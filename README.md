@@ -2,7 +2,7 @@
 
 ![Preview](public/preview.png)
 
-**[Live Demo →](https://liubruce.me)**
+**<a href="https://liubruce.me" target="_blank">Live Demo →</a>**
 
 A personal portfolio website showcasing research projects, publications, and professional information.
 
