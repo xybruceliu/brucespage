@@ -239,3 +239,29 @@ export const SOCIAL_LINKS: SocialLink[] = [
 ]
 
 export const EMAIL = 'xingyuliu@ucla.edu'
+
+export const PHOTO_GALLERY = [
+  '000006.jpg',
+  '000041 2.jpg',
+  '000044 2.jpg',
+  '000048 2.jpg',
+  '000049.jpg',
+  '000060 3.jpg',
+  '000063110001.jpg',
+  '000063110005.jpg',
+  '000063110002.jpg',
+  '000063110027.jpg',
+  '000068.jpg',
+  '000209220013.jpg',
+  '000209220036.jpg',
+  '000209240034.jpg',
+  '000209310006.jpg',
+  '000209310013.jpg',
+  '000209310024.jpg',
+  '000282940011.jpg',
+  '000379820033.jpg',
+  '000379830014.jpg',
+  '34fa1cee0s9a874595ef9acb0dbbb712.jpeg',
+  '8f385aaedk695be0b7da3713f974dee2.jpeg',
+  '94a8a218dv08f7da0a6e775e45a6192e.jpeg',
+]

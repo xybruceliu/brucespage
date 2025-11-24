@@ -66,7 +66,7 @@ function ThemeSwitch() {
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-border px-0 py-4">
+    <footer className="mt-8 border-t border-border px-0 py-4">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
       © 2025 {PERSONAL_INFO.name.english}.
         <div className="text-xs text-muted-foreground">

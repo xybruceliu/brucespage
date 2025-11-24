@@ -91,6 +91,21 @@ Customize your social media and professional profiles. Store your CV in `public/
 
 Available icons: `FileText`, `Twitter`, `Linkedin`, `GraduationCap`, `Github`, and more from [Lucide Icons](https://lucide.dev).
 
+### 6. Photo Gallery
+
+Add photos to the infinite slider gallery at the bottom of the page. Place your photos in `public/img/photos/` and update the array:
+
+```typescript
+export const PHOTO_GALLERY = [
+  'photo1.jpg',
+  'photo2.jpg',
+  'photo3.jpg',
+  // Add more photos here
+]
+```
+
+The gallery automatically loops through all photos with a smooth infinite scrolling animation.
+
 ## Getting Started
 
 ```bash
@@ -114,9 +129,12 @@ app/
 ├── page.tsx         # Main page component
 ├── layout.tsx       # Site layout
 public/
-├── img/projects/    # Project images
-├── pdf/projects/    # Publication PDFs
-└── pdf/             # CV and other documents
+├── img/
+│   ├── projects/    # Project images
+│   └── photos/      # Photo gallery images
+├── pdf/
+│   ├── projects/    # Publication PDFs
+│   └── cv.pdf       # Your CV
 ```
 
 ---

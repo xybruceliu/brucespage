@@ -4,6 +4,13 @@ import { motion, AnimatePresence } from 'motion/react'
 import { FileText, Twitter, Linkedin, GraduationCap, Award } from 'lucide-react'
 import { Magnetic } from '@/components/ui/magnetic'
 import { AnimatedLink } from '@/components/ui/animated-link'
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { InfiniteSlider } from '@/components/ui/infinite-slider'
 import Image from 'next/image'
 import {
   PROJECTS,
@@ -11,6 +18,7 @@ import {
   EMAIL,
   SOCIAL_LINKS,
   HIGHLIGHTED_AUTHORS,
+  PHOTO_GALLERY,
 } from './data'
 
 const VARIANTS_CONTAINER = {
@@ -319,7 +327,7 @@ export default function Personal() {
                     alt={pub.title}
                     width={192}
                     height={128}
-                    className="h-auto w-full rounded-lg ring-1 ring-border"
+                    className="h-auto w-full rounded-sm ring-1 ring-border"
                   />
                 </div>
               )}
@@ -383,6 +391,62 @@ export default function Personal() {
             </MagneticSocialLink>
           ))}
         </div>
+      </motion.section>
+
+      <motion.section
+        variants={VARIANTS_SECTION}
+        transition={TRANSITION_SECTION}
+      >
+        {/* Preload full-size images */}
+        {PHOTO_GALLERY.map((photo) => (
+          <link
+            key={`preload-${photo}`}
+            rel="preload"
+            as="image"
+            href={`/img/photos/${photo}`}
+          />
+        ))}
+        
+        <InfiniteSlider speed={40} speedOnHover={20} gap={24}>
+          {PHOTO_GALLERY.map((photo) => (
+            <Dialog key={photo}>
+              <DialogTrigger asChild>
+                <Image
+                  src={`/img/photos/${photo}`}
+                  alt="Photo"
+                  width={180}
+                  height={120}
+                  className="h-[120px] w-auto cursor-pointer rounded-sm object-cover transition-opacity hover:opacity-80"
+                  loading="eager"
+                  quality={85}
+                />
+              </DialogTrigger>
+              <DialogContent
+                showCloseButton={false}
+                className="flex h-auto w-auto max-w-none items-center justify-center border-none bg-transparent p-0 shadow-none outline-none ring-0"
+                style={
+                  {
+                    '--tw-enter-scale': '1',
+                    '--tw-exit-scale': '1',
+                  } as React.CSSProperties
+                }
+              >
+                <DialogTitle className="sr-only">Photo view</DialogTitle>
+                <img
+                  src={`/img/photos/${photo}`}
+                  alt="Photo"
+                  className="rounded-md"
+                  style={{
+                    width: 'auto',
+                    height: 'auto',
+                    maxWidth: '70vw',
+                    maxHeight: '70vh',
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          ))}
+        </InfiniteSlider>
       </motion.section>
     </motion.main>
   )
