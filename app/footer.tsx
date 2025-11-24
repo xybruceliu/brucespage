@@ -4,6 +4,7 @@ import { TextLoop } from '@/components/ui/text-loop'
 import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { PERSONAL_INFO } from './data'
 
 const THEMES_OPTIONS = [
   {
@@ -67,7 +68,7 @@ export function Footer() {
   return (
     <footer className="mt-24 border-t border-border px-0 py-4">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-      © 2025 Bruce Liu.
+      © 2025 {PERSONAL_INFO.name.english}.
         <div className="text-xs text-muted-foreground">
           <ThemeSwitch />
         </div>

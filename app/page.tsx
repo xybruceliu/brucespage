@@ -1,5 +1,6 @@
 'use client'
-import { motion } from 'motion/react'
+import React from 'react'
+import { motion, AnimatePresence } from 'motion/react'
 import { FileText, Twitter, Linkedin, GraduationCap, Award } from 'lucide-react'
 import { Magnetic } from '@/components/ui/magnetic'
 import { AnimatedLink } from '@/components/ui/animated-link'
@@ -9,6 +10,7 @@ import {
   BLOG_POSTS,
   EMAIL,
   SOCIAL_LINKS,
+  HIGHLIGHTED_AUTHORS,
 } from './data'
 
 const VARIANTS_CONTAINER = {
@@ -28,6 +30,26 @@ const VARIANTS_SECTION = {
 
 const TRANSITION_SECTION = {
   duration: 0.3,
+}
+
+const VARIANTS_PROJECT_ITEM = {
+  hidden: { opacity: 0, y: -20, filter: 'blur(8px)' },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    filter: 'blur(0px)',
+    transition: {
+      duration: 0.3,
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: 20, 
+    filter: 'blur(8px)',
+    transition: {
+      duration: 0.2,
+    }
+  },
 }
 
 const iconMap = {
@@ -57,27 +79,14 @@ function MagneticSocialLink({
       >
         <IconComponent className="h-3.5 w-3.5" />
         {children}
-        {/* <svg
-          width="15"
-          height="15"
-          viewBox="0 0 15 15"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-3 w-3"
-        >
-          <path
-            d="M3.64645 11.3536C3.45118 11.1583 3.45118 10.8417 3.64645 10.6465L10.2929 4L6 4C5.72386 4 5.5 3.77614 5.5 3.5C5.5 3.22386 5.72386 3 6 3L11.5 3C11.6326 3 11.7598 3.05268 11.8536 3.14645C11.9473 3.24022 12 3.36739 12 3.5L12 9.00001C12 9.27615 11.7761 9.50001 11.5 9.50001C11.2239 9.50001 11 9.27615 11 9.00001V4.70711L4.35355 11.3536C4.15829 11.5488 3.84171 11.5488 3.64645 11.3536Z"
-            fill="currentColor"
-            fillRule="evenodd"
-            clipRule="evenodd"
-          ></path>
-        </svg> */}
       </a>
     </Magnetic>
   )
 }
 
 export default function Personal() {
+  const [showAllProjects, setShowAllProjects] = React.useState(false)
+
   return (
     <motion.main
       className="space-y-24"
@@ -121,7 +130,7 @@ export default function Personal() {
            <br />
            <p className="text-muted-foreground">
              Here's my{' '}
-             <AnimatedLink href="/pdf/bruce_liu_cv.pdf" showPreview={false}>
+             <AnimatedLink href="/pdf/cv.pdf" showPreview={false}>
                CV
                <svg
                  width="15"
@@ -147,16 +156,78 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
-        <h3 className="mb-5 text-lg font-medium">Selected Projects</h3>
+        <div className="mb-5 flex items-baseline gap-2">
+          <h3 className="text-lg font-medium">Projects</h3>
+          <span className="text-sm">
+            
+          <button
+              onClick={() => setShowAllProjects(true)}
+              className={`relative transition-colors ${
+                showAllProjects
+                  ? 'text-foreground font-medium cursor-default'
+                  : 'text-muted-foreground cursor-pointer group'
+              }`}
+            >
+              All
+              {!showAllProjects && (
+                <span className="absolute bottom-0 left-0 block h-[1px] w-full max-w-0 bg-foreground transition-all duration-200 group-hover:max-w-full"></span>
+              )}
+            </button>
+            
+            <span className="text-muted-foreground"> / </span>
+
+            <button
+              onClick={() => setShowAllProjects(false)}
+              className={`relative transition-colors ${
+                !showAllProjects
+                  ? 'text-foreground font-medium cursor-default'
+                  : 'text-muted-foreground cursor-pointer group'
+              }`}
+            >
+              Selected
+              {showAllProjects && (
+                <span className="absolute bottom-0 left-0 block h-[1px] w-full max-w-0 bg-foreground transition-all duration-200 group-hover:max-w-full"></span>
+              )}
+            </button>
+            
+            
+            
+          </span>
+        </div>
         <div className="space-y-8">
-          {PROJECTS.map((pub) => (
-            <div key={pub.id} className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <AnimatePresence mode="popLayout">
+            {PROJECTS.filter((pub) => showAllProjects || pub.selected === true)
+              .sort((a, b) => {
+                if (b.year !== a.year) {
+                  return b.year - a.year
+                }
+                return a.id.localeCompare(b.id)
+              })
+              .map((pub) => (
+              <motion.div 
+                key={pub.id} 
+                className="flex flex-col gap-4 sm:flex-row sm:items-start"
+                variants={VARIANTS_PROJECT_ITEM}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                layout
+              >
               <div className="flex-1">
                 <h4 className="font-medium text-foreground">
                   {pub.title}
                 </h4>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {pub.authors.join(', ')}
+                  {pub.authors.map((author, index) => (
+                    <React.Fragment key={index}>
+                      {HIGHLIGHTED_AUTHORS.includes(author) ? (
+                        <span className="font-medium">{author}</span>
+                      ) : (
+                        author
+                      )}
+                      {index < pub.authors.length - 1 && ', '}
+                    </React.Fragment>
+                  ))}
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {pub.award && (
@@ -252,8 +323,9 @@ export default function Personal() {
                   />
                 </div>
               )}
-            </div>
+            </motion.div>
           ))}
+          </AnimatePresence>
         </div>
       </motion.section>
 
