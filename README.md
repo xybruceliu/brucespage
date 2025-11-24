@@ -1,44 +1,121 @@
-# brucespage
+# Bruce's Personal Website
 
-My personal webpage redesigned
+A personal portfolio website showcasing research projects, publications, and professional information.
 
-<img src="/public/cover.jpg" alt="Cover image representing Nim, a personal website template" width="100%" />
+## Overview
 
-Nim is a free and open-source personal website template built with Next.js 15, React 19, Tailwind CSS v4, and Motion. Designed for developers, designers, and founders, it combines minimalism with delightful animated components powered by [Motion-Primitives](https://motion-primitives.com).
+This is a Next.js-based personal website designed for academics and researchers. It features a clean, modern interface to display your research work, publications, and professional profile.
 
-Live demo: [https://nim-fawn.vercel.app](https://nim-fawn.vercel.app)
+Built on the [Nim: Minimalist Personal Site](https://vercel.com/templates/portfolio/nim-minimalist-personal-site) template, this project has been customized for academic portfolios with enhanced support for research publications and projects.
 
-## Features
+## Customization Guide
 
-- Minimal one-page portfolio layout.
-- Blog support with MDX.
-- Responsive and accessible design.
-- Easy to use
-- [Motion-Primitives](https://motion-primitives.com) for animated components.
+All personal content is centralized in `app/data.ts`. To customize the website for your own use:
+
+### 1. Personal Information
+
+Update your basic details:
+
+```typescript
+export const PERSONAL_INFO = {
+  name: {
+    english: 'Your Name',
+    chinese: '你的名字', // Optional
+  },
+  title: 'Your Title @ Your Institution',
+}
+
+export const EMAIL = 'your.email@institution.edu'
+export const SITE_URL = 'https://yourdomain.com'
+```
+
+### 2. Projects & Publications
+
+Modify the `PROJECTS` array to list your research. Add project images to `public/img/projects/` and PDFs to `public/pdf/projects/`:
+
+```typescript
+{
+  title: 'Your Project Title',
+  authors: ['Author One', 'Author Two'],
+  year: 2024,
+  image: '/img/projects/yourproject.png', // Optional - place images in public/img/projects/
+  award: 'Best Paper Award', // Optional - displays honors/awards
+  selected: true, // Set true to feature this project prominently
+  links: {
+    // Common link types: conference name, pdf, code, blog, video, demo
+    'Conference Name': 'https://doi.org/...',
+    pdf: '/pdf/projects/yourpaper.pdf',
+    code: 'https://github.com/you/repo',
+    video: 'https://youtube.com/...',
+  },
+  id: 'unique-project-id',
+}
+```
+
+### 3. Author Highlighting
+
+Specify your name variants to be highlighted in author lists:
+
+```typescript
+export const HIGHLIGHTED_AUTHORS = ['Your Name', 'Your Full Name']
+```
+
+### 4. Blog Posts
+
+Update the `BLOG_POSTS` array for blog content:
+
+```typescript
+{
+  title: 'Your Blog Post Title',
+  description: 'Brief description',
+  link: '/blog/your-post-slug',
+  uid: 'unique-blog-id',
+}
+```
+
+### 5. Social Links
+
+Customize your social media and professional profiles. Store your CV in `public/pdf/`:
+
+```typescript
+{
+  label: 'Twitter',
+  link: 'https://x.com/yourhandle',
+  icon: 'Twitter', // Icon name from Lucide React
+}
+```
+
+Available icons: `FileText`, `Twitter`, `Linkedin`, `GraduationCap`, `Github`, and more from [Lucide Icons](https://lucide.dev).
 
 ## Getting Started
 
-For detailed setup instructions, refer to the [Installation Guide](./INSTALLATION.md).
-
 ```bash
-git clone https://github.com/ibelick/nim.git
-cd nim
+# Install dependencies
 npm install
+
+# Run development server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit `http://localhost:3000` to see your site.
 
-## Contributing
+## Project Structure
 
-Contributions are welcome! Feel free to open issues or submit pull requests to improve Nim.
+```
+app/
+├── data.ts          # All customizable content
+├── page.tsx         # Main page component
+├── layout.tsx       # Site layout
+public/
+├── img/projects/    # Project images
+├── pdf/projects/    # Publication PDFs
+└── pdf/             # CV and other documents
+```
 
-## Deployment
+---
 
-You can deploy your site to any hosting platform that supports Next.js. For the easiest deployment experience, consider using Vercel:
+Built with [Next.js](https://nextjs.org) and [React](https://react.dev) • Based on [Nim](https://vercel.com/templates/portfolio/nim-minimalist-personal-site) template
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fibelick%2Fnim&env=NEXT_PUBLIC_SITE_URL&project-name=nim&repository-name=nim&redirect-url=https%3A%2F%2Ftwitter.com%2Fibelick&demo-title=Nim&demo-description=Nim%20is%20a%20free%20and%20open-source%20minimal%20personal%20website%20template%20built%20with%20Next.js%2015%2C%20React%2019%2C%20and%20Motion-Primitives.&demo-url=https%3A%2F%2Fnim.vercel.app&demo-image=https%3A%2F%2Fraw.githubusercontent.com%2Fibelick%2Fnim%2Frefs%2Fheads%2Fmain%2F.github%2Fassets%2Freadme.png&teamSlug=ibelick)
-
-## About
-
-Nim is designed to make personal branding effortless and beautiful. If you enjoy it, consider sharing it and exploring [Motion-Primitives Pro](https://pro.motion-primitives.com/).
