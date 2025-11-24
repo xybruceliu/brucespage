@@ -218,7 +218,7 @@ export const BLOG_POSTS: BlogPost[] = [
 export const SOCIAL_LINKS: SocialLink[] = [
   {
     label: 'CV',
-    link: '/pdf/bruce_liu_cv.pdf', // Update this with your actual CV path
+    link: '/pdf/cv.pdf',
     icon: 'FileText',
   },
   {
