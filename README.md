@@ -1,5 +1,9 @@
 # Bruce's Personal Website
 
+![Preview](public/preview.png)
+
+**[Live Demo →](https://liubruce.me)**
+
 A personal portfolio website showcasing research projects, publications, and professional information.
 
 ## Overview
