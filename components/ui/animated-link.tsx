@@ -156,7 +156,7 @@ export function AnimatedLink({
                       src={isStatic ? imageSrc : src}
                       width={width}
                       height={height}
-                      className="rounded-lg ring-1 ring-border"
+                      className="rounded-lg shadow-lg"
                       alt="preview image"
                     />
                   </a>
