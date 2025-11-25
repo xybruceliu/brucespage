@@ -253,7 +253,7 @@ export default function Personal() {
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center rounded-full border border-border px-2.5 py-1 text-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+                        className="inline-flex items-center rounded-full ring-1 ring-border shadow-sm px-2.5 py-1 text-xs transition-colors hover:bg-accent hover:text-accent-foreground"
                         initial="initial"
                         whileHover="hover"
                       >
@@ -327,7 +327,7 @@ export default function Personal() {
                     alt={pub.title}
                     width={192}
                     height={128}
-                    className="h-auto w-full rounded-sm ring-1 ring-border"
+                    className="h-auto w-full rounded-sm shadow-lg"
                   />
                 </div>
               )}
