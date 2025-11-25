@@ -419,6 +419,7 @@ export default function Personal() {
                   className="h-[120px] w-auto cursor-pointer rounded-sm object-cover transition-opacity hover:opacity-80"
                   loading="eager"
                   quality={85}
+                  draggable={false}
                 />
               </DialogTrigger>
               <DialogContent
@@ -442,6 +443,7 @@ export default function Personal() {
                     maxWidth: '70vw',
                     maxHeight: '70vh',
                   }}
+                  draggable={false}
                 />
               </DialogContent>
             </Dialog>
