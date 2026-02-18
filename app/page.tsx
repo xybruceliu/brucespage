@@ -109,7 +109,7 @@ export default function Personal() {
         <div className="flex-1">
           <p className="text-muted-foreground">
             Hi! I'm a Research Scientist at{' '}
-            <AnimatedLink href="https://research.adobe.com/">
+            <AnimatedLink href="https://research.adobe.com/" isStatic={true} imageSrc="/img/adobe-building.jpg">
               Adobe Research
             </AnimatedLink>
             . I design and build new paradigms for generative filmmaking.
