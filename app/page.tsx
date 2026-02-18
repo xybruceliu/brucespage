@@ -108,20 +108,23 @@ export default function Personal() {
       >
         <div className="flex-1">
           <p className="text-muted-foreground">
-            Hola! I'm a PhD candidate in{' '}
-            <AnimatedLink href="https://hci.ucla.edu/#team">
-              UCLA HCI lab
+            Hi! I'm a Research Scientist at{' '}
+            <AnimatedLink href="https://research.adobe.com/">
+              Adobe Research
             </AnimatedLink>
-            {' '}advised by Professor {' '}
-            <AnimatedLink href="https://hci.prof/">
-              Xiang 'Anthony' Chen
-            </AnimatedLink>
-            .{' '}
-            My research explores future forms of Large Language Models and AI agents beyond a turn-based chatbot.
+            . I design and build new paradigms for generative filmmaking.
           </p>
            <br />
            <p className="text-muted-foreground">
-             My work has been recognized and supported by an{' '}
+             Previously, I received my Ph.D. from{' '}
+             <AnimatedLink href="https://hci.ucla.edu/#team">
+               UCLA HCI lab
+             </AnimatedLink>
+             {' '}advised by Professor{' '}
+             <AnimatedLink href="https://hci.prof/">
+               Xiang 'Anthony' Chen
+             </AnimatedLink>
+             . My work was recognized by an{' '}
              <AnimatedLink href="https://www.sciencehub.ucla.edu/2023-amazon-fellows/" isStatic={true} imageSrc="/img/amazon-fellowship.png">
                Amazon Ph.D. Fellowship
              </AnimatedLink>
@@ -129,11 +132,11 @@ export default function Personal() {
              <AnimatedLink href="https://dl.acm.org/doi/10.1145/3526113.3545703" isStatic={true} imageSrc="/img/uist-best-paper.png">
                ACM UIST Best Paper Award
              </AnimatedLink>
-             , two{' '}
+             , and two{' '}
              <AnimatedLink href="https://dl.acm.org/doi/10.1145/3613904.3642065" isStatic={true} imageSrc="/img/chi-best-paper.png">
                ACM CHI Best Paper Honorable Mentions
              </AnimatedLink>
-             . I've also done internships at Adobe Research, Google, Meta Reality Labs and Snap Research.
+             .
            </p>
            <br />
            <p className="text-muted-foreground">

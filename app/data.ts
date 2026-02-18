@@ -29,7 +29,7 @@ export const PERSONAL_INFO = {
     english: 'Bruce Liu',
     chinese: '刘星宇',
   },
-  title: 'Ph.D. Candidate @ UCLA',
+  title: 'Research Scientist @ Adobe',
 }
 
 export const HIGHLIGHTED_AUTHORS = ['Xingyu Bruce Liu', 'Xingyu Liu']
@@ -238,7 +238,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
   },
 ]
 
-export const EMAIL = 'xingyuliu@ucla.edu'
+export const EMAIL = 'xingyul@adobe.com'
 
 export const PHOTO_GALLERY = [
   '000006.jpg',
