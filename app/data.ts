@@ -41,7 +41,10 @@ export const PROJECTS: Project[] = [
     year: 2026,
     image: '/img/projects/liu2026doki.png',
     selected: true,
-    links: {},
+    links: {
+      pdf: '/pdf/projects/liu2026doki.pdf',
+      video: 'https://www.youtube.com/watch?v=5ARvAi6WyFU',
+    },
     id: 'liu2026doki',
   },
   {
