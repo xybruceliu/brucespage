@@ -5,15 +5,26 @@ import {
   Children,
   cloneElement,
   ReactElement,
+  ReactNode,
   useEffect,
   useState,
   useId,
 } from 'react'
 
+type AnimatedBackgroundChildProps = {
+  'data-id': string
+  className?: string
+  children?: ReactNode
+  'data-checked'?: string
+  onClick?: () => void
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
+}
+
 export type AnimatedBackgroundProps = {
   children:
-    | ReactElement<{ 'data-id': string }>[]
-    | ReactElement<{ 'data-id': string }>
+    | ReactElement<AnimatedBackgroundChildProps>[]
+    | ReactElement<AnimatedBackgroundChildProps>
   defaultValue?: string
   onValueChange?: (newActiveId: string | null) => void
   className?: string
