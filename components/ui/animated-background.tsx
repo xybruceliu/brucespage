@@ -1,6 +1,6 @@
-'use client';
-import { cn } from '@/lib/utils';
-import { AnimatePresence, Transition, motion } from 'motion/react';
+'use client'
+import { cn } from '@/lib/utils'
+import { AnimatePresence, Transition, motion } from 'motion/react'
 import {
   Children,
   cloneElement,
@@ -8,18 +8,18 @@ import {
   useEffect,
   useState,
   useId,
-} from 'react';
+} from 'react'
 
 export type AnimatedBackgroundProps = {
   children:
     | ReactElement<{ 'data-id': string }>[]
-    | ReactElement<{ 'data-id': string }>;
-  defaultValue?: string;
-  onValueChange?: (newActiveId: string | null) => void;
-  className?: string;
-  transition?: Transition;
-  enableHover?: boolean;
-};
+    | ReactElement<{ 'data-id': string }>
+  defaultValue?: string
+  onValueChange?: (newActiveId: string | null) => void
+  className?: string
+  transition?: Transition
+  enableHover?: boolean
+}
 
 export function AnimatedBackground({
   children,
@@ -29,40 +29,40 @@ export function AnimatedBackground({
   transition,
   enableHover = false,
 }: AnimatedBackgroundProps) {
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const uniqueId = useId();
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const uniqueId = useId()
 
   const handleSetActiveId = (id: string | null) => {
-    setActiveId(id);
+    setActiveId(id)
 
     if (onValueChange) {
-      onValueChange(id);
+      onValueChange(id)
     }
-  };
+  }
 
   useEffect(() => {
     if (defaultValue !== undefined) {
-      setActiveId(defaultValue);
+      setActiveId(defaultValue)
     }
-  }, [defaultValue]);
+  }, [defaultValue])
 
-  return Children.map(children, (child: any, index) => {
-    const id = child.props['data-id'];
+  return Children.map(children, (child, index) => {
+    const id = child.props['data-id']
 
-  const interactionProps = enableHover
-    ? {
-        onMouseEnter: () => handleSetActiveId(id),
-        onMouseLeave: () => {
-          if (defaultValue) {
-            handleSetActiveId(defaultValue)
-          } else {
-            handleSetActiveId(null)
-          }
-        },
-      }
-    : {
-        onClick: () => handleSetActiveId(id),
-      }
+    const interactionProps = enableHover
+      ? {
+          onMouseEnter: () => handleSetActiveId(id),
+          onMouseLeave: () => {
+            if (defaultValue) {
+              handleSetActiveId(defaultValue)
+            } else {
+              handleSetActiveId(null)
+            }
+          },
+        }
+      : {
+          onClick: () => handleSetActiveId(id),
+        }
 
     return cloneElement(
       child,
@@ -89,8 +89,8 @@ export function AnimatedBackground({
             />
           )}
         </AnimatePresence>
-        <div className='z-10'>{child.props.children}</div>
-      </>
-    );
-  });
+        <div className="z-10">{child.props.children}</div>
+      </>,
+    )
+  })
 }
