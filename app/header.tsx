@@ -15,16 +15,16 @@ export function Header() {
     const checkTheme = () => {
       setIsDark(document.documentElement.classList.contains('dark'))
     }
-    
+
     checkTheme()
-    
+
     // Watch for theme changes
     const observer = new MutationObserver(checkTheme)
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ['class'],
     })
-    
+
     return () => observer.disconnect()
   }, [])
 
@@ -37,8 +37,8 @@ export function Header() {
           transition={{ duration: 0.3 }}
         >
           <Tilt rotationFactor={10} isRevese>
-            <Image 
-              src={isDark ? "/img/profile-dark.png" : "/img/profile-light.png"}
+            <Image
+              src={isDark ? '/img/profile-dark.png' : '/img/profile-light.png'}
               alt="Bruce Liu"
               width={128}
               height={128}
@@ -47,15 +47,17 @@ export function Header() {
           </Tilt>
         </motion.div>
         <div>
-          <div 
+          <div
             onClick={() => setIsChinese(!isChinese)}
-            className="font-medium text-foreground cursor-pointer inline-block"
+            className="text-foreground inline-block cursor-pointer font-medium"
           >
             <TextScramble
               characterSet={`${PERSONAL_INFO.name.chinese}${PERSONAL_INFO.name.english}`}
               key={isChinese ? 'chinese' : 'english'}
             >
-              {isChinese ? PERSONAL_INFO.name.chinese : PERSONAL_INFO.name.english}
+              {isChinese
+                ? PERSONAL_INFO.name.chinese
+                : PERSONAL_INFO.name.english}
             </TextScramble>
           </div>
           <TextScramble

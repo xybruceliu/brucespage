@@ -16,14 +16,14 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   alternates: {
-    canonical: '/'
+    canonical: '/',
   },
   title: {
     default: PERSONAL_INFO.name.english,
-    template: `%s | ${PERSONAL_INFO.name.english}`
+    template: `%s | ${PERSONAL_INFO.name.english}`,
   },
-  description:  `${PERSONAL_INFO.name.english}'s personal website.`,
-};
+  description: `${PERSONAL_INFO.name.english}'s personal website.`,
+}
 
 const geist = Geist({
   variable: '--font-geist',

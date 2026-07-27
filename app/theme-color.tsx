@@ -10,11 +10,10 @@ export function ThemeColor() {
     if (metaThemeColor) {
       metaThemeColor.setAttribute(
         'content',
-        resolvedTheme === 'dark' ? '#09090b' : '#ffffff'
+        resolvedTheme === 'dark' ? '#09090b' : '#ffffff',
       )
     }
   }, [resolvedTheme])
 
   return null
 }
-

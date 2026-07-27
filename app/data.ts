@@ -61,7 +61,14 @@ export const PROJECTS: Project[] = [
   },
   {
     title: 'Proactive Conversational Agents with Inner Thoughts',
-    authors: ['Xingyu Bruce Liu', 'Shitao Fang', 'Weiyan Shi', 'Chien-Sheng Wu', 'Takeo Igarashi', 'Xiang Anthony Chen'],
+    authors: [
+      'Xingyu Bruce Liu',
+      'Shitao Fang',
+      'Weiyan Shi',
+      'Chien-Sheng Wu',
+      'Takeo Igarashi',
+      'Xiang Anthony Chen',
+    ],
     year: 2025,
     image: '/img/projects/liu2025inner.png',
     selected: true,
@@ -73,8 +80,15 @@ export const PROJECTS: Project[] = [
     id: 'liu2025inner',
   },
   {
-    title: 'Human I/O: Towards a Unified Approach to Detecting Situational Impairments',
-    authors: ['Xingyu Bruce Liu', 'Jiaohao Nick Li', 'David Kim', 'Xiang Anthony Chen', 'Ruofei Du'],
+    title:
+      'Human I/O: Towards a Unified Approach to Detecting Situational Impairments',
+    authors: [
+      'Xingyu Bruce Liu',
+      'Jiaohao Nick Li',
+      'David Kim',
+      'Xiang Anthony Chen',
+      'Ruofei Du',
+    ],
     year: 2024,
     image: '/img/projects/liu2024humanio.png',
     award: 'Best Paper Honorable Mention',
@@ -89,8 +103,17 @@ export const PROJECTS: Project[] = [
     id: 'liu2024humanio',
   },
   {
-    title: 'Experiencing Visual Captions: Augmented Communication with Real-Time Visuals Using Large Language Models',
-    authors: ['Xingyu Bruce Liu', 'Vladimir Kirilyuk', 'Xiuxiu Yuan', 'Peggy Chi', 'Alex Olwal', 'Xiang Anthony Chen', 'Ruofei Du'],
+    title:
+      'Experiencing Visual Captions: Augmented Communication with Real-Time Visuals Using Large Language Models',
+    authors: [
+      'Xingyu Bruce Liu',
+      'Vladimir Kirilyuk',
+      'Xiuxiu Yuan',
+      'Peggy Chi',
+      'Alex Olwal',
+      'Xiang Anthony Chen',
+      'Ruofei Du',
+    ],
     year: 2023,
     image: '/img/projects/liu2023vcdemo.png',
     links: {
@@ -99,8 +122,19 @@ export const PROJECTS: Project[] = [
     id: 'liu2023vcdemo',
   },
   {
-    title: 'Social Wormholes: Exploring Preferences and Opportunities for Distributed and Physically-Grounded Social Connections',
-    authors: ['Xingyu Bruce Liu', 'Joanne Leong', 'Yuanyang Teng', 'Hanseul Jun', 'Sven Kratz', 'Yu Jiang Tham', 'Andrés Monroy-Hernández', 'Brian A. Smith', 'Rajan Vaish'],
+    title:
+      'Social Wormholes: Exploring Preferences and Opportunities for Distributed and Physically-Grounded Social Connections',
+    authors: [
+      'Xingyu Bruce Liu',
+      'Joanne Leong',
+      'Yuanyang Teng',
+      'Hanseul Jun',
+      'Sven Kratz',
+      'Yu Jiang Tham',
+      'Andrés Monroy-Hernández',
+      'Brian A. Smith',
+      'Rajan Vaish',
+    ],
     year: 2023,
     image: '/img/projects/liu2023social.png',
     links: {
@@ -109,8 +143,17 @@ export const PROJECTS: Project[] = [
     id: 'liu2023social',
   },
   {
-    title: 'Visual Captions: Augmenting Verbal Communication with On-the-fly Visuals',
-    authors: ['Xingyu Bruce Liu', 'Vladimir Kirilyuk', 'Xiuxiu Yuan', 'Alex Olwal', 'Peggy Chi', 'Xiang Anthony Chen', 'Ruofei Du'],
+    title:
+      'Visual Captions: Augmenting Verbal Communication with On-the-fly Visuals',
+    authors: [
+      'Xingyu Bruce Liu',
+      'Vladimir Kirilyuk',
+      'Xiuxiu Yuan',
+      'Alex Olwal',
+      'Peggy Chi',
+      'Xiang Anthony Chen',
+      'Ruofei Du',
+    ],
     year: 2023,
     image: '/img/projects/liu2023visualcaptions.png',
     selected: true,
@@ -124,8 +167,26 @@ export const PROJECTS: Project[] = [
     id: 'liu2023visualcaptions',
   },
   {
-    title: 'Rapsai: Accelerating Machine Learning Prototyping of Multimedia Applications Through Visual Programming',
-    authors: ['Ruofei Du', 'Na Li', 'Jing Jin', 'Michelle Carney', 'Scott Miles', 'Maria Kleiner', 'Xiuxiu Yuan', 'Yinda Zhang', 'Anuva Kulkarni', 'Xingyu Bruce Liu', 'Sergio Escolano', 'Abhishek Kar', 'Alex Olwal', 'Ping Yu', 'Ram Iyengar', 'Adarsh Kowdle'],
+    title:
+      'Rapsai: Accelerating Machine Learning Prototyping of Multimedia Applications Through Visual Programming',
+    authors: [
+      'Ruofei Du',
+      'Na Li',
+      'Jing Jin',
+      'Michelle Carney',
+      'Scott Miles',
+      'Maria Kleiner',
+      'Xiuxiu Yuan',
+      'Yinda Zhang',
+      'Anuva Kulkarni',
+      'Xingyu Bruce Liu',
+      'Sergio Escolano',
+      'Abhishek Kar',
+      'Alex Olwal',
+      'Ping Yu',
+      'Ram Iyengar',
+      'Adarsh Kowdle',
+    ],
     year: 2023,
     image: '/img/projects/du2023rapsai.png',
     award: 'Best Paper Honorable Mention',
@@ -138,9 +199,18 @@ export const PROJECTS: Project[] = [
   },
   {
     title: 'Modeling and Improving Text Stability in Live Captions',
-    authors: ['Xingyu Bruce Liu', 'Jun Zhang', 'Leonardo Ferrer', 'Susan Xu', 'Vikas Bahirwani', 'Boris Smus', 'Alex Olwal', 'Ruofei Du'],
+    authors: [
+      'Xingyu Bruce Liu',
+      'Jun Zhang',
+      'Leonardo Ferrer',
+      'Susan Xu',
+      'Vikas Bahirwani',
+      'Boris Smus',
+      'Alex Olwal',
+      'Ruofei Du',
+    ],
     year: 2023,
-    image: '/img/projects/Liu2023Modeling.png',
+    image: '/img/projects/liu2023modeling.png',
     links: {
       'CHI 2023 LBW': 'https://doi.org/10.1145/3544549.3585609',
       pdf: '/pdf/projects/liu2023modeling.pdf',
@@ -149,8 +219,15 @@ export const PROJECTS: Project[] = [
     id: 'liu2023modeling',
   },
   {
-    title: 'CrossA11y: Identifying Video Accessibility Issues via Cross-Modal Grounding',
-    authors: ['Xingyu Bruce Liu', 'Ruolin Wang', 'Dingzeyu Li', 'Xiang Anthony Chen', 'Amy Pavel'],
+    title:
+      'CrossA11y: Identifying Video Accessibility Issues via Cross-Modal Grounding',
+    authors: [
+      'Xingyu Bruce Liu',
+      'Ruolin Wang',
+      'Dingzeyu Li',
+      'Xiang Anthony Chen',
+      'Amy Pavel',
+    ],
     year: 2022,
     image: '/img/projects/liu2022crossa11y.png',
     award: 'Best Paper Award',
@@ -163,8 +240,14 @@ export const PROJECTS: Project[] = [
     id: 'liu2022crossa11y',
   },
   {
-    title: 'What Makes Videos Accessible to Blind and Visually Impaired People?',
-    authors: ['Xingyu Bruce Liu', 'Patrick Carrington', 'Xiang Anthony Chen', 'Amy Pavel'],
+    title:
+      'What Makes Videos Accessible to Blind and Visually Impaired People?',
+    authors: [
+      'Xingyu Bruce Liu',
+      'Patrick Carrington',
+      'Xiang Anthony Chen',
+      'Amy Pavel',
+    ],
     year: 2021,
     image: '/img/projects/liu2021what.png',
     selected: false,
@@ -177,7 +260,14 @@ export const PROJECTS: Project[] = [
   },
   {
     title: 'Making Memes Accessible',
-    authors: ['Cole Gleason', 'Amy Pavel', 'Xingyu Bruce Liu', 'Patrick Carrington', 'Lydia B. Chilton', 'Jeffrey P. Bigham'],
+    authors: [
+      'Cole Gleason',
+      'Amy Pavel',
+      'Xingyu Bruce Liu',
+      'Patrick Carrington',
+      'Lydia B. Chilton',
+      'Jeffrey P. Bigham',
+    ],
     year: 2019,
     image: '/img/projects/gleason2019making.png',
     links: {
@@ -189,32 +279,16 @@ export const PROJECTS: Project[] = [
   },
 ]
 
+// Blog is currently disabled (see the commented-out section in page.tsx).
+// To publish a post: add an entry here and create app/blog/<slug>/page.mdx
+// (see app/blog/example-mdx-metadata/page.mdx for a reference).
 export const BLOG_POSTS: BlogPost[] = [
   {
-    title: 'Exploring the Intersection of Design, AI, and Design Engineering',
-    description: 'How AI is changing the way we design',
-    link: '/blog/exploring-the-intersection-of-design-ai-and-design-engineering',
-    uid: 'blog-1',
-  },
-  {
-    title: 'Why I left my job to start my own company',
-    description:
-      'A deep dive into my decision to leave my job and start my own company',
-    link: '/blog/exploring-the-intersection-of-design-ai-and-design-engineering',
-    uid: 'blog-2',
-  },
-  {
-    title: 'What I learned from my first year of freelancing',
-    description:
-      'A look back at my first year of freelancing and what I learned',
-    link: '/blog/exploring-the-intersection-of-design-ai-and-design-engineering',
-    uid: 'blog-3',
-  },
-  {
     title: 'How to Export Metadata from MDX for Next.js SEO',
-    description: 'A guide on exporting metadata from MDX files to leverage Next.js SEO features.',
+    description:
+      'A guide on exporting metadata from MDX files to leverage Next.js SEO features.',
     link: '/blog/example-mdx-metadata',
-    uid: 'blog-4',
+    uid: 'blog-1',
   },
 ]
 
@@ -245,11 +319,11 @@ export const EMAIL = 'xingyul@adobe.com'
 
 export const PHOTO_GALLERY = [
   '000006.jpg',
-  '000041 2.jpg',
-  '000044 2.jpg',
-  '000048 2.jpg',
+  '000041-2.jpg',
+  '000044-2.jpg',
+  '000048-2.jpg',
   '000049.jpg',
-  '000060 3.jpg',
+  '000060-3.jpg',
   '000063110001.jpg',
   '000063110005.jpg',
   '000063110002.jpg',

@@ -1,4 +1,4 @@
-import createMDX from '@next/mdx';
+import createMDX from '@next/mdx'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -6,15 +6,13 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
   images: {
     domains: [
-      "api.microlink.io", // Microlink Image Preview
+      'api.microlink.io', // Microlink Image Preview
     ],
   },
-};
+}
 
 const withMDX = createMDX({
   extension: /\.mdx?$/,
-});
+})
 
-export default withMDX(nextConfig);
-
-
+export default withMDX(nextConfig)
