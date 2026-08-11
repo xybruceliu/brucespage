@@ -154,7 +154,7 @@ export default function Personal() {
             >
               ACM CHI Best Paper Honorable Mentions
             </AnimatedLink>
-            .
+            . I&apos;ve also interned at Google, Meta, and Snap.
           </p>
           <br />
           <p className="text-muted-foreground">

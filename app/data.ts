@@ -42,6 +42,7 @@ export const PROJECTS: Project[] = [
     image: '/img/projects/liu2026doki.png',
     selected: true,
     links: {
+      'UIST 2026': 'https://doi.org/10.1145/3830398.3830715',
       pdf: '/pdf/projects/liu2026doki.pdf',
       video: 'https://www.youtube.com/watch?v=5ARvAi6WyFU',
     },
