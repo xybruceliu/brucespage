@@ -49,6 +49,26 @@ export const PROJECTS: Project[] = [
     id: 'liu2026doki',
   },
   {
+    title:
+      'Behavioral Indicators of Overreliance During Interaction with Conversational Language Models',
+    authors: [
+      'Chang Liu',
+      'Qinyi Zhou',
+      'Xinjie Shen',
+      'Xingyu Bruce Liu',
+      'Tongshuang Wu',
+      'Xiang Anthony Chen',
+    ],
+    year: 2026,
+    image: '/img/projects/liu2026overreliance.png',
+    selected: false,
+    links: {
+      'CHI 2026': 'https://doi.org/10.1145/3772318.3790332',
+      pdf: '/pdf/projects/liu2026overreliance.pdf',
+    },
+    id: 'liu2026overreliance',
+  },
+  {
     title: 'Thought as a Substrate in Human-AI Interaction',
     authors: ['Xingyu Bruce Liu'],
     year: 2025,
