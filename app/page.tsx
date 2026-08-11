@@ -118,7 +118,9 @@ export default function Personal() {
             >
               Adobe Research
             </AnimatedLink>
-            . I design and build new paradigms for generative filmmaking.
+            .
+            <br />
+            I build autonomous agents that develop their own taste.
           </p>
           <br />
           <p className="text-muted-foreground">
