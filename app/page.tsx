@@ -119,8 +119,7 @@ export default function Personal() {
               Adobe Research
             </AnimatedLink>
             .
-            <br />
-            I build autonomous agents that develop their own taste.
+            <br />I build autonomous agents that develop their own taste.
           </p>
           <br />
           <p className="text-muted-foreground">
