@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
+@import 'tw-animate-css';
 @plugin '@tailwindcss/typography';
 @custom-variant dark (&:is(.dark *));
 
@@ -154,5 +154,14 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* A soft, foreground-tinted selection instead of the browser default —
+     keeps the monochrome discipline while feeling considered. */
+  ::selection {
+    background-color: oklch(0.145 0 0 / 0.14);
+  }
+  .dark ::selection {
+    background-color: oklch(0.985 0 0 / 0.18);
   }
 }
