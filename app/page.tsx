@@ -6,7 +6,6 @@ import { Magnetic } from '@/components/ui/magnetic'
 import { AnimatedLink } from '@/components/ui/animated-link'
 import { AwardBadge } from '@/components/ui/award-badge'
 import { WaveEmoji } from '@/components/ui/wave-emoji'
-import { TasteWord } from '@/components/ui/taste-word'
 import { CompanyTag, GoogleIcon } from '@/components/ui/company-tag'
 import { ArrowUpRightIcon } from '@/components/ui/arrow-up-right'
 import { SiMeta, SiSnapchat } from 'react-icons/si'
@@ -124,8 +123,7 @@ export default function Personal() {
             >
               Adobe Research
             </AnimatedLink>
-            . Recently, I&apos;m exploring autonomous agents that develop their
-            own <TasteWord />.
+            . I work at the seam of AI models and experiences.
           </p>
           <br />
           <p className="text-muted-foreground">
