@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { InfiniteSlider } from '@/components/ui/infinite-slider'
-import Image from 'next/image'
+import Image, { getImageProps } from 'next/image'
 // Note: re-import BLOG_POSTS from './data' when re-enabling the Blog section below.
 import {
   PROJECTS,
@@ -99,6 +99,82 @@ function MagneticSocialLink({
   )
 }
 
+// A gallery thumbnail that opens the photo in a lightbox. The lightbox image
+// is resized for the screen (not the multi-megabyte original) and fetched as
+// soon as the pointer or keyboard focus lands on the thumbnail, so it's
+// usually ready by the time the click happens.
+function GalleryPhoto({ photo, label }: { photo: string; label: string }) {
+  const fullSize = {
+    src: `/img/photos/${photo}`,
+    alt: label,
+    // Only a placeholder aspect ratio; the rendered size comes from the
+    // max-width/max-height below and the photo's real proportions.
+    width: 1500,
+    height: 1000,
+    sizes: '70vw',
+    quality: 85,
+  }
+  const prefetched = React.useRef(false)
+
+  const prefetch = () => {
+    if (prefetched.current) return
+    prefetched.current = true
+    const { props } = getImageProps(fullSize)
+    const img = new window.Image()
+    if (props.sizes) img.sizes = props.sizes
+    if (props.srcSet) img.srcset = props.srcSet
+    img.src = props.src
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          aria-label={`Open ${label.toLowerCase()}`}
+          onPointerEnter={prefetch}
+          onFocus={prefetch}
+          className="group shrink-0 cursor-pointer rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          <Image
+            src={`/img/photos/${photo}`}
+            alt=""
+            width={180}
+            height={120}
+            className="h-[120px] w-auto rounded-sm object-cover shadow-sm transition duration-300 ease-out will-change-transform group-hover:scale-[1.04] group-hover:shadow-lg group-focus-visible:scale-[1.04] group-focus-visible:shadow-lg"
+            quality={85}
+            draggable={false}
+          />
+        </button>
+      </DialogTrigger>
+      <DialogContent
+        showCloseButton={false}
+        className="flex h-auto w-auto max-w-none items-center justify-center border-none bg-transparent p-0 ring-0 shadow-none outline-none"
+        style={
+          {
+            '--tw-enter-scale': '1',
+            '--tw-exit-scale': '1',
+          } as React.CSSProperties
+        }
+      >
+        <DialogTitle className="sr-only">{label}</DialogTitle>
+        <Image
+          {...fullSize}
+          alt={fullSize.alt}
+          className="rounded-md"
+          style={{
+            width: 'auto',
+            height: 'auto',
+            maxWidth: '70vw',
+            maxHeight: '70vh',
+          }}
+          draggable={false}
+        />
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export default function Personal() {
   const [showAllProjects, setShowAllProjects] = React.useState(false)
 
@@ -128,18 +204,26 @@ export default function Personal() {
           <br />
           <p className="text-muted-foreground">
             Previously, I received my Ph.D. from{' '}
-            <AnimatedLink href="https://hci.ucla.edu/#team">
+            <AnimatedLink
+              href="https://hci.ucla.edu/#team"
+              isStatic={true}
+              imageSrc="/img/ucla-hci-lab.webp"
+            >
               UCLA HCI lab
             </AnimatedLink>{' '}
             advised by Professor{' '}
-            <AnimatedLink href="https://hci.prof/">
+            <AnimatedLink
+              href="https://hci.prof/"
+              isStatic={true}
+              imageSrc="/img/hci-prof.webp"
+            >
               Xiang &lsquo;Anthony&rsquo; Chen
             </AnimatedLink>
             . My work was recognized by an{' '}
             <AnimatedLink
               href="https://www.sciencehub.ucla.edu/2023-amazon-fellows/"
               isStatic={true}
-              imageSrc="/img/amazon-fellowship.png"
+              imageSrc="/img/amazon-fellowship.webp"
             >
               Amazon Ph.D. Fellowship
             </AnimatedLink>
@@ -147,7 +231,7 @@ export default function Personal() {
             <AnimatedLink
               href="https://dl.acm.org/doi/10.1145/3526113.3545703"
               isStatic={true}
-              imageSrc="/img/uist-best-paper.png"
+              imageSrc="/img/uist-best-paper.webp"
             >
               ACM UIST Best Paper Award
             </AnimatedLink>
@@ -155,7 +239,7 @@ export default function Personal() {
             <AnimatedLink
               href="https://dl.acm.org/doi/10.1145/3613904.3642065"
               isStatic={true}
-              imageSrc="/img/chi-best-paper.png"
+              imageSrc="/img/chi-best-paper.webp"
             >
               ACM CHI Best Paper Honorable Mentions
             </AnimatedLink>
@@ -201,6 +285,8 @@ export default function Personal() {
           <h3 className="text-lg font-medium">Projects</h3>
           <span className="text-sm">
             <button
+              type="button"
+              aria-pressed={showAllProjects}
               onClick={() => setShowAllProjects(true)}
               className={`relative transition-colors ${
                 showAllProjects
@@ -217,6 +303,8 @@ export default function Personal() {
             <span className="text-muted-foreground"> / </span>
 
             <button
+              type="button"
+              aria-pressed={!showAllProjects}
               onClick={() => setShowAllProjects(false)}
               className={`relative transition-colors ${
                 !showAllProjects
@@ -234,12 +322,9 @@ export default function Personal() {
         <div className="space-y-8">
           <AnimatePresence mode="popLayout">
             {PROJECTS.filter((pub) => showAllProjects || pub.selected === true)
-              .sort((a, b) => {
-                if (b.year !== a.year) {
-                  return b.year - a.year
-                }
-                return a.id.localeCompare(b.id)
-              })
+              // Newest year first. The sort is stable, so within a year the
+              // order in data.ts is kept.
+              .sort((a, b) => b.year - a.year)
               .map((pub) => (
                 <motion.div
                   key={pub.id}
@@ -435,56 +520,19 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
-        {/* Preload full-size images */}
-        {PHOTO_GALLERY.map((photo) => (
-          <link
-            key={`preload-${photo}`}
-            rel="preload"
-            as="image"
-            href={`/img/photos/${photo}`}
-          />
-        ))}
-
-        <InfiniteSlider className="py-4" speed={40} speedOnHover={20} gap={24}>
-          {PHOTO_GALLERY.map((photo) => (
-            <Dialog key={photo}>
-              <DialogTrigger asChild>
-                <Image
-                  src={`/img/photos/${photo}`}
-                  alt="Photo"
-                  width={180}
-                  height={120}
-                  className="h-[120px] w-auto cursor-pointer rounded-sm object-cover shadow-sm transition duration-300 ease-out will-change-transform hover:scale-[1.04] hover:shadow-lg"
-                  loading="eager"
-                  quality={85}
-                  draggable={false}
-                />
-              </DialogTrigger>
-              <DialogContent
-                showCloseButton={false}
-                className="flex h-auto w-auto max-w-none items-center justify-center border-none bg-transparent p-0 ring-0 shadow-none outline-none"
-                style={
-                  {
-                    '--tw-enter-scale': '1',
-                    '--tw-exit-scale': '1',
-                  } as React.CSSProperties
-                }
-              >
-                <DialogTitle className="sr-only">Photo view</DialogTitle>
-                <img
-                  src={`/img/photos/${photo}`}
-                  alt="Photo"
-                  className="rounded-md"
-                  style={{
-                    width: 'auto',
-                    height: 'auto',
-                    maxWidth: '70vw',
-                    maxHeight: '70vh',
-                  }}
-                  draggable={false}
-                />
-              </DialogContent>
-            </Dialog>
+        <InfiniteSlider
+          className="py-4"
+          speed={40}
+          speedOnHover={20}
+          gap={24}
+          aria-label="Photo gallery"
+        >
+          {PHOTO_GALLERY.map((photo, index) => (
+            <GalleryPhoto
+              key={photo}
+              photo={photo}
+              label={`Photo ${index + 1} of ${PHOTO_GALLERY.length}`}
+            />
           ))}
         </InfiniteSlider>
       </motion.section>

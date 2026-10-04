@@ -22,7 +22,9 @@ type SocialLink = {
   icon: string
 }
 
-export const SITE_URL = 'https://liubruce.me'
+// Must be the domain the site is actually served from (not one that redirects
+// to it), since it's used for the canonical URL, sitemap, and social cards.
+export const SITE_URL = 'https://www.liubruce.me'
 
 export const PERSONAL_INFO = {
   name: {
@@ -30,6 +32,12 @@ export const PERSONAL_INFO = {
     chinese: '刘星宇',
   },
   title: 'Research Scientist @ Adobe',
+  // Shown in search results and link previews.
+  description:
+    'Xingyu Bruce Liu is a Research Scientist at Adobe Research working on human-AI interaction. Papers, CV, and contact.',
+  // Used for search engines' structured data about you.
+  jobTitle: 'Research Scientist',
+  affiliation: { name: 'Adobe Research', url: 'https://research.adobe.com/' },
 }
 
 export const HIGHLIGHTED_AUTHORS = ['Xingyu Bruce Liu', 'Xingyu Liu']
@@ -42,7 +50,9 @@ export const PROJECTS: Project[] = [
     image: '/img/projects/liu2026doki.png',
     selected: true,
     links: {
-      'UIST 2026': 'https://doi.org/10.1145/3830398.3830715',
+      // The ACM DOI (10.1145/3830398.3830715) isn't registered yet; switch to
+      // https://doi.org/10.1145/3830398.3830715 once it resolves.
+      'UIST 2026': 'https://arxiv.org/abs/2603.09072',
       pdf: '/pdf/projects/liu2026doki.pdf',
       video: 'https://www.youtube.com/watch?v=5ARvAi6WyFU',
     },
@@ -105,7 +115,7 @@ export const PROJECTS: Project[] = [
       'Human I/O: Towards a Unified Approach to Detecting Situational Impairments',
     authors: [
       'Xingyu Bruce Liu',
-      'Jiaohao Nick Li',
+      'Jiahao Nick Li',
       'David Kim',
       'Xiang Anthony Chen',
       'Ruofei Du',
@@ -210,6 +220,7 @@ export const PROJECTS: Project[] = [
     ],
     year: 2023,
     image: '/img/projects/du2023rapsai.png',
+    selected: true,
     award: 'Best Paper Honorable Mention',
     links: {
       'CHI 2023': 'https://dl.acm.org/doi/10.1145/3544548.3581338',
@@ -301,17 +312,10 @@ export const PROJECTS: Project[] = [
 ]
 
 // Blog is currently disabled (see the commented-out section in page.tsx).
-// To publish a post: add an entry here and create app/blog/<slug>/page.mdx
-// (see app/blog/example-mdx-metadata/page.mdx for a reference).
-export const BLOG_POSTS: BlogPost[] = [
-  {
-    title: 'How to Export Metadata from MDX for Next.js SEO',
-    description:
-      'A guide on exporting metadata from MDX files to leverage Next.js SEO features.',
-    link: '/blog/example-mdx-metadata',
-    uid: 'blog-1',
-  },
-]
+// To publish a post: add an entry here (e.g. link: '/blog/<slug>') and create
+// app/blog/<slug>/page.mdx — it can `export const metadata = { title, ... }`
+// for its <title> and social card.
+export const BLOG_POSTS: BlogPost[] = []
 
 export const SOCIAL_LINKS: SocialLink[] = [
   {

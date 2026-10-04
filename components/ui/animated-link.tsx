@@ -16,7 +16,6 @@ type AnimatedLinkProps = {
   className?: string
   width?: number
   height?: number
-  quality?: number
   showPreview?: boolean
 } & (
   | { isStatic: true; imageSrc: string }
@@ -29,7 +28,6 @@ export function AnimatedLink({
   className = '',
   width = 200,
   height = 125,
-  quality = 50,
   showPreview = true,
   isStatic = false,
   imageSrc = '',
@@ -89,9 +87,12 @@ export function AnimatedLink({
 
   return (
     <>
+      {/* Warm the cache so the preview appears instantly on hover. Keep
+          static previews small: they all download on page load. */}
       {isMounted ? (
-        <span className="hidden">
-          <img src={src} width={width} height={height} alt="hidden image" />
+        <span className="hidden" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element -- small preview or external screenshot URL */}
+          <img src={src} width={width} height={height} alt="" />
         </span>
       ) : null}
 
@@ -143,19 +144,24 @@ export function AnimatedLink({
                     x: translateX,
                   }}
                 >
+                  {/* Mouse-only duplicate of the trigger link above, so it stays
+                      out of the tab order and accessibility tree. */}
                   <a
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
+                    tabIndex={-1}
+                    aria-hidden="true"
                     className="block"
                     style={{ fontSize: 0 }}
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- small preview or external screenshot URL */}
                     <img
                       src={isStatic ? imageSrc : src}
                       width={width}
                       height={height}
                       className="rounded-lg shadow-lg"
-                      alt="preview image"
+                      alt=""
                     />
                   </a>
                 </motion.div>
