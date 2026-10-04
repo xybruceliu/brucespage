@@ -3,7 +3,7 @@ import { TextScramble } from '@/components/ui/text-scramble'
 import { CompanyTag, AdobeIcon } from '@/components/ui/company-tag'
 import { Tilt } from '@/components/ui/tilt'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   motion,
   useMotionTemplate,
@@ -16,7 +16,7 @@ import { PERSONAL_INFO } from './data'
 // that tracks the pointer across its surface, so the tilt reads as a real,
 // light-catching object rather than a flat plane. Pointer-driven only —
 // nothing animates on its own — so it stays calm at rest.
-function ProfilePhoto({ isDark }: { isDark: boolean }) {
+function ProfilePhoto() {
   const [lit, setLit] = useState(false)
   const x = useMotionValue(50)
   const y = useMotionValue(50)
@@ -38,12 +38,22 @@ function ProfilePhoto({ isDark }: { isDark: boolean }) {
         onMouseEnter={() => setLit(true)}
         onMouseLeave={() => setLit(false)}
       >
+        {/* Both are in the markup and CSS picks one, so the right photo shows
+            on first paint (no light photo flashing in dark mode). The hidden
+            one is lazy and display: none, so it never downloads. */}
         <Image
-          src={isDark ? '/img/profile-dark.png' : '/img/profile-light.png'}
-          alt="Bruce Liu"
+          src="/img/profile-light.png"
+          alt={PERSONAL_INFO.name.english}
           width={128}
           height={128}
-          className="h-28 w-28 rounded-md object-cover"
+          className="h-28 w-28 rounded-md object-cover dark:hidden"
+        />
+        <Image
+          src="/img/profile-dark.png"
+          alt={PERSONAL_INFO.name.english}
+          width={128}
+          height={128}
+          className="hidden h-28 w-28 rounded-md object-cover dark:block"
         />
         <motion.div
           aria-hidden="true"
@@ -58,26 +68,7 @@ function ProfilePhoto({ isDark }: { isDark: boolean }) {
 }
 
 export function Header() {
-  const [isDark, setIsDark] = useState(false)
   const [isChinese, setIsChinese] = useState(false)
-
-  useEffect(() => {
-    // Check initial theme
-    const checkTheme = () => {
-      setIsDark(document.documentElement.classList.contains('dark'))
-    }
-
-    checkTheme()
-
-    // Watch for theme changes
-    const observer = new MutationObserver(checkTheme)
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    })
-
-    return () => observer.disconnect()
-  }, [])
 
   return (
     <header className="mb-8 flex items-center justify-between">
@@ -87,22 +78,28 @@ export function Header() {
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           transition={{ duration: 0.3 }}
         >
-          <ProfilePhoto isDark={isDark} />
+          <ProfilePhoto />
         </motion.div>
         <div>
-          <div
-            onClick={() => setIsChinese(!isChinese)}
-            className="text-foreground inline-block cursor-pointer font-medium"
-          >
-            <TextScramble
-              characterSet={`${PERSONAL_INFO.name.chinese}${PERSONAL_INFO.name.english}`}
-              key={isChinese ? 'chinese' : 'english'}
+          <h1 className="text-foreground font-medium">
+            <button
+              type="button"
+              onClick={() => setIsChinese(!isChinese)}
+              aria-pressed={isChinese}
+              lang={isChinese ? 'zh-Hans' : undefined}
+              className="inline-block cursor-pointer rounded-sm text-left"
             >
-              {isChinese
-                ? PERSONAL_INFO.name.chinese
-                : PERSONAL_INFO.name.english}
-            </TextScramble>
-          </div>
+              <TextScramble
+                as="span"
+                characterSet={`${PERSONAL_INFO.name.chinese}${PERSONAL_INFO.name.english}`}
+                key={isChinese ? 'chinese' : 'english'}
+              >
+                {isChinese
+                  ? PERSONAL_INFO.name.chinese
+                  : PERSONAL_INFO.name.english}
+              </TextScramble>
+            </button>
+          </h1>
           {(() => {
             const title = PERSONAL_INFO.title
             const i = title.indexOf('Adobe')

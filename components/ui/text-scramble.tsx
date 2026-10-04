@@ -1,6 +1,6 @@
 'use client'
-import { type JSX, useEffect, useState } from 'react'
-import { motion, MotionProps } from 'motion/react'
+import { type JSX, useEffect, useMemo, useRef, useState } from 'react'
+import { motion, MotionProps, useReducedMotion } from 'motion/react'
 
 export type TextScrambleProps = {
   children: string
@@ -27,17 +27,30 @@ export function TextScramble({
   onScrambleComplete,
   ...props
 }: TextScrambleProps) {
-  const MotionComponent = motion.create(
-    Component as keyof JSX.IntrinsicElements,
+  // motion.create returns a new component type on every call; without the
+  // memo React would remount the element on every scramble tick.
+  const MotionComponent = useMemo(
+    () => motion.create(Component as keyof JSX.IntrinsicElements),
+    [Component],
   )
   const [displayText, setDisplayText] = useState(children)
-  const [isAnimating, setIsAnimating] = useState(false)
-  const text = children
+  const reduceMotion = useReducedMotion()
+  const onCompleteRef = useRef(onScrambleComplete)
 
-  const scramble = async () => {
-    if (isAnimating) return
-    setIsAnimating(true)
+  useEffect(() => {
+    onCompleteRef.current = onScrambleComplete
+  })
 
+  useEffect(() => {
+    if (!trigger) return
+
+    if (reduceMotion) {
+      setDisplayText(children)
+      onCompleteRef.current?.()
+      return
+    }
+
+    const text = children
     const steps = duration / speed
     let step = 0
 
@@ -65,17 +78,12 @@ export function TextScramble({
       if (step > steps) {
         clearInterval(interval)
         setDisplayText(text)
-        setIsAnimating(false)
-        onScrambleComplete?.()
+        onCompleteRef.current?.()
       }
     }, speed * 1000)
-  }
 
-  useEffect(() => {
-    if (!trigger) return
-
-    scramble()
-  }, [trigger])
+    return () => clearInterval(interval)
+  }, [trigger, reduceMotion, children, duration, speed, characterSet])
 
   return (
     <MotionComponent className={className} {...props}>

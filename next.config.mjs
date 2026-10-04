@@ -8,11 +8,6 @@ const nextConfig = {
     // Only bundle the brand icons we actually import, not all of react-icons.
     optimizePackageImports: ['react-icons'],
   },
-  images: {
-    domains: [
-      'api.microlink.io', // Microlink Image Preview
-    ],
-  },
 }
 
 const withMDX = createMDX({

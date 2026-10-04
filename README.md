@@ -27,11 +27,20 @@ export const PERSONAL_INFO = {
     chinese: '你的名字', // Optional
   },
   title: 'Your Title @ Your Institution',
+  // Shown in search results and link previews
+  description: 'One sentence about who you are and what you work on.',
+  // Used for search engines' structured data (JSON-LD)
+  jobTitle: 'Your Title',
+  affiliation: { name: 'Your Institution', url: 'https://...' },
 }
 
 export const EMAIL = 'your.email@institution.edu'
+// Use the exact domain the site is served from (e.g. include `www` if your
+// apex domain redirects to it) — it's used for the canonical URL and sitemap.
 export const SITE_URL = 'https://yourdomain.com'
 ```
+
+The social card shown when your site is shared (Slack, LinkedIn, X) is generated from these values by `app/opengraph-image.tsx`.
 
 ### 2. Projects & Publications
 
@@ -66,7 +75,7 @@ export const HIGHLIGHTED_AUTHORS = ['Your Name', 'Your Full Name']
 
 ### 4. Blog Posts
 
-Update the `BLOG_POSTS` array for blog content:
+The Blog section is disabled by default (commented out in `app/page.tsx`). To publish a post, create `app/blog/your-post-slug/page.mdx`, uncomment the section, and add an entry to the `BLOG_POSTS` array:
 
 ```typescript
 {
@@ -104,7 +113,7 @@ export const PHOTO_GALLERY = [
 ]
 ```
 
-The gallery automatically loops through all photos with a smooth infinite scrolling animation.
+The gallery automatically loops through all photos with a smooth infinite scrolling animation (it holds still for visitors who prefer reduced motion). Photos can be full resolution: both the thumbnails and the click-to-enlarge view are resized automatically by `next/image`.
 
 ## Getting Started
 
@@ -140,4 +149,3 @@ public/
 ---
 
 Built with [Next.js](https://nextjs.org) and [React](https://react.dev) • Based on [Nim](https://vercel.com/templates/portfolio/nim-minimalist-personal-site) template
-
