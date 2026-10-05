@@ -199,7 +199,7 @@ export default function Personal() {
             >
               Adobe Research
             </AnimatedLink>
-            . I work at the seam of AI models and experiences.
+            . I work at the seam of AI models and novel experiences.
           </p>
           <br />
           <p className="text-muted-foreground">
