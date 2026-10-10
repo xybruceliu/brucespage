@@ -234,8 +234,8 @@ export default function Personal() {
               imageSrc="/img/uist-best-paper.webp"
             >
               4×&nbsp;Best Paper Awards and Honorable Mentions
-            </AnimatedLink>
-            {' '}at CHI and UIST. I&apos;ve also interned at{' '}
+            </AnimatedLink>{' '}
+            at CHI and UIST. I&apos;ve also interned at{' '}
             <CompanyTag
               icon={GoogleIcon}
               particleColors={['#4285F4', '#EA4335', '#FBBC05', '#34A853']}
