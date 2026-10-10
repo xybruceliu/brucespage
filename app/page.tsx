@@ -227,23 +227,15 @@ export default function Personal() {
             >
               Amazon Ph.D. Fellowship
             </AnimatedLink>
-            , an{' '}
+            , and{' '}
             <AnimatedLink
               href="https://dl.acm.org/doi/10.1145/3526113.3545703"
               isStatic={true}
               imageSrc="/img/uist-best-paper.webp"
             >
-              ACM UIST Best Paper Award
+              4×&nbsp;Best Paper Awards and Honorable Mentions
             </AnimatedLink>
-            , and two{' '}
-            <AnimatedLink
-              href="https://dl.acm.org/doi/10.1145/3613904.3642065"
-              isStatic={true}
-              imageSrc="/img/chi-best-paper.webp"
-            >
-              ACM CHI Best Paper Honorable Mentions
-            </AnimatedLink>
-            . I&apos;ve also interned at{' '}
+            {' '}at CHI and UIST. I&apos;ve also interned at{' '}
             <CompanyTag
               icon={GoogleIcon}
               particleColors={['#4285F4', '#EA4335', '#FBBC05', '#34A853']}
