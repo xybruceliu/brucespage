@@ -46,14 +46,14 @@ function ProfilePhoto() {
           alt={PERSONAL_INFO.name.english}
           width={128}
           height={128}
-          className="h-28 w-28 rounded-md object-cover dark:hidden"
+          className="h-20 w-20 rounded-md object-cover sm:h-28 sm:w-28 dark:hidden"
         />
         <Image
           src="/img/profile-dark.png"
           alt={PERSONAL_INFO.name.english}
           width={128}
           height={128}
-          className="hidden h-28 w-28 rounded-md object-cover dark:block"
+          className="hidden h-20 w-20 rounded-md object-cover sm:h-28 sm:w-28 dark:block"
         />
         <motion.div
           aria-hidden="true"
@@ -71,8 +71,8 @@ export function Header() {
   const [isChinese, setIsChinese] = useState(false)
 
   return (
-    <header className="mb-8 flex items-center justify-between">
-      <div className="flex flex-col gap-3">
+    <header className="mb-6 flex items-center justify-between sm:mb-8">
+      <div className="flex items-center gap-4 sm:flex-col sm:items-start sm:gap-3">
         <motion.div
           initial={{ opacity: 0, y: -20, filter: 'blur(8px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
