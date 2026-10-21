@@ -90,7 +90,7 @@ function MagneticSocialLink({
         href={link}
         target="_blank"
         rel="noopener noreferrer"
-        className="group bg-secondary text-secondary-foreground hover:bg-foreground hover:text-background relative inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-sm transition-all duration-200 active:scale-95"
+        className="group bg-secondary text-secondary-foreground hover:bg-foreground hover:text-background relative flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-sm transition-all duration-200 active:scale-95 sm:inline-flex sm:min-h-0 sm:w-auto"
       >
         <IconComponent className="h-3.5 w-3.5" />
         {children}
@@ -111,7 +111,7 @@ function GalleryPhoto({ photo, label }: { photo: string; label: string }) {
     // max-width/max-height below and the photo's real proportions.
     width: 1500,
     height: 1000,
-    sizes: '70vw',
+    sizes: '(min-width: 640px) 70vw, 92vw',
     quality: 85,
   }
   const prefetched = React.useRef(false)
@@ -141,7 +141,7 @@ function GalleryPhoto({ photo, label }: { photo: string; label: string }) {
             alt=""
             width={180}
             height={120}
-            className="h-[120px] w-auto rounded-sm object-cover shadow-sm transition duration-300 ease-out will-change-transform group-hover:scale-[1.04] group-hover:shadow-lg group-focus-visible:scale-[1.04] group-focus-visible:shadow-lg"
+            className="h-24 w-auto rounded-sm object-cover shadow-sm transition duration-300 ease-out will-change-transform group-hover:scale-[1.04] group-hover:shadow-lg group-focus-visible:scale-[1.04] group-focus-visible:shadow-lg sm:h-[120px]"
             quality={85}
             draggable={false}
           />
@@ -161,13 +161,8 @@ function GalleryPhoto({ photo, label }: { photo: string; label: string }) {
         <Image
           {...fullSize}
           alt={fullSize.alt}
-          className="rounded-md"
-          style={{
-            width: 'auto',
-            height: 'auto',
-            maxWidth: '70vw',
-            maxHeight: '70vh',
-          }}
+          className="max-h-[80vh] max-w-[92vw] rounded-md sm:max-h-[70vh] sm:max-w-[70vw]"
+          style={{ width: 'auto', height: 'auto' }}
           draggable={false}
         />
       </DialogContent>
@@ -180,7 +175,7 @@ export default function Personal() {
 
   return (
     <motion.main
-      className="space-y-24"
+      className="space-y-16 sm:space-y-24"
       variants={VARIANTS_CONTAINER}
       initial="hidden"
       animate="visible"
@@ -189,7 +184,7 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
-        <div className="flex-1">
+        <div className="flex-1 space-y-5 sm:space-y-6">
           <p className="text-muted-foreground">
             Hi! <WaveEmoji /> I&apos;m a Research Scientist at{' '}
             <AnimatedLink
@@ -201,7 +196,6 @@ export default function Personal() {
             </AnimatedLink>
             . I work at the seam of AI models and novel experiences.
           </p>
-          <br />
           <p className="text-muted-foreground">
             Previously, I received my Ph.D. from{' '}
             <AnimatedLink
@@ -252,7 +246,6 @@ export default function Personal() {
             </CompanyTag>
             .
           </p>
-          <br />
           <p className="text-muted-foreground">
             Here&apos;s my{' '}
             <AnimatedLink href="/pdf/cv.pdf" showPreview={false}>
@@ -280,16 +273,18 @@ export default function Personal() {
               type="button"
               aria-pressed={showAllProjects}
               onClick={() => setShowAllProjects(true)}
-              className={`relative transition-colors ${
+              className={`-mx-1.5 -my-2.5 px-1.5 py-2.5 transition-colors ${
                 showAllProjects
                   ? 'text-foreground cursor-default font-medium'
                   : 'text-muted-foreground group cursor-pointer'
               }`}
             >
-              All
-              {!showAllProjects && (
-                <span className="bg-foreground absolute bottom-0 left-0 block h-[1px] w-full max-w-0 transition-all duration-200 group-hover:max-w-full"></span>
-              )}
+              <span className="relative">
+                All
+                {!showAllProjects && (
+                  <span className="bg-foreground absolute bottom-0 left-0 block h-[1px] w-full max-w-0 transition-all duration-200 group-hover:max-w-full"></span>
+                )}
+              </span>
             </button>
 
             <span className="text-muted-foreground"> / </span>
@@ -298,16 +293,18 @@ export default function Personal() {
               type="button"
               aria-pressed={!showAllProjects}
               onClick={() => setShowAllProjects(false)}
-              className={`relative transition-colors ${
+              className={`-mx-1.5 -my-2.5 px-1.5 py-2.5 transition-colors ${
                 !showAllProjects
                   ? 'text-foreground cursor-default font-medium'
                   : 'text-muted-foreground group cursor-pointer'
               }`}
             >
-              Selected
-              {showAllProjects && (
-                <span className="bg-foreground absolute bottom-0 left-0 block h-[1px] w-full max-w-0 transition-all duration-200 group-hover:max-w-full"></span>
-              )}
+              <span className="relative">
+                Selected
+                {showAllProjects && (
+                  <span className="bg-foreground absolute bottom-0 left-0 block h-[1px] w-full max-w-0 transition-all duration-200 group-hover:max-w-full"></span>
+                )}
+              </span>
             </button>
           </span>
         </div>
@@ -320,14 +317,14 @@ export default function Personal() {
               .map((pub) => (
                 <motion.div
                   key={pub.id}
-                  className="flex flex-col gap-4 sm:flex-row sm:items-start"
+                  className="grid grid-cols-[1fr_6.5rem] gap-x-4 gap-y-3 sm:grid-cols-[1fr_12rem] sm:gap-y-0"
                   variants={VARIANTS_PROJECT_ITEM}
                   initial="hidden"
                   animate="visible"
                   exit="exit"
                   layout
                 >
-                  <div className="flex-1">
+                  <div className="col-start-1 row-start-1">
                     <h4 className="text-foreground font-medium">{pub.title}</h4>
                     <p className="text-muted-foreground mt-1 text-sm">
                       {pub.authors.map((author, index) => (
@@ -341,98 +338,100 @@ export default function Personal() {
                         </React.Fragment>
                       ))}
                     </p>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {pub.award && <AwardBadge>{pub.award}</AwardBadge>}
-                    </div>
-                    {pub.links && (
+                    {pub.award && (
                       <div className="mt-3 flex flex-wrap items-center gap-2">
-                        {Object.entries(pub.links).map(([type, url]) => (
-                          <motion.a
-                            key={type}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ring-border hover:bg-accent hover:text-accent-foreground inline-flex items-center rounded-full px-2.5 py-1 text-xs ring-1 shadow-sm transition-colors"
-                            initial="initial"
-                            whileHover="hover"
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            {type}
-                            <motion.span
-                              variants={{
-                                initial: {
-                                  width: 0,
-                                  opacity: 0,
-                                  marginLeft: 0,
-                                },
-                                hover: {
-                                  width: 'auto',
-                                  opacity: 1,
-                                  marginLeft: 2,
-                                  transition: { duration: 0.2 },
-                                },
-                              }}
-                              className="flex items-center overflow-hidden"
-                            >
-                              <svg
-                                width="15"
-                                height="15"
-                                viewBox="0 0 15 15"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-3 w-3 shrink-0"
-                              >
-                                <motion.path
-                                  d="M3.5 11.5L11.5 3.5"
-                                  stroke="currentColor"
-                                  strokeWidth="1.2"
-                                  strokeLinecap="round"
-                                  variants={{
-                                    initial: { pathLength: 0, opacity: 0 },
-                                    hover: {
-                                      pathLength: 1,
-                                      opacity: 1,
-                                      transition: {
-                                        pathLength: {
-                                          duration: 0.2,
-                                          ease: 'easeOut',
-                                        },
-                                        opacity: { duration: 0.05 },
-                                      },
-                                    },
-                                  }}
-                                />
-                                <motion.path
-                                  d="M6.5 3.5H11.5V8.5"
-                                  stroke="currentColor"
-                                  strokeWidth="1.2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  variants={{
-                                    initial: { pathLength: 0, opacity: 0 },
-                                    hover: {
-                                      pathLength: 1,
-                                      opacity: 1,
-                                      transition: {
-                                        pathLength: {
-                                          duration: 0.2,
-                                          ease: 'easeOut',
-                                          delay: 0.2,
-                                        },
-                                        opacity: { duration: 0.05, delay: 0.2 },
-                                      },
-                                    },
-                                  }}
-                                />
-                              </svg>
-                            </motion.span>
-                          </motion.a>
-                        ))}
+                        <AwardBadge>{pub.award}</AwardBadge>
                       </div>
                     )}
                   </div>
+                  {pub.links && (
+                    <div className="col-span-2 row-start-2 flex flex-wrap items-center gap-2 sm:col-span-1 sm:mt-3">
+                      {Object.entries(pub.links).map(([type, url]) => (
+                        <motion.a
+                          key={type}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ring-border hover:bg-accent hover:text-accent-foreground inline-flex min-h-10 items-center rounded-full px-3 py-1 text-xs ring-1 shadow-sm transition-colors sm:min-h-0 sm:px-2.5"
+                          initial="initial"
+                          whileHover="hover"
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {type}
+                          <motion.span
+                            variants={{
+                              initial: {
+                                width: 0,
+                                opacity: 0,
+                                marginLeft: 0,
+                              },
+                              hover: {
+                                width: 'auto',
+                                opacity: 1,
+                                marginLeft: 2,
+                                transition: { duration: 0.2 },
+                              },
+                            }}
+                            className="flex items-center overflow-hidden"
+                          >
+                            <svg
+                              width="15"
+                              height="15"
+                              viewBox="0 0 15 15"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3 w-3 shrink-0"
+                            >
+                              <motion.path
+                                d="M3.5 11.5L11.5 3.5"
+                                stroke="currentColor"
+                                strokeWidth="1.2"
+                                strokeLinecap="round"
+                                variants={{
+                                  initial: { pathLength: 0, opacity: 0 },
+                                  hover: {
+                                    pathLength: 1,
+                                    opacity: 1,
+                                    transition: {
+                                      pathLength: {
+                                        duration: 0.2,
+                                        ease: 'easeOut',
+                                      },
+                                      opacity: { duration: 0.05 },
+                                    },
+                                  },
+                                }}
+                              />
+                              <motion.path
+                                d="M6.5 3.5H11.5V8.5"
+                                stroke="currentColor"
+                                strokeWidth="1.2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                variants={{
+                                  initial: { pathLength: 0, opacity: 0 },
+                                  hover: {
+                                    pathLength: 1,
+                                    opacity: 1,
+                                    transition: {
+                                      pathLength: {
+                                        duration: 0.2,
+                                        ease: 'easeOut',
+                                        delay: 0.2,
+                                      },
+                                      opacity: { duration: 0.05, delay: 0.2 },
+                                    },
+                                  },
+                                }}
+                              />
+                            </svg>
+                          </motion.span>
+                        </motion.a>
+                      ))}
+                    </div>
+                  )}
                   {pub.image && (
-                    <div className="w-full shrink-0 sm:w-48">
+                    <div className="col-start-2 row-start-1 self-start sm:row-span-2">
                       <Image
                         src={pub.image}
                         alt={pub.title}
@@ -495,7 +494,7 @@ export default function Personal() {
             {EMAIL}
           </a>
         </p>
-        <div className="flex items-center justify-start space-x-3">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-start sm:gap-0 sm:space-x-3">
           {SOCIAL_LINKS.map((link) => (
             <MagneticSocialLink
               key={link.label}

@@ -50,7 +50,7 @@ function ThemeSwitch() {
         return (
           <button
             key={themeOption.id}
-            className={`text-muted-foreground inline-flex h-7 w-7 cursor-pointer items-center justify-center transition-colors duration-200 focus-visible:outline-2 ${
+            className={`text-muted-foreground inline-flex h-10 w-10 cursor-pointer items-center justify-center transition-colors duration-200 focus-visible:outline-2 sm:h-7 sm:w-7 ${
               themeOption.id === 'light'
                 ? 'hover:text-amber-500 data-[checked=true]:text-amber-500'
                 : 'hover:text-blue-700 data-[checked=true]:text-blue-700'
@@ -135,7 +135,7 @@ function FooterCredit() {
 
 export function Footer() {
   return (
-    <footer className="border-border mt-8 border-t px-0 py-4">
+    <footer className="border-border mt-8 border-t px-0 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="text-muted-foreground flex items-center justify-between text-xs">
         <FooterCredit />
         <div className="text-muted-foreground text-xs">

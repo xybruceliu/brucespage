@@ -101,7 +101,7 @@ export default function RootLayout({
               movement across every motion component. */}
           <MotionConfig reducedMotion="user">
             <div className="flex min-h-screen w-full flex-col font-[family-name:var(--font-geist)]">
-              <div className="relative mx-auto w-full max-w-screen-sm flex-1 px-4 pt-20">
+              <div className="relative mx-auto w-full max-w-screen-sm flex-1 px-4 pt-10 sm:pt-20">
                 <Header />
                 {children}
                 <Footer />
