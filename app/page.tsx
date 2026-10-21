@@ -317,14 +317,14 @@ export default function Personal() {
               .map((pub) => (
                 <motion.div
                   key={pub.id}
-                  className="grid grid-cols-1 gap-y-3 sm:grid-cols-[1fr_12rem] sm:gap-x-4 sm:gap-y-0"
+                  className="grid grid-cols-[1fr_7rem] gap-x-4 gap-y-3 sm:grid-cols-[1fr_12rem] sm:gap-y-0"
                   variants={VARIANTS_PROJECT_ITEM}
                   initial="hidden"
                   animate="visible"
                   exit="exit"
                   layout
                 >
-                  <div className="row-start-2 sm:col-start-1 sm:row-start-1">
+                  <div className="col-start-1 row-start-1">
                     <h4 className="text-foreground font-medium">{pub.title}</h4>
                     <p className="text-muted-foreground mt-1 text-sm">
                       {pub.authors.map((author, index) => (
@@ -345,7 +345,7 @@ export default function Personal() {
                     )}
                   </div>
                   {pub.links && (
-                    <div className="row-start-3 flex flex-wrap items-center gap-2 sm:row-start-2 sm:mt-3">
+                    <div className="col-span-2 row-start-2 flex flex-wrap items-center gap-2 sm:col-span-1 sm:mt-3">
                       {Object.entries(pub.links).map(([type, url]) => (
                         <motion.a
                           key={type}
@@ -431,13 +431,13 @@ export default function Personal() {
                     </div>
                   )}
                   {pub.image && (
-                    <div className="row-start-1 self-start sm:col-start-2 sm:row-span-2">
+                    <div className="col-start-2 row-start-1 self-start sm:row-span-2">
                       <Image
                         src={pub.image}
                         alt={pub.title}
                         width={192}
                         height={128}
-                        className="aspect-video h-auto w-full rounded-sm object-cover object-top shadow-lg sm:aspect-auto"
+                        className="h-auto w-full rounded-sm shadow-lg"
                       />
                     </div>
                   )}
