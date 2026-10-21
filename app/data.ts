@@ -48,6 +48,7 @@ export const PROJECTS: Project[] = [
     authors: ['Xingyu Bruce Liu', 'Mira Dontcheva', 'Dingzeyu Li'],
     year: 2026,
     image: '/img/projects/liu2026doki.png',
+    award: 'Best Paper Honorable Mention',
     selected: true,
     links: {
       // The ACM DOI (10.1145/3830398.3830715) isn't registered yet; switch to
