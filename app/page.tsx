@@ -90,7 +90,7 @@ function MagneticSocialLink({
         href={link}
         target="_blank"
         rel="noopener noreferrer"
-        className="group bg-secondary text-secondary-foreground hover:bg-foreground hover:text-background relative flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-sm transition-all duration-200 active:scale-95 sm:inline-flex sm:min-h-0 sm:w-auto"
+        className="group bg-secondary text-secondary-foreground hover:bg-foreground hover:text-background relative inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-sm transition-all duration-200 after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] active:scale-95 sm:after:hidden"
       >
         <IconComponent className="h-3.5 w-3.5" />
         {children}
@@ -317,14 +317,14 @@ export default function Personal() {
               .map((pub) => (
                 <motion.div
                   key={pub.id}
-                  className="grid grid-cols-[1fr_6.5rem] gap-x-4 gap-y-3 sm:grid-cols-[1fr_12rem] sm:gap-y-0"
+                  className="grid grid-cols-1 gap-y-3 sm:grid-cols-[1fr_12rem] sm:gap-x-4 sm:gap-y-0"
                   variants={VARIANTS_PROJECT_ITEM}
                   initial="hidden"
                   animate="visible"
                   exit="exit"
                   layout
                 >
-                  <div className="col-start-1 row-start-1">
+                  <div className="row-start-2 sm:col-start-1 sm:row-start-1">
                     <h4 className="text-foreground font-medium">{pub.title}</h4>
                     <p className="text-muted-foreground mt-1 text-sm">
                       {pub.authors.map((author, index) => (
@@ -345,14 +345,14 @@ export default function Personal() {
                     )}
                   </div>
                   {pub.links && (
-                    <div className="col-span-2 row-start-2 flex flex-wrap items-center gap-2 sm:col-span-1 sm:mt-3">
+                    <div className="row-start-3 flex flex-wrap items-center gap-2 sm:row-start-2 sm:mt-3">
                       {Object.entries(pub.links).map(([type, url]) => (
                         <motion.a
                           key={type}
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="ring-border hover:bg-accent hover:text-accent-foreground inline-flex min-h-10 items-center rounded-full px-3 py-1 text-xs ring-1 shadow-sm transition-colors sm:min-h-0 sm:px-2.5"
+                          className="ring-border hover:bg-accent hover:text-accent-foreground relative inline-flex items-center rounded-full px-2.5 py-1 text-xs ring-1 shadow-sm transition-colors after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] sm:after:hidden"
                           initial="initial"
                           whileHover="hover"
                           whileTap={{ scale: 0.95 }}
@@ -431,13 +431,13 @@ export default function Personal() {
                     </div>
                   )}
                   {pub.image && (
-                    <div className="col-start-2 row-start-1 self-start sm:row-span-2">
+                    <div className="row-start-1 self-start sm:col-start-2 sm:row-span-2">
                       <Image
                         src={pub.image}
                         alt={pub.title}
                         width={192}
                         height={128}
-                        className="h-auto w-full rounded-sm shadow-lg"
+                        className="aspect-video h-auto w-full rounded-sm object-cover object-top shadow-lg sm:aspect-auto"
                       />
                     </div>
                   )}
@@ -494,7 +494,7 @@ export default function Personal() {
             {EMAIL}
           </a>
         </p>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-start sm:gap-0 sm:space-x-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {SOCIAL_LINKS.map((link) => (
             <MagneticSocialLink
               key={link.label}
