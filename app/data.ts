@@ -52,7 +52,7 @@ export const PROJECTS: Project[] = [
     selected: true,
     links: {
       'UIST 2026': 'https://dl.acm.org/doi/10.1145/3830398.3830715',
-      blog: 'https://research.adobe.com/publication/a-text-native-interface-for-generative-video-authoring/',
+      blog: 'https://research.adobe.com/news/adobe-researchs-new-intuitive-paradigm-for-generative-video-honored-at-uist-2026/',
       pdf: '/pdf/projects/liu2026doki.pdf',
       video: 'https://www.youtube.com/watch?v=5ARvAi6WyFU',
       'try Doki': 'https://doki.mov/',
