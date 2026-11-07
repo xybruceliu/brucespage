@@ -51,11 +51,11 @@ export const PROJECTS: Project[] = [
     award: 'Best Paper Honorable Mention',
     selected: true,
     links: {
-      // The ACM DOI (10.1145/3830398.3830715) isn't registered yet; switch to
-      // https://doi.org/10.1145/3830398.3830715 once it resolves.
-      'UIST 2026': 'https://arxiv.org/abs/2603.09072',
+      'UIST 2026': 'https://dl.acm.org/doi/10.1145/3830398.3830715',
+      blog: 'https://research.adobe.com/publication/a-text-native-interface-for-generative-video-authoring/',
       pdf: '/pdf/projects/liu2026doki.pdf',
       video: 'https://www.youtube.com/watch?v=5ARvAi6WyFU',
+      'try Doki': 'https://doki.mov/',
     },
     id: 'liu2026doki',
   },
@@ -78,6 +78,24 @@ export const PROJECTS: Project[] = [
       pdf: '/pdf/projects/liu2026overreliance.pdf',
     },
     id: 'liu2026overreliance',
+  },
+  {
+    title:
+      'Unraveling multiparty conversations: From human interaction mechanisms to conversational agent challenges and persona design',
+    authors: [
+      'Shitao Fang',
+      'Xingyu Bruce Liu',
+      'Takeo Igarashi',
+      'Koji Yatani',
+    ],
+    year: 2026,
+    image: '/img/projects/fang2026unraveling.png',
+    selected: false,
+    links: {
+      IJHCS: 'https://doi.org/10.1016/j.ijhcs.2025.103719',
+      pdf: '/pdf/projects/fang2026unraveling.pdf',
+    },
+    id: 'fang2026unraveling',
   },
   {
     title: 'Thought as a Substrate in Human-AI Interaction',
