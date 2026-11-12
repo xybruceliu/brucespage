@@ -339,7 +339,7 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     title: 'Designing a Video Agent That Can Actually Make a Long Film',
     description:
-      'Memory, planning, editing and feedback: the four parts a video agent needs once it makes more than one clip.',
+      'Definitions, shot planning, incremental editing and reviews: the four parts a video agent needs to make a long film.',
     date: 'Nov 2026',
     link: '/blog/video-agent',
     uid: 'video-agent',
