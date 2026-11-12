@@ -56,13 +56,13 @@ Every shot that references <T>@Camera</T> is generated with this image, so the t
 
 ### Scoping
 
-Definitions differ in how far they reach. A film's visual style should hold in every shot, the weather of one sequence only in that sequence, and a camera move only in the shot that calls for it. Definitions therefore need scopes, much as style rules in CSS do:
+Definitions differ in how far they reach. A film's visual style should hold in every shot, the weather of one sequence only within that sequence, and a camera move only in the shot that calls for it. A definition system therefore needs scopes, much as style rules in CSS do:
 
-- **Film.** A film-wide definition (Doki names it ALL, as in <T>#ALL</T> for the film's look) applies to every shot without being referenced, including flashbacks, dreams and scenes set elsewhere.
-- **Section.** A definition referenced in a section heading applies to every shot below it, until the next heading of the same level or higher. It suits what only one part of the film shares, such as a flashback's color grade.
+- **Film.** A film-wide definition applies to every shot without being referenced, flashbacks and dreams included. It holds what the whole film shares: its look, its lighting, its mood.
+- **Part of the film.** A definition attached to an act, a sequence or a flashback applies to every shot within that part, and to nothing outside it.
 - **Shot.** A definition referenced in a shot applies to that shot alone.
 
-Scope follows references, not location: a definition can be written anywhere in the script and reaches only the shots that reference it, directly or through a scope. Scopes also accumulate rather than override. A shot that references its own style still receives the film-wide one, so a local choice refines the shared look instead of replacing it.
+Two properties keep scopes predictable. First, reach follows references, not location: where a definition is written does not matter, and it reaches only the shots that reference it, directly or through a scope. Second, scopes accumulate rather than override: a shot that references its own style still receives the film-wide one, so a local choice refines the shared look instead of replacing it.
 
 ### Resolving a shot
 
@@ -70,16 +70,16 @@ Definitions can be nested and can depend on other definitions: a photo of Mio on
 
 <ResolveFigure />
 
-Traverse the graph depth-first from the shot's roots, which are its own references plus the film-wide and section definitions in scope, and emit each definition after the definitions it depends on:
+Traverse the graph depth-first from the shot's roots, which are its own references plus every film-wide and part-level definition in scope, and emit each definition after the definitions it depends on:
 
 ```ts
-const resolve = (tag: Tag) => {
-  if (seen.has(tag)) return // each once, so cycles stop
-  seen.add(tag)
-  tagsIn(tag.definition).forEach(resolve)
-  ordered.push(tag) // after everything it uses
+const resolve = (def: Definition) => {
+  if (seen.has(def)) return // each once, so cycles stop
+  seen.add(def)
+  referencesIn(def.description).forEach(resolve)
+  ordered.push(def) // after everything it uses
 }
-;[...shot.tags, ...globals, ...fromHeadings].forEach(resolve)
+;[...shot.references, ...inScope(shot)].forEach(resolve)
 ```
 
 The order matters because the prompt lists the definitions in that order: by the time the model reads that <T>@WindowPhoto</T> is "<T>@Mio</T> on a train", it already knows who Mio is. The graph is also worth keeping. Read in reverse, it identifies what a change affects: if Mio changes, every shot that reaches her, directly or through a photo of her, is out of date (Section 3).
@@ -130,7 +130,7 @@ The same applies to cuts within a clip, which a model filming several shots in o
 **If you're building one**
 
 - Give a definition with a reference image to everything that appears more than once and should look the same. Do not leave it to the agent to judge what is important.
-- Scope definitions to the film, a section or a shot, and let scopes accumulate rather than override.
+- Scope definitions to the whole film, a part of it or a single shot, and let scopes accumulate rather than override.
 - Resolve definitions depth-first and list them in dependency order. Keep the graph, since you will need it in reverse.
 - Spend the image budget on the scene so far and on what the first frame does not show, and label every image with what to take from it.
 - Never add visual details in text to a defined element. Restate the style at every cut.

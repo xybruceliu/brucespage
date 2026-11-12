@@ -521,8 +521,8 @@ export function ResolveFigure() {
       caption={
         <>
           One shot of <i>The Last Three</i>. Its words name four definitions,
-          which name three more, and every shot also gets the film&rsquo;s{' '}
-          <T>#ALL</T>. The numbers are the order a depth-first walk emits them:
+          which name three more, and the film-wide look (<T>#ALL</T>) applies to
+          every shot. The numbers are the order a depth-first walk emits them:
           each after what it uses. The image model gets the definitions in that
           order, and their images with the shot&rsquo;s own first, then the ones
           they bring, then the scene&rsquo;s earlier shots.
