@@ -1,7 +1,6 @@
 import {
   Definitions,
   Formula,
-  PackedFigure,
   PlanFigure,
   Prompt,
   ResolveFigure,
@@ -152,16 +151,13 @@ When every shot is its own clip, each one starts over from its keyframe, so moti
 
 But every model has limits. Some make one shot per generation. MiniMax H3 makes up to 15 seconds of shots, and Seedance 2.5 up to 30. A longer scene needs several generations, so the agent has to decide which shots go together.
 
-Take the scene below. At night, a woman folds a paper boat and sets it on the windowsill. The next morning, she runs out and lets it go on a puddle. The four shots run 19 seconds, too long for one MiniMax generation. The simple answer is to pack each generation full: shots 1 to 3 fill 15 seconds, and shot 4 gets a generation of its own.
+Take a scene of four shots. At night, a woman folds a paper boat (shot 1) and sets it on the windowsill (shot 2). The next morning, she runs out (shot 3) and lets it go on a puddle (shot 4). The four shots run 19 seconds, too long for one MiniMax generation. The naive answer is to pack each generation full: shots 1 to 3 fill the first 15 seconds, and shot 4 gets a generation of its own.
 
-<PackedFigure />
+The packed film doesn't look continuous. The first generation carries the night on into the morning, so the morning opens in last night's kitchen. And the split falls in the middle of her run, so she is running at the end of one clip and suddenly crouching at the start of the next. Splitting at the jump to the morning fixes both: the new generation opens on the morning's keyframe, and her run and crouch stay in one generation.
 
-Packing went wrong on both sides of its split:
+<ResultFigure />
 
-- **Inside one generation, the model carries on even where the story jumps.** Only the first shot of a generation opens exactly on its keyframe. The later shots get their keyframes only as reference images, so the model tends to continue what is already on screen. That is what makes the cuts flow, but shot 3 jumps from night to the next morning. In one take, it opened in last night's kitchen instead.
-- **Across generations, nothing carries over.** The split fell in the middle of her run, so she is running at the end of one clip and suddenly crouching at the start of the next.
-
-So this is a planning problem: carry on where the story flows, and start fresh where it jumps.
+So this is a planning problem: keep shots in one generation where the story flows, and start a new generation where it jumps.
 
 ### How the planner works
 
@@ -187,9 +183,7 @@ The agent that writes the script never sees any of this. It writes each scene at
 
 ### What the plan does
 
-For MiniMax, the planner splits right where the story jumps to the next morning: shots 1 and 2 make the night, and shots 3 and 4 the morning. The plan pays for this, because shot 4 now comes mid-generation and only lands near its keyframe. The planner judged that cheaper than breaking her run. Generated with this plan, the morning opens on its keyframe, and she slows and crouches in one move:
-
-<ResultFigure />
+For MiniMax, the planner picks the split of Fig. 2: shots 1 and 2 make the night, and shots 3 and 4 the morning. It pays for this, because shot 4 now comes mid-generation and only lands near its keyframe. The planner judged that cheaper than breaking her run.
 
 A longer scene shows the same logic at scale. It has ten shots in three parts: a morning in the kitchen, a long stretch at the river, and an evening downstream. Packing makes both mistakes again. The plan starts fresh at both jumps in time, and splits the river part where the boat drifts away from her. Seedance, with 30 seconds per generation, needs only two:
 

@@ -807,15 +807,6 @@ function Mark({ good, children }: { good?: boolean; children: ReactNode }) {
   return <span className={`text-[13px] ${good ? SKY : ROSE}`}>{children}</span>
 }
 
-/** A numbered spot where packing went wrong, which the panels below pick up */
-function Problem({ n }: { n: number }) {
-  return (
-    <span className="inline-flex size-[18px] shrink-0 items-center justify-center rounded-full border border-[var(--doki-rose-line)] bg-[var(--doki-rose-bg)] text-[11px] leading-none font-semibold text-[var(--doki-rose)] tabular-nums">
-      {n}
-    </span>
-  )
-}
-
 /** A row's name over its brackets: what made it, and for which model */
 function RowLabel({
   name,
@@ -888,169 +879,6 @@ const timeline = (width: number) => {
 const secondsOf = (start: number, end: number) =>
   SCENE.slice(start, end).reduce((sum, shot) => sum + shot.seconds, 0)
 
-// -----------------------------------------------------------------------------
-// Figure 2: the scene, packed full, and what that made
-// -----------------------------------------------------------------------------
-
-const PACKED: [number, number][] = [
-  [0, 3],
-  [3, 4],
-]
-
-/** What one packed take did, at each numbered spot of the strip */
-const PROBLEMS = [
-  {
-    title: 'Inside one generation, it carries on across the jump',
-    frames: [
-      {
-        kind: 'keyframe' as const,
-        image: 'boat-3',
-        label: 'Shot 3',
-      },
-      {
-        kind: 'generated' as const,
-        image: 'packed-open',
-        label: 'Shot 3, its first frame',
-      },
-    ],
-    note: '✗ The morning opens in last night’s kitchen',
-  },
-  {
-    title: 'Across generations, nothing carries over',
-    frames: [
-      {
-        kind: 'generated' as const,
-        image: 'packed-run',
-        label: 'Shot 3, its last frame',
-      },
-      {
-        kind: 'generated' as const,
-        image: 'packed-crouch',
-        label: 'Shot 4, its first frame',
-      },
-    ],
-    note: '✗ She is running, then suddenly crouching',
-  },
-]
-
-export function PackedFigure() {
-  return (
-    <Figure
-      number={2}
-      fixed={false}
-      caption={
-        <>
-          A scene of four shots, 19 s, packed into MiniMax H3&rsquo;s 15-second
-          generations. The numbers mark where packing went wrong in one take,
-          shown below.
-        </>
-      }
-    >
-      {(width: number) => {
-        const { px, lefts, rightOf, cutX, imageH } = timeline(width)
-        const top = 26
-        const cardsH = imageH + 72
-        const rowY = top + cardsH + 18
-        const bracketY = rowY + 22
-        return (
-          <div>
-            {/* The strip keeps its layout and scrolls sideways on a phone; the frames below stack */}
-            <div className="-mx-4 overflow-x-auto px-4">
-              <div
-                className="relative mx-auto"
-                style={{ width, height: bracketY + 34 }}
-              >
-                <span
-                  className="absolute -translate-x-1/2"
-                  style={{
-                    left: lefts[2] + (SCENE[2].seconds * px) / 2,
-                    top: 0,
-                  }}
-                >
-                  <Problem n={1} />
-                </span>
-                {SCENE.map((shot, i) => (
-                  <div
-                    key={shot.image}
-                    className="absolute"
-                    style={{
-                      left: lefts[i],
-                      top,
-                      width: shot.seconds * px,
-                      height: cardsH,
-                    }}
-                  >
-                    <KeyframeCard
-                      n={i + 1}
-                      seconds={shot.seconds}
-                      image={shot.image}
-                      alt={shot.says}
-                      says={shot.says}
-                      imageH={imageH}
-                    />
-                  </div>
-                ))}
-                <div className="absolute" style={{ left: lefts[0], top: rowY }}>
-                  <RowLabel
-                    name="Packed full"
-                    model="MiniMax H3, up to 15 s a generation"
-                  />
-                </div>
-                {PACKED.map(([a, b]) => (
-                  <Generation
-                    key={a}
-                    x1={lefts[a]}
-                    x2={rightOf(b - 1)}
-                    top={bracketY}
-                    label={`${secondsOf(a, b)} s`}
-                  />
-                ))}
-                <span
-                  className="absolute -translate-x-1/2"
-                  style={{ left: cutX(3), top: bracketY - 5 }}
-                >
-                  <Problem n={2} />
-                </span>
-              </div>
-            </div>
-
-            <div
-              className="mx-auto mt-6 grid gap-8 sm:grid-cols-2 sm:gap-6 sm:px-[22px]"
-              style={{ maxWidth: width }}
-            >
-              {PROBLEMS.map((problem, i) => (
-                <div key={problem.title}>
-                  <p className="text-foreground mb-2.5 flex items-center gap-2 text-[14px] font-medium">
-                    <Problem n={i + 1} />
-                    {problem.title}
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {problem.frames.map((frame) => (
-                      <div key={frame.image}>
-                        <Frame
-                          kind={frame.kind}
-                          image={frame.image}
-                          alt={frame.label}
-                        />
-                        <p className="text-muted-foreground mt-1.5 text-[12px] leading-snug">
-                          {frame.label}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-2">
-                    <Mark>{problem.note}</Mark>
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      }}
-    </Figure>
-  )
-}
-
 interface Weighed {
   start: number
   end: number
@@ -1122,7 +950,7 @@ export function PlanFigure() {
       number={3}
       caption={
         <>
-          The scene of Fig. 2, planned for MiniMax H3. Between shots, a circle
+          The boat scene, planned for MiniMax H3. Between shots, a circle
           says how much a cut needs the shots on both sides to flow together; on
           each shot, a square says how much it needs a fresh start on its
           keyframe. Below, the nine generations that fit, with best[j] at each
@@ -1436,14 +1264,14 @@ export function Formula() {
 }
 
 // -----------------------------------------------------------------------------
-// Figure 4: the scene generated both ways (pair 1 of the explainer's before/after)
+// Figure 2: the scene generated both ways (pair 1 of the explainer's before/after)
 // -----------------------------------------------------------------------------
 
 /** Each take's 5.6 s, from shot 3's first frame through the cut into shot 4, and the generation each part is in */
 const RESULTS = [
   {
     video: 'result-packed',
-    title: 'Packed',
+    title: 'Packed full',
     plan: '[1 2 3] [4]',
     good: false,
     parts: [
@@ -1457,7 +1285,7 @@ const RESULTS = [
   },
   {
     video: 'result-plan',
-    title: 'The plan',
+    title: 'Split at the jump',
     plan: '[1 2] [3 4]',
     good: true,
     parts: [
@@ -1523,13 +1351,13 @@ export function ResultFigure() {
   }, [])
   return (
     <Figure
-      number={4}
+      number={2}
       fixed={false}
       caption={
         <>
-          The morning half of the scene, generated with each split by MiniMax H3
-          from the same keyframes and references. Under each take, its shots,
-          and where its generations start and end.
+          Shots 3 and 4 of the boat scene, generated by MiniMax H3 with each
+          split, from the same keyframes and references. The bar under each take
+          shows its two shots, with a gap where a new generation starts.
         </>
       }
     >
@@ -1621,7 +1449,7 @@ export function ResultFigure() {
 }
 
 // -----------------------------------------------------------------------------
-// Figure 5: a longer scene, planned for two models (read and planned, not generated)
+// Figure 4: a longer scene, planned for two models (read and planned, not generated)
 // -----------------------------------------------------------------------------
 
 /** clip-planner-explainer/film-after/scenes/river.txt: its shots' lengths and parts */
@@ -1704,7 +1532,7 @@ const RIVER_ROW = 70
 export function RiverFigure() {
   return (
     <Figure
-      number={5}
+      number={4}
       caption={
         <>
           A longer scene, 10 shots and 37 s in three parts, read and planned by
@@ -1816,7 +1644,7 @@ export function RiverFigure() {
 }
 
 // -----------------------------------------------------------------------------
-// Figure 6: keep, edit or remake
+// Figure 5: keep, edit or remake
 // -----------------------------------------------------------------------------
 
 function Shot({
@@ -1891,7 +1719,7 @@ const CASES: {
 export function UpdateFigure() {
   return (
     <Figure
-      number={6}
+      number={5}
       fixed={false}
       caption={
         <>
@@ -1964,7 +1792,7 @@ export function UpdateFigure() {
 }
 
 // -----------------------------------------------------------------------------
-// Figure 7: where the reviews run
+// Figure 6: where the reviews run
 // -----------------------------------------------------------------------------
 
 const REVIEWS = [
@@ -1993,7 +1821,7 @@ const REVIEWS = [
 export function ReviewFigure() {
   return (
     <Figure
-      number={7}
+      number={6}
       caption={
         <>
           The reviews in one request, as the agent works from left to right.
