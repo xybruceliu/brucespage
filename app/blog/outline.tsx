@@ -1,11 +1,11 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // A post's outline, in the left margin of a wide screen: a slim column of short
 // lines, one for each section (longer) and each bold lead-in under it
-// (shorter), the one being read and its section darkest. Hovering the column
+// (shorter), the one being read darkest. Hovering the column
 // fades in the sections' names beside their lines, one after another - only
 // those, a word or two each, and no card behind them. A lead-in keeps to its
 // line: hovering it darkens it and names it in a tooltip. A click scrolls
@@ -16,8 +16,6 @@ interface Item {
   id: string
   title: string
   level: 2 | 3
-  /** The section it's in (its own id, for a section) */
-  section: string
   element: HTMLElement
 }
 
@@ -34,7 +32,6 @@ const slug = (text: string) =>
 const findItems = (main: HTMLElement): Item[] => {
   const used = new Set<string>()
   const items: Item[] = []
-  let section = ''
   main.querySelectorAll<HTMLElement>('h2, p').forEach((element) => {
     let title: string
     let level: 2 | 3
@@ -64,8 +61,7 @@ const findItems = (main: HTMLElement): Item[] => {
     used.add(id)
     element.id = id
     element.style.scrollMarginTop = '96px'
-    if (level === 2) section = id
-    items.push({ id, title, level, section: section || id, element })
+    items.push({ id, title, level, element })
   })
   return items
 }
@@ -74,6 +70,7 @@ export function Outline() {
   const pathname = usePathname()
   const [items, setItems] = useState<Item[]>([])
   const [active, setActive] = useState<Item | null>(null)
+  const pinned = useRef<Item | null>(null)
 
   useEffect(() => {
     const main = document.querySelector<HTMLElement>('main.blog-prose')
@@ -81,26 +78,48 @@ export function Outline() {
     const found = findItems(main)
     setItems(found)
 
+    /** Which item is being read, from where the headings are now */
+    const compute = () => {
+      // An item clicked stays the one being read until the reader scrolls
+      if (pinned.current) return setActive(pinned.current)
+      // The page's end stops scrolling before its last headings reach the
+      // read line, so over its last screen the line slides down to the
+      // window's bottom, and they're read in turn
+      const left =
+        document.documentElement.scrollHeight -
+        (window.scrollY + window.innerHeight)
+      const span = window.innerHeight - READ_LINE
+      const line = READ_LINE + Math.max(0, span - Math.max(0, left))
+      let current = found[0] ?? null
+      for (const item of found) {
+        if (item.element.getBoundingClientRect().top <= line) current = item
+        else break
+      }
+      setActive(current)
+    }
     let frame = 0
     const update = () => {
       cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => {
-        let current = found[0] ?? null
-        for (const item of found) {
-          if (item.element.getBoundingClientRect().top <= READ_LINE)
-            current = item
-          else break
-        }
-        setActive(current)
-      })
+      frame = requestAnimationFrame(compute)
+    }
+    const release = () => {
+      if (!pinned.current) return
+      pinned.current = null
+      compute()
     }
     update()
     window.addEventListener('scroll', update, { passive: true })
     window.addEventListener('resize', update)
+    window.addEventListener('wheel', release, { passive: true })
+    window.addEventListener('touchmove', release, { passive: true })
+    window.addEventListener('keydown', release)
     return () => {
       cancelAnimationFrame(frame)
       window.removeEventListener('scroll', update)
       window.removeEventListener('resize', update)
+      window.removeEventListener('wheel', release)
+      window.removeEventListener('touchmove', release)
+      window.removeEventListener('keydown', release)
     }
   }, [pathname])
 
@@ -116,6 +135,8 @@ export function Outline() {
       block: 'start',
     })
     history.replaceState(null, '', `#${item.id}`)
+    pinned.current = item
+    setActive(item)
   }
 
   let sectionIndex = -1
@@ -128,8 +149,8 @@ export function Outline() {
         {items.map((item, i) => {
           const section = item.level === 2
           if (section) sectionIndex++
-          const reading =
-            item.id === active?.id || (section && item.id === active?.section)
+          // One line is lit: the one being read
+          const reading = item.id === active?.id
           return (
             <li key={item.id} className={section && i > 0 ? 'mt-3' : ''}>
               <a
