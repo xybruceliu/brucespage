@@ -153,7 +153,7 @@ But every model has limits. Some make one shot per generation. MiniMax H3 makes 
 
 Take a scene of four shots. At night, a woman folds a paper boat (shot 1) and sets it on the windowsill (shot 2). The next morning, she runs out (shot 3) and lets it go on a puddle (shot 4). The four shots run 19 seconds, too long for one MiniMax generation. The naive answer is to pack each generation full: shots 1 to 3 fill the first 15 seconds, and shot 4 gets a generation of its own.
 
-The packed film doesn't look continuous. The first generation carries the night on into the morning, so the morning opens in last night's kitchen. And the split falls in the middle of her run, so she is running at the end of one clip and suddenly crouching at the start of the next. Splitting at the jump to the morning fixes both: the new generation opens on the morning's keyframe, and her run and crouch stay in one generation.
+The packed film doesn't look continuous. The first generation carries the night on into the morning, so the morning opens in last night's kitchen. And the split falls in the middle of her run, so she is running at the end of one clip and suddenly crouching at the start of the next. Another strategy fixes both: split the scene where it jumps to the next morning, so shots 1 and 2 make one generation and shots 3 and 4 the next. Then the new generation opens on the morning's keyframe, and her run and crouch stay in one generation.
 
 <ResultFigure />
 
