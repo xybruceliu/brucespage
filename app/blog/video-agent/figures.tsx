@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from 'react'
 
-// The figures of "Designing a Video Agent That Can Actually Tell a Story".
+// The figures of "Designing a Video Agent That Can Actually Make a Long Film".
 // Pictures and data come from Doki's example film The Last Three and from the
 // Doki demo; the clip planner is Doki's own
 // (client/src/editor/services/clipPlanner.ts), cut down to what this scene needs.

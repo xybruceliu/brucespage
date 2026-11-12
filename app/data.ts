@@ -337,7 +337,7 @@ export const PROJECTS: Project[] = [
 // `export const metadata = { title, ... }` for its <title> and social card.
 export const BLOG_POSTS: BlogPost[] = [
   {
-    title: 'Designing a Video Agent That Can Actually Tell a Story',
+    title: 'Designing a Video Agent That Can Actually Make a Long Film',
     description:
       'Memory, planning, editing and feedback: the four parts a video agent needs once it makes more than one clip.',
     date: 'Nov 2026',
