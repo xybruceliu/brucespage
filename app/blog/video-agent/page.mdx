@@ -255,9 +255,13 @@ Most of the judge's prompt describes what an edit can and cannot change:
 
 On 62 labeled cases, the judge chose correctly 61 times. For video edits, Doki uses [Gemini Omni](https://ai.google.dev/gemini-api/docs/omni), which changes what was asked and keeps the motion frame for frame.
 
-### Remake the smallest run
+### Start with the smallest fix
 
-When several shots share one generation, changing one of them should not regenerate the whole scene. An edit can run on that shot's segment alone. A remake regenerates only the run of neighboring shots that need new video, at the cost of a new split there. Trimming is cheaper still: cutting out the half second in which a hand warps costs nothing. So give the agent a trim tool and have it fix a shot in order of cost, trimming first, then editing, and remaking only as a last resort. Keep every version, so a remake that turns out worse can be undone.
+Shot planning makes this a little harder. When several shots share one generation, they come out as one clip, so it can seem that changing one shot means generating the whole clip again. Usually it doesn't, as long as the agent tries the cheapest fix first.
+
+The cheapest fix is a trim. If a hand warps for half a second, cutting that half second out costs nothing and changes nothing else. Next is an edit, which can run on the changed shot's part of the clip alone and leave the shots around it as they were. Only when neither works does the agent remake, and even then it regenerates just the neighboring shots that need new video, not the whole scene. That still has a cost: it adds a new split between generations, and the motion no longer carries across it.
+
+So give the agent a trim tool, and have it try the fixes in this order. And keep every version, so a remake that turns out worse can be undone.
 
 <Takeaways>
 
