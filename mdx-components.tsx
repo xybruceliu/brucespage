@@ -50,15 +50,16 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         />
       )
     },
-    // A link out of the site opens in a new tab, like the homepage's
+    // Every link in a post opens in a new tab, so following one never takes the
+    // reader out of the post - all but a jump to a heading on the same page
     a: ({ href = '', children, ...props }: ComponentPropsWithoutRef<'a'>) => {
-      const external = /^https?:\/\//.test(href)
+      const samePage = href.startsWith('#')
       return (
         <a
           href={href}
           className={LINK}
-          {...(external && { target: '_blank', rel: 'noopener noreferrer' })}
           {...props}
+          {...(!samePage && { target: '_blank', rel: 'noopener noreferrer' })}
         >
           {children}
         </a>
