@@ -32,6 +32,22 @@ const REFERENCES: Record<string, Reference> = {
     title: 'FLORA',
     url: 'https://www.florafauna.ai/',
   },
+  tapnow: {
+    title: 'TapNow',
+    url: 'https://www.tapnow.ai/',
+  },
+  libtv: {
+    who: 'LiblibAI',
+    title: 'LibTV',
+    url: 'https://www.liblib.tv/',
+  },
+  videorigami: {
+    who: 'Yining Cao, Yiyi Huang, Anh Truong, Hijung Valentina Shin and Haijun Xia',
+    title:
+      'Compositional Structures as Substrates for Human-AI Co-creation Environment: A Design Approach and A Case Study',
+    where: 'CHI 2025, arXiv:2503.04103',
+    url: 'https://arxiv.org/abs/2503.04103',
+  },
   creativeclaw: {
     who: 'CreativeClaw',
     title:
