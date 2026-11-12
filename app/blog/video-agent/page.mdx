@@ -44,23 +44,23 @@ Everything below comes from building Doki: the real prompts, what broke, and wha
 
 ## 1. Memory
 
-Doki's memory is a graph of definitions. Every person, place, object and look the film reuses is an entry with a name, a description and a reference image, and entries can use other entries. Before a shot is generated, Doki resolves the graph for that shot and sends the model every definition the shot reaches, in order, with their images. Nothing else carries over: image and video models remember nothing between generations, so anything that exists only as words is drawn anew every time.
+A long film shows the same people, places, objects and looks across dozens of generations, and image and video models remember nothing from one generation to the next. Each one sees only its own prompt and a few reference images, so anything that exists only as words is drawn anew every time. A video agent therefore needs a **definition system**: everything the film reuses is defined once, with a description and a reference image, and every shot references it instead of describing it again. Before each generation, the agent resolves the shot's references into the definitions and images the model needs.
 
 ### Definitions
 
-An entry is small: a type, a name, a description, and a reference image made from the description. Two from _The Last Three_, one of Doki's example films:
+A definition needs four parts: a type (a character, a place, an object, a look), a name the script can reference, a description, and a reference image made from that description. Two from _The Last Three_, an example film made in Doki:
 
 <Definitions />
 
-Every shot that uses <T>@Camera</T> is generated with that image, so the tape that reads "3 left" looks the same in all of them.
+Every shot that references <T>@Camera</T> is generated with that image, so the tape that reads "3 left" looks the same in all of them. The image does most of the work; the description is what the image is made from, and what each prompt repeats.
 
 ### Resolving a shot
 
-Entries refer to other entries, so resolving a shot means walking a dependency graph. Here is one shot of _The Last Three_, in which a girl named Mio leaves her last three photos at a shop:
+Definitions use other definitions: a photo of Mio on the platform needs both Mio and the platform. So the references form a dependency graph, and resolving a shot means walking it. Here is one shot of _The Last Three_, in which a girl named Mio leaves her last three photos at a shop:
 
 <ResolveFigure />
 
-Doki walks the graph depth-first from everything the shot uses (its own tags, the film-wide look and whatever its section heading adds), emitting each entry after its dependencies:
+Walk the graph depth-first from everything the shot references (its own tags, plus whatever applies to the whole film or its section), and emit each definition after the ones it uses:
 
 ```ts
 const resolve = (tag: Tag) => {
@@ -72,25 +72,25 @@ const resolve = (tag: Tag) => {
 ;[...shot.tags, ...globals, ...fromHeadings].forEach(resolve)
 ```
 
-The order matters because the prompt lists the definitions in it: by the time the model reads that <T>@WindowPhoto</T> is "<T>@Mio</T> on a train", it already knows who Mio is. The same graph, read backwards, tells you what a change breaks. Change Mio, and every shot that reaches her, directly or through a photo of her, is out of date (section 3).
+The order matters because the prompt lists the definitions in it: by the time the model reads that <T>@WindowPhoto</T> is "<T>@Mio</T> on a train", it already knows who Mio is. Keep the graph, too. Read backwards, it tells you what a change breaks: change Mio, and every shot that reaches her, directly or through a photo of her, is out of date (section 3).
 
 ### Choosing the reference images
 
-Video models take only four to six reference images, and a shot can reach more entries than that, so two rules decide what goes in:
+A shot can reach more definitions than a model takes images, which is four to six for video models right now, so the agent has to choose. Two rules worked:
 
-- **The scene so far.** The scene's earlier shots go into every new image, so a scene keeps its place, light and people. This was the biggest consistency win I measured: it cut errors by more than half.
-- **What the first frame doesn't show.** A video starts on its first frame, which already shows whoever is on screen, so the slots go first to the rest: the person about to walk in, the place a cut moves to.
+- **The scene so far.** Send the scene's earlier shots with every new image, so the scene keeps its place, light and people. This was the biggest consistency win I measured: it cut errors by more than half.
+- **What the first frame doesn't show.** A video starts on its first frame, which already shows whoever is on screen. Spend the slots on the rest: the person about to walk in, the place a cut moves to.
 
-Each image is labeled with what the model should take from it, because an unlabeled style reference gets its subject matter copied into the shot:
+Label each image with what the model should take from it. An unlabeled style reference gets its subject matter copied into the shot:
 
 <Prompt from="Doki's image prompt writer">
   An image that is "the overall style" [...] gives only that quality ("in the
   art style of image 3"). Never put its content in the shot.
 </Prompt>
 
-### What gets an entry
+### What gets a definition
 
-Anything seen more than once that should look the same. Leaving this to the agent's judgment failed. An earlier version of my prompt said "characters and key places or objects" get a reference image, and the agent decided a coin, a takeout bag and an orange were simple enough to describe in words, and that a scarf an old woman knits on a train, which a girl wears at the end, "changes form". All of them came out different in every shot. What fixed it was explaining how the models behave instead of naming a category:
+Anything seen more than once that should look the same, however small. Don't leave that to the agent's judgment. An earlier version of my prompt said "characters and key places or objects" get a reference image, and the agent decided that a coin, a takeout bag and an orange were simple enough to describe in words, and that a scarf an old woman knits on a train, which a girl wears at the end, "changes form". All of them came out different in every shot. What fixed it was explaining how the models behave instead of naming a category:
 
 <Prompt from="Doki's agent prompt">
   Without one, they get only its text, and each picture draws it anew - each
@@ -101,15 +101,15 @@ Anything seen more than once that should look the same. Leaving this to the agen
   with a reference shot.
 </Prompt>
 
-After that change, the scarf got its own entry every time, and continuity errors in my storyboard tests fell by about a fifth.
+After that change, the scarf got its own definition every time, and continuity errors in my storyboard tests fell by about a fifth.
 
-A reference image also holds everything it shows. If a shop's reference shows it from the street, every shot that uses it pulls toward the street, even the ones set inside. So a place's interior, a costume from another decade or what a character turns into each needs an entry of its own.
+A reference image also holds everything it shows. If a shop's reference shows it from the street, every shot that uses it pulls toward the street, even the ones set inside. So a place's interior, a costume from another decade, or what a character turns into each needs a definition of its own.
 
 ### Words beat pictures
 
-When the prompt and a reference image disagree, image models follow the prompt. When our prompt writer gave a character yellow boots, the red ones in her reference vanished. Models also sometimes ignore the images and draw from the text alone: a grandmother the prompt named only by her cardigan came out as a stranger in a cardigan. So Doki's prompt writer adds no looks to anything that has a reference, and describes each person by who they are (age, face, hair, build) before their clothes.
+When the prompt and a reference image disagree, image models follow the prompt. Give a character yellow boots in the text, and the red ones in her reference vanish. Models also sometimes skip the images and draw from the text alone: a grandmother the prompt named only by her cardigan came out as a stranger in a cardigan. So the prompt should add no looks to anything that has a reference, and describe each person by who they are (age, face, hair, build) before their clothes.
 
-The same goes for the cuts inside a clip, which a model filming several shots at once draws fresh: in half of my test clips, a black-and-white noir turned to color right after the first cut. One sentence fixed it:
+The same goes for the cuts inside a clip, which a model filming several shots at once draws fresh: in half of my test clips, a black-and-white noir turned to color right after the first cut. One sentence in the video prompt fixed it:
 
 <Prompt from="Doki's video prompt writer">
   The video model draws each later shot afresh and drifts from the film's look
@@ -119,26 +119,24 @@ The same goes for the cuts inside a clip, which a model filming several shots at
 
 **If you're building one**
 
-- Anything seen twice that should look the same gets a reference image. Don't leave it to the agent to judge what's important.
-- Resolve entries depth-first and list them in dependency order. Keep the graph, since you'll need it in reverse.
+- Give everything that appears more than once and should look the same a definition with a reference image. Don't leave it to the agent to judge what's important.
+- Resolve definitions depth-first and list them in dependency order. Keep the graph, since you'll need it in reverse.
 - Spend the image budget on the scene so far and on what the first frame doesn't show, and label every image with what to take from it.
 - Never add visual details in words to a defined thing. Restate the style at every cut.
 
 ## 2. Planning
 
-Planning decides how a scene becomes generations. Newer video models can film several shots in one generation and cut between them, so Doki films a scene's shots together, splits a long scene where the film loses least, and writes each clip's prompt so that the motion carries through its cuts.
-
-The obvious pipeline, one storyboard image and one clip per shot, cut together, is where the slideshow comes from. Each clip starts from a still, its motion and sound start from zero, and left alone it slows to a stop before its cut. Early on, Doki's films looked to me like a beginner splicing clips.
+The slideshow look comes from the obvious pipeline: one storyboard image and one clip per shot, cut together. Each clip starts from a still, its motion and sound start from zero, and left alone it slows to a stop before its cut. A video agent needs a planner instead, one that decides which shots are filmed together in one generation, where a long scene splits into clips, and how each clip's prompt keeps the motion going through its cuts.
 
 ### Film the scene, not the shot
 
-Inside one generation, people, light, motion and sound carry across the cuts, and a reverse angle can show the other side of the room, which separate images struggle with (image models tend to copy the earlier shot's camera position). In my tests, a scene made as one clip beat the same shots made separately in most pairwise comparisons, with about a third fewer continuity breaks.
+Newer video models can film several shots in one generation and cut between them. Inside one generation, people, light, motion and sound carry across the cuts, and a reverse angle can show the other side of the room, which separate images struggle with (image models tend to copy the earlier shot's camera position). So the unit of generation should be the scene. In my tests, a scene made as one clip beat the same shots made separately in most pairwise comparisons, with about a third fewer continuity breaks.
 
 ### Where to split
 
 One clip isn't free, and a scene can run longer than a generation (10 to 30 seconds right now). Inside a clip, only the first shot opens exactly on its storyboard frame; the later ones open close to theirs. A clip boundary resets the motion and the sound instead. Which costs more depends on the cut and the shot: a line of dialogue and its reply shouldn't be split, while a reveal or a product shot needs its exact frame.
 
-So before a scene is filmed, a model reads its shots (the text and the storyboard frames) and rates two things from 0 to 3: for each cut, how much the two sides need to be one take, and for each shot, how much it needs its exact frame. Two lines of the cut rubric:
+So before filming a scene, have a model read its shots (the text and the storyboard frames) and rate two things from 0 to 3: for each cut, how much the two sides need to be one take, and for each shot, how much it needs its exact frame. Two lines of the cut rubric:
 
 <Rubric />
 
@@ -154,7 +152,7 @@ Each clip has to fit the model's longest generation, a dissolve or fade forces a
 
 A clip's prompt has to give the model something to play, keep it moving, and say it in the model's own terms.
 
-**Open on the first instant.** About 40% of our first frames showed a moment later than the start of the shot. "She walks to the porch, crouches and watches the kitten" produced an image of her already crouched, leaving the clip nothing to play. Image models draw any action the prompt names as already done, so Doki's prompt writer describes the frame as a still photograph, and its answer starts with the opening moment on its own line (`OPENING: she reaches the porch steps`), which forces it to pick a single instant:
+**Open on the first instant.** About 40% of our first frames showed a moment later than the start of the shot. "She walks to the porch, crouches and watches the kitten" produced an image of her already crouched, leaving the clip nothing to play. Image models draw any action the prompt names as already done, so describe the frame as a still photograph, and have the prompt writer start with the opening moment on its own line (`OPENING: she reaches the porch steps`), which forces it to pick a single instant:
 
 <Prompt from="Doki's image prompt writer">
   The image model draws whatever the prompt names as done: an action's verb,
@@ -164,7 +162,7 @@ A clip's prompt has to give the model something to play, keep it moving, and say
   hands, gaze and weight are, and where each object is.
 </Prompt>
 
-**Keep moving through the cut.** The other end of the clip needs the same care. The video prompt writer is told what a stop does to the film:
+**Keep moving through the cut.** The other end of the clip needs the same care. Tell the video prompt writer what a stop does to the film:
 
 <Prompt from="Doki's video prompt writer">
   A clip that slows to a stop before its cut makes the film halt there, and when
@@ -195,21 +193,21 @@ That's one quirk of many. These are the ones I hit most often, with the wording 
 
 ## 3. Editing
 
-Editing treats the film as a build. Every image and clip records what it was made from, a change marks only what depends on it as out of date, and for each of those a judge decides whether to keep it, edit it or remake it, so a fix touches as little of the film as it can.
+A long film is never right on the first try, and it keeps changing as you work: a character's hair, a planet that should be frozen, a new line of dialogue. Regenerating whatever a change touches is the default, and it's a coin flip. In my logs, when a review flagged a problem and the shot was made again, the remake fixed it about half the time, and a second try did no better than the first. Each remake also throws away what was right: the camera angle, the faces, the take the user approved.
 
-The default is to regenerate, and that's a coin flip. In our logs, when a review flagged a problem and the shot was made again, the remake fixed it about half the time, and a second try did no better than the first. A remake also throws away what was right: the camera angle, the faces, the take the user approved. Models can edit instead now: give one an image or a clip and an instruction, and it changes what you asked and keeps the rest ([Gemini Omni](https://ai.google.dev/gemini-api/docs/omni) is the one I use for video).
+A video agent should treat the film like a build instead: know exactly what is out of date, and rebuild as little as possible, editing wherever it can. Models can edit now. Give one an image or a clip and an instruction, and it changes what you asked and keeps the rest ([Gemini Omni](https://ai.google.dev/gemini-api/docs/omni) is the one I use for video).
 
 ### Staleness is a diff
 
-Whenever Doki generates an image or video, it records the inputs: the shot's text, the resolved definitions, the versions of the reference images and, for a video, the frame it starts on, its timing and the clip it shares. Staleness is a diff between that record and the film as it is now, with reasons ("<T>@Mars</T> changed"). Because definitions resolve through the graph from section 1, a change reaches every shot that depends on it, directly or not. The record is written only after a generation succeeds, so a failed run never marks a shot up to date.
+For every image and clip, record what it was made from: the shot's text, the resolved definitions, the versions of the reference images and, for a video, the frame it starts on, its timing and the clip it shares. Staleness is then a diff between that record and the film as it is now, and it comes with reasons ("<T>@Mars</T> changed"). Because definitions resolve through the graph from section 1, a change reaches every shot that depends on it, directly or not. Write the record only after a generation succeeds, so a failed run never marks a shot up to date.
 
 ### Keep, edit or remake
 
-For each stale image and video, a fast model compares what the shot was made from with what it says now and picks one of three:
+For each stale image and video, have a fast model compare what it was made from with what the shot says now, and pick one of three:
 
 <UpdateFigure />
 
-The judge's prompt is mostly a description of what an edit can and can't do:
+Most of the judge's prompt describes what an edit can and can't do:
 
 <Prompt from="Doki's update judge">
   An edit does a change that sits in the picture: a color, clothes, hair or
@@ -220,15 +218,15 @@ The judge's prompt is mostly a description of what an edit can and can't do:
   video it can't change what is said, the voices or the timing.
 </Prompt>
 
-The edit model sees the pixels but not the script, so the judge writes its instruction in visual terms ("the woman in the red coat"), never in tags. On 62 labeled cases it chose right 61 times. Guardrails in code sit around it: a failed edit falls back to a remake, a shot gets at most three edits in a row, a new image always means a new video, and a photo the user uploaded is never drawn over.
+The edit model sees the pixels but not the script, so the judge should write its instruction in visual terms ("the woman in the red coat"), never in tags. On 62 labeled cases, Doki's judge chose right 61 times. Put guardrails around it in code: a failed edit falls back to a remake, a shot gets at most three edits in a row, a new image always means a new video, and a photo the user uploaded is never drawn over.
 
-Video edits go to whichever model does them best. Omni kept the motion frame for frame; another model we tried performed the motion again with the change, close but not the same take. So every video edit in Doki goes to Omni, whatever model made the clip.
+Send video edits to whichever model does them best. Omni kept the motion frame for frame; another model we tried performed the motion again with the change, close but not the same take. So every video edit in Doki goes to Omni, whatever model made the clip.
 
 ### Remake the smallest run
 
-When a scene shares one clip, changing one shot shouldn't reshoot the scene. If the change can be an edit, Doki cuts that shot's part out of the clip, edits it, and keeps the result as the shot's own video. If it needs a remake, Doki makes only the run of consecutive shots that need new video and leaves the others alone. The cost is a clip boundary where there wasn't one.
+When a scene shares one clip, changing one shot shouldn't reshoot the scene. If the change can be an edit, cut that shot's part out of the clip, edit it, and keep the result as the shot's own video. If it needs a remake, make only the run of consecutive shots that need new video, and leave the others alone. The cost is a clip boundary where there wasn't one.
 
-The cheapest fix of all is a trim. Cutting the half second where a hand warps costs nothing, so the agent has a trim tool and is told to fix a shared clip in order of cost: a trim first, then words an edit can follow, and only then the clip again. Doki keeps every version, so a remake that came out worse can be put back.
+The cheapest fix of all is a trim. Cutting the half second where a hand warps costs nothing, so give the agent a trim tool and tell it to fix a shared clip in order of cost: a trim first, then words an edit can follow, and only then the clip again. Keep every version, so a remake that came out worse can be put back.
 
 **If you're building one**
 
@@ -239,13 +237,11 @@ The cheapest fix of all is a trim. Cutting the half second where a hand warps co
 
 ## 4. Feedback
 
-Feedback is a set of reviews the harness runs at fixed points as the agent works: a read of the script, a check of each new picture, a review of the whole film, and a first-time viewer. What they find comes back inside the agent's tool results, so the agent fixes it without being asked.
-
-This has to be designed rather than left to the agent, because even a multimodal agent rarely sees the film it's making. It writes each shot long before that shot exists, it doesn't look at what comes back unless something makes it, and many models still can't watch a video with its sound (in Doki, Gemini does the watching for the agent). Yet almost everything above pays off on screen.
+A video agent can't fix what it doesn't see, and even a multimodal one rarely sees the film it's making. It writes each shot long before that shot exists, it doesn't look at what comes back unless something makes it, and many models still can't watch a video with its sound (in Doki, Gemini does the watching for the agent). Yet almost everything above pays off on screen. So the agent needs a feedback loop built into its harness: reviews that run at fixed points as it works, whose findings come back inside its tool results.
 
 ### Reviews the harness runs
 
-We gave the agent a tool to inspect any shot, which has a vision model watch it and answer questions. Across sixteen writing runs, the agent called it on its own zero times. So the reviews run in the harness, the code around the agent that executes its tools:
+Don't count on the agent to look on its own. I gave Doki's agent a tool to inspect any shot, which has a vision model watch it and answer questions, and across sixteen writing runs the agent called it on its own zero times. So the reviews run in the harness, the code around the agent that executes its tools:
 
 <ReviewFigure />
 
@@ -253,7 +249,7 @@ In storyboard tests, films made with these reviews won most blind comparisons ag
 
 ### The first-time viewer
 
-My favorite check is the first-time viewer. The film review has read the script, so it fills in what the pictures leave out. A viewer with no script can't, so wherever their account of the film differs from the script, the film isn't telling the story.
+My favorite check is the first-time viewer: a model that watches the finished film with no script and no request, and says what it understood. The film review has read the script, so it fills in what the pictures leave out. The viewer can't, so wherever their account differs from the script, the film isn't telling the story.
 
 <Prompt from="Doki's first-time viewer">
   Say what you understood, in plain words: [...] What you couldn't follow: who
@@ -262,19 +258,19 @@ My favorite check is the first-time viewer. The film review has read the script,
   came - each with its shot.
 </Prompt>
 
-### What made the reviews work
+### What makes reviews work
 
 - **Watch clips, not frames.** Findings from watching whole clips with their sound were real nearly every time, while findings from three sampled frames per clip held up about two times in three. Only whole clips caught a bicycle rolling backward, a hand that never lets go of a cup, or a voice that changed between shots.
 - **Tell a gap from a hedge.** The viewer would write that a film "never confirms the boy is him", and the review would ask for a fix, though asked directly, the viewer named the boy right every time. One sentence telling the review that a viewer who understood but hedged has understood removed the false alarms and kept the real catches.
-- **Fixes fit the film.** Left alone, the agent answered story critiques by adding beats: a 20-second chase went from 9 beats to 17, and the clips broke more often. Every review is now told that a fix "has to fit in the shots the film has [...] and never add a shot, a part or a cut."
-- **A refused look is a failure.** When a vision model's safety filter refused a harmless script about a ten-year-old girl, the empty answer read as "no problems found". Now a refusal tells the agent the shot went unchecked.
-- **Cap the loop.** Each shot is reviewed at most three times a request. Before the cap, one run made 24 images chasing its own reviews.
+- **Fixes fit the film.** Left alone, the agent answered story critiques by adding beats: a 20-second chase went from 9 beats to 17, and the clips broke more often. Tell every review that a fix "has to fit in the shots the film has [...] and never add a shot, a part or a cut."
+- **A refused look is a failure.** When a vision model's safety filter refused a harmless script about a ten-year-old girl, the empty answer read as "no problems found". A refusal should tell the agent the shot went unchecked.
+- **Cap the loop.** Review each shot at most three times a request. Before the cap, one run made 24 images chasing its own reviews.
 
-Checking the script instead of the pictures didn't work. A text-only continuity checker flagged plenty in the scripts and changed nothing in the films, because most continuity errors happen in generation: a cut inside a clip that forgets where someone was standing, a prop that morphs. Only looking at the output catches those.
+Checking the script instead of the pictures doesn't work. A text-only continuity checker flagged plenty in the scripts and changed nothing in the films, because most continuity errors happen in generation: a cut inside a clip that forgets where someone was standing, a prop that morphs. Only looking at the output catches those.
 
 ### What the agent is told
 
-The reviews show the agent its work after the fact. Its prompt has to cover the rest: the habits whose payoff it can't see while it writes. In general I prefer agent prompts that say what exists and what it costs, not what to do. Rules get applied mechanically: a rule to "fade in and out of the whole video" faded a tense dialogue scene in and out too. Examples get copied: one sample scene that opened wide and cut close made the agent open twice as many scenes that way. Facts alone worked for most things, but not for consistency. Told only what a reference image does and costs, the agent made almost none. A comment at the top of Doki's agent prompt records why we made an exception:
+The reviews show the agent its work after the fact. Its prompt has to cover the rest: the habits whose payoff it can't see while it writes. In general, agent prompts should say what exists and what it costs, not what to do. Rules get applied mechanically: a rule to "fade in and out of the whole video" faded a tense dialogue scene in and out too. Examples get copied: one sample scene that opened wide and cut close made the agent open twice as many scenes that way. Facts alone worked for most things, but not for consistency. Told only what a reference image does and costs, the agent made almost none. A comment at the top of Doki's agent prompt records why it makes an exception:
 
 <Prompt from="Doki's agent prompt, its opening comment">
   [...] the habits whose payoff shows only in images and videos it never sees:
