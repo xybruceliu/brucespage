@@ -443,7 +443,7 @@ const elbow = (
 
 function Badge({ n }: { n: number }) {
   return (
-    <span className="bg-foreground text-background absolute -top-2 -left-2 flex size-[18px] items-center justify-center rounded-full text-[10px] font-semibold tabular-nums">
+    <span className="bg-background absolute -top-2 -left-2 flex size-[18px] items-center justify-center rounded-full border border-[var(--doki-sky-line)] bg-[var(--doki-sky-bg)] text-[11px] font-semibold text-[var(--doki-sky)] tabular-nums">
       {n}
     </span>
   )
@@ -557,7 +557,7 @@ export function ResolveFigure() {
                     and <T>@WindowPhoto</T>.
                   </p>
                   <p className="text-muted-foreground relative mt-2 inline-block pl-6 text-[12px]">
-                    <span className="bg-foreground text-background absolute top-0 left-0 flex size-[18px] items-center justify-center rounded-full text-[10px] font-semibold">
+                    <span className="absolute top-0 left-0 flex size-[18px] items-center justify-center rounded-full border border-[var(--doki-sky-line)] bg-[var(--doki-sky-bg)] text-[11px] font-semibold text-[var(--doki-sky)] tabular-nums">
                       8
                     </span>
                     + <T>#ALL</T>, in every shot
@@ -577,7 +577,7 @@ export function ResolveFigure() {
                   }}
                 >
                   <Badge n={n.order} />
-                  <p className="mb-1.5 text-[12.5px] leading-none">
+                  <p className="mb-1.5 text-[13px] leading-none">
                     <T>{n.name}</T>
                   </p>
                   <div className="flex items-center gap-2">
@@ -595,7 +595,7 @@ export function ResolveFigure() {
                       </span>
                     )}
                     {n.says && (
-                      <p className="text-muted-foreground text-[11px] leading-snug">
+                      <p className="text-muted-foreground text-[12px] leading-snug">
                         {n.says}
                       </p>
                     )}
@@ -609,10 +609,10 @@ export function ResolveFigure() {
                 <p className="text-muted-foreground mb-2.5 font-mono text-[11px] tracking-wide uppercase">
                   The prompt&rsquo;s definitions
                 </p>
-                <ol className="space-y-1 text-[12.5px]">
+                <ol className="space-y-1 text-[13px]">
                   {RESOLVED.map((name, i) => (
                     <li key={name} className="flex items-center gap-2">
-                      <span className="text-muted-foreground w-3 text-right text-[11px] tabular-nums">
+                      <span className="text-muted-foreground w-3 text-right text-[12px] tabular-nums">
                         {i + 1}
                       </span>
                       <T>{name}</T>
@@ -646,7 +646,7 @@ export function ResolveFigure() {
                     />
                   ))}
                 </div>
-                <p className="text-muted-foreground mt-3 mb-1.5 text-[11px]">
+                <p className="text-muted-foreground mt-3 mb-1.5 text-[12px]">
                   The scene so far
                 </p>
                 <div className="flex gap-1.5">
@@ -669,16 +669,20 @@ export function ResolveFigure() {
 }
 
 // -----------------------------------------------------------------------------
-// The planning figures' shared parts, after the clip planner explainer: a
-// keyframe is a still on a card, a generated video plays in a dark player, a
-// rating is a numbered chip, and a generation is a bracket under its shots, in
-// ink when packed and in sky when planned. Rose marks what went wrong, sky what
-// went right.
+// The planning figures' shared parts, after the clip planner explainer.
+//
+// Type: 14px for a heading inside a figure, 13px for labels and words, 12px
+// for numbers and small notes, 11px only for a tag laid over a picture.
+// Color: gray for structure and for packing, sky for the plan, rose only for
+// the words that say what went wrong.
+// Surfaces: a keyframe is a still on a card; a generated video, or a frame of
+// one, sits in a dark frame of the same size and corners; a generation is a
+// bracket under the shots it holds; a rating is a numbered chip.
 // -----------------------------------------------------------------------------
 
 const ROSE = 'text-[var(--doki-rose)]'
-/** A badge on a player, in a rose that reads in both themes */
-const ROSE_BADGE = 'bg-[oklch(0.55_0.19_17)] text-white'
+const TAG =
+  'absolute top-1.5 left-1.5 rounded-[4px] px-1.5 py-[3px] text-[11px] leading-none font-medium'
 
 /** A keyframe, as a still on a card: its shot's number and length, the image, and what happens */
 function KeyframeCard({
@@ -700,9 +704,9 @@ function KeyframeCard({
   children?: ReactNode
 }) {
   return (
-    <div className="border-border bg-background flex h-full flex-col rounded-[var(--radius-md)] border p-1.5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+    <div className="border-border bg-background flex h-full flex-col rounded-[var(--radius-md)] border p-1.5">
       {n !== undefined && (
-        <p className="mb-1 px-0.5 font-mono text-[11px] leading-none">
+        <p className="mb-1 px-0.5 font-mono text-[12px] leading-none">
           <span className="font-semibold">{n}</span>
           {seconds !== undefined && (
             <span className="text-muted-foreground"> · {seconds}s</span>
@@ -716,7 +720,7 @@ function KeyframeCard({
         style={imageH ? { height: imageH } : undefined}
       />
       {says && (
-        <p className="text-muted-foreground mt-1 line-clamp-2 px-0.5 text-[11px] leading-snug">
+        <p className="text-muted-foreground mt-1 line-clamp-2 px-0.5 text-[12px] leading-snug">
           {says}
         </p>
       )}
@@ -725,43 +729,47 @@ function KeyframeCard({
   )
 }
 
-/** A generated video, or one frame of it, in a dark player */
-function Player({
+/**
+ * A picture at 16:9: a keyframe as a still on a card, or a generated video (or a
+ * frame of one) in a dark frame. Both come out the same size, so a keyframe and
+ * what was generated from it line up side by side.
+ */
+function Frame({
+  kind,
   image,
   video,
   alt,
-  badge,
 }: {
+  kind: 'keyframe' | 'generated'
   image?: string
   video?: ReactNode
   alt?: string
-  badge?: string
 }) {
+  const keyframe = kind === 'keyframe'
   return (
-    <div className="relative aspect-video overflow-hidden rounded-[var(--radius-md)] bg-black">
-      {video ??
-        (image && (
-          <img
-            src={`${IMG}/${image}.jpg`}
-            alt={alt ?? ''}
-            className="absolute inset-0 size-full object-cover"
-          />
-        ))}
-      <span className="absolute top-1.5 left-1.5 rounded-[4px] bg-black/60 px-1.5 py-0.5 text-[10px] leading-none font-medium text-white">
-        ▶ generated video
+    <div
+      className={`relative aspect-video overflow-hidden rounded-[var(--radius-md)] ${keyframe ? 'border-border bg-background border' : 'bg-black'}`}
+    >
+      <div className={`absolute ${keyframe ? 'inset-[5px]' : 'inset-0'}`}>
+        {video ??
+          (image && (
+            <img
+              src={`${IMG}/${image}.jpg`}
+              alt={alt ?? ''}
+              className={`size-full object-cover ${keyframe ? 'rounded-[3px]' : ''}`}
+            />
+          ))}
+      </div>
+      <span
+        className={`${TAG} ${keyframe ? 'border-border bg-background/90 text-foreground top-2.5 left-2.5 border' : 'bg-black/65 text-white'}`}
+      >
+        {keyframe ? 'Keyframe' : '▶ Generated'}
       </span>
-      {badge && (
-        <span
-          className={`absolute bottom-1.5 left-1.5 rounded-[4px] px-1.5 py-0.5 text-[10px] leading-none font-medium ${ROSE_BADGE}`}
-        >
-          {badge}
-        </span>
-      )}
     </div>
   )
 }
 
-/** One generation, as a bracket under the shots it holds: ink when packed, sky when planned */
+/** One generation, as a bracket under the shots it holds: gray when packed, sky when planned */
 function Generation({
   x1,
   x2,
@@ -781,11 +789,11 @@ function Generation({
       style={{ left: x1, top, width: x2 - x1 }}
     >
       <div
-        className={`h-2 rounded-b-[3px] border-x border-b ${planned ? 'border-[var(--doki-sky-line)]' : 'border-foreground'}`}
+        className={`h-2 rounded-b-[3px] border-x-[1.5px] border-b-[1.5px] ${planned ? 'border-[var(--doki-sky-line)]' : 'border-muted-foreground'}`}
       />
       {label && (
         <p
-          className={`mt-1 text-center text-[11px] font-medium tabular-nums ${planned ? SKY : ''}`}
+          className={`mt-1 text-center text-[12px] tabular-nums ${planned ? SKY : 'text-muted-foreground'}`}
         >
           {label}
         </p>
@@ -796,7 +804,36 @@ function Generation({
 
 /** What went wrong (✗, rose) or right (✓ or ↑, sky) */
 function Mark({ good, children }: { good?: boolean; children: ReactNode }) {
-  return <span className={`text-[11px] ${good ? SKY : ROSE}`}>{children}</span>
+  return <span className={`text-[13px] ${good ? SKY : ROSE}`}>{children}</span>
+}
+
+/** A numbered spot where packing went wrong, which the panels below pick up */
+function Problem({ n }: { n: number }) {
+  return (
+    <span className="inline-flex size-[18px] shrink-0 items-center justify-center rounded-full border border-[var(--doki-rose-line)] bg-[var(--doki-rose-bg)] text-[11px] leading-none font-semibold text-[var(--doki-rose)] tabular-nums">
+      {n}
+    </span>
+  )
+}
+
+/** A row's name over its brackets: what made it, and for which model */
+function RowLabel({
+  name,
+  model,
+  planned,
+}: {
+  name: string
+  model: string
+  planned?: boolean
+}) {
+  return (
+    <p className="text-muted-foreground text-[13px] leading-none">
+      <span className={`font-medium ${planned ? SKY : 'text-foreground'}`}>
+        {name}
+      </span>{' '}
+      · {model}
+    </p>
+  )
 }
 
 // -----------------------------------------------------------------------------
@@ -808,8 +845,8 @@ function Mark({ good, children }: { good?: boolean; children: ReactNode }) {
 const SCENE = [
   { image: 'boat-1', seconds: 6, says: 'Night, rain: she folds a paper boat' },
   { image: 'boat-2', seconds: 5, says: 'She sets it on the windowsill' },
-  { image: 'boat-3', seconds: 4, says: 'Next morning, sun: she runs out' },
-  { image: 'boat-4', seconds: 4, says: 'She lets the boat go on a puddle' },
+  { image: 'boat-3', seconds: 4, says: 'Next morning: she runs out' },
+  { image: 'boat-4', seconds: 4, says: 'She lets it go on a puddle' },
 ]
 const SCENE_SECONDS = SCENE.reduce((sum, shot) => sum + shot.seconds, 0)
 /** The scene reader on this scene: how much each cut needs the shots on both sides to flow together */
@@ -860,6 +897,42 @@ const PACKED: [number, number][] = [
   [3, 4],
 ]
 
+/** What one packed take did, at each numbered spot of the strip */
+const PROBLEMS = [
+  {
+    title: 'Inside one generation, the moment carries on',
+    frames: [
+      {
+        kind: 'keyframe' as const,
+        image: 'boat-3',
+        label: 'Shot 3',
+      },
+      {
+        kind: 'generated' as const,
+        image: 'packed-open',
+        label: 'Shot 3, its first frame',
+      },
+    ],
+    note: '✗ The morning opens in last night’s kitchen',
+  },
+  {
+    title: 'Across generations, nothing carries over',
+    frames: [
+      {
+        kind: 'generated' as const,
+        image: 'packed-run',
+        label: 'Shot 3, its last frame',
+      },
+      {
+        kind: 'generated' as const,
+        image: 'packed-crouch',
+        label: 'Shot 4, its first frame',
+      },
+    ],
+    note: '✗ She is running, then suddenly crouching',
+  },
+]
+
 export function PackedFigure() {
   return (
     <Figure
@@ -868,30 +941,34 @@ export function PackedFigure() {
       caption={
         <>
           A scene of four shots, 19 s, packed into MiniMax H3&rsquo;s 15-second
-          generations. Below, what one packed take did on either side of the
-          split.
+          generations. The numbers mark where packing went wrong in one take,
+          shown below.
         </>
       }
     >
       {(width: number) => {
         const { px, lefts, rightOf, cutX, imageH } = timeline(width)
-        const top = 20
-        const cardsH = imageH + 66
-        const rowY = top + cardsH + 12
+        const top = 26
+        const cardsH = imageH + 72
+        const rowY = top + cardsH + 18
+        const bracketY = rowY + 22
         return (
-          <div className="text-[12px]">
+          <div>
             {/* The strip keeps its layout and scrolls sideways on a phone; the frames below stack */}
             <div className="-mx-4 overflow-x-auto px-4">
               <div
                 className="relative mx-auto"
-                style={{ width, height: rowY + 70 }}
+                style={{ width, height: bracketY + 34 }}
               >
-                <p
-                  className="absolute text-center"
-                  style={{ left: lefts[2], width: SCENE[2].seconds * px }}
+                <span
+                  className="absolute -translate-x-1/2"
+                  style={{
+                    left: lefts[2] + (SCENE[2].seconds * px) / 2,
+                    top: 0,
+                  }}
                 >
-                  <Mark>✗ mid-generation</Mark>
-                </p>
+                  <Problem n={1} />
+                </span>
                 {SCENE.map((shot, i) => (
                   <div
                     key={shot.image}
@@ -913,88 +990,59 @@ export function PackedFigure() {
                     />
                   </div>
                 ))}
-                <p
-                  className="text-muted-foreground absolute text-[11px]"
-                  style={{ left: lefts[0], top: rowY }}
-                >
-                  <span className="text-foreground font-medium">
-                    Packed full
-                  </span>{' '}
-                  · MiniMax H3
-                </p>
+                <div className="absolute" style={{ left: lefts[0], top: rowY }}>
+                  <RowLabel
+                    name="Packed full"
+                    model="MiniMax H3, up to 15 s a generation"
+                  />
+                </div>
                 {PACKED.map(([a, b]) => (
                   <Generation
                     key={a}
                     x1={lefts[a]}
                     x2={rightOf(b - 1)}
-                    top={rowY + 18}
+                    top={bracketY}
                     label={`${secondsOf(a, b)} s`}
                   />
                 ))}
-                <p
-                  className="absolute -translate-x-1/2 whitespace-nowrap"
-                  style={{ left: cutX(3), top: rowY + 50 }}
+                <span
+                  className="absolute -translate-x-1/2"
+                  style={{ left: cutX(3), top: bracketY - 5 }}
                 >
-                  <Mark>✗ split mid-run</Mark>
-                </p>
+                  <Problem n={2} />
+                </span>
               </div>
             </div>
 
             <div
-              className="mx-auto mt-2 grid gap-6 sm:grid-cols-2 sm:px-[22px]"
+              className="mx-auto mt-6 grid gap-8 sm:grid-cols-2 sm:gap-6 sm:px-[22px]"
               style={{ maxWidth: width }}
             >
-              <div>
-                <p className="mb-2 font-medium">
-                  Inside one generation, the moment carries on
-                </p>
-                <div className="grid grid-cols-2 items-start gap-2">
-                  <div>
-                    <p className="text-muted-foreground mb-1 text-[11px]">
-                      Shot 3&rsquo;s keyframe
-                    </p>
-                    <KeyframeCard image="boat-3" alt="Shot 3's keyframe" />
+              {PROBLEMS.map((problem, i) => (
+                <div key={problem.title}>
+                  <p className="text-foreground mb-2.5 flex items-center gap-2 text-[14px] font-medium">
+                    <Problem n={i + 1} />
+                    {problem.title}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {problem.frames.map((frame) => (
+                      <div key={frame.image}>
+                        <Frame
+                          kind={frame.kind}
+                          image={frame.image}
+                          alt={frame.label}
+                        />
+                        <p className="text-muted-foreground mt-1.5 text-[12px] leading-snug">
+                          {frame.label}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-muted-foreground mb-1 text-[11px]">
-                      Shot 3, as generated
-                    </p>
-                    <Player
-                      image="packed-open"
-                      alt="Shot 3 as generated: the night kitchen"
-                      badge="its first frame"
-                    />
-                  </div>
+                  <p className="mt-2">
+                    <Mark>{problem.note}</Mark>
+                  </p>
                 </div>
-                <p className="mt-2">
-                  <Mark>✗ opens in last night&rsquo;s kitchen</Mark>
-                </p>
-              </div>
-              <div>
-                <p className="mb-2 font-medium">
-                  Across generations, nothing carries over
-                </p>
-                <div className="grid grid-cols-2 items-start gap-2">
-                  <div>
-                    <p className="text-muted-foreground mb-1 text-[11px]">
-                      Shot 3 ends
-                    </p>
-                    <Player image="packed-run" alt="Shot 3 ends: she runs" />
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground mb-1 text-[11px]">
-                      Shot 4 starts, a new generation
-                    </p>
-                    <Player
-                      image="packed-crouch"
-                      alt="Shot 4 starts: she is crouching"
-                    />
-                  </div>
-                </div>
-                <p className="mt-2">
-                  <Mark>✗ running, then suddenly crouching</Mark>
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         )
@@ -1050,8 +1098,8 @@ function LevelButton({
 }
 
 const LEGEND_H = 30
-const PILL_W = 40
-const PILL_H = 20
+const PILL_W = 44
+const PILL_H = 22
 
 export function PlanFigure() {
   const [seams, setSeams] = useState(READ_SEAMS)
@@ -1086,9 +1134,9 @@ export function PlanFigure() {
       {(width: number) => {
         const { px, lefts, rightOf, cutX, imageH } = timeline(width)
         const cardY = LEGEND_H
-        const cardH = imageH + 92
-        const planY = cardY + cardH + 10
-        const dpY = planY + 58
+        const cardH = imageH + 98
+        const planY = cardY + cardH + 18
+        const dpY = planY + 64
         const height = dpY + 128
         const arc = (w: Weighed) => {
           const x1 = cutX(w.start)
@@ -1108,8 +1156,8 @@ export function PlanFigure() {
           ...plan.weighed.filter(chosen),
         ]
         return (
-          <div className="relative text-[12px]" style={{ height }}>
-            <div className="text-muted-foreground absolute top-0 left-0 flex gap-5 px-1 text-[11px]">
+          <div className="relative" style={{ height }}>
+            <div className="text-muted-foreground absolute top-0 left-0 flex gap-6 px-1 text-[13px]">
               <span className="flex items-center gap-1.5">
                 <LevelChip level={2} kind="seam" />
                 How much a cut needs to flow
@@ -1166,19 +1214,15 @@ export function PlanFigure() {
               </div>
             ))}
 
-            <p
-              className="text-muted-foreground absolute text-[11px]"
-              style={{ left: lefts[0], top: planY }}
-            >
-              <span className={`font-medium ${SKY}`}>The plan</span> · MiniMax
-              H3
-            </p>
+            <div className="absolute" style={{ left: lefts[0], top: planY }}>
+              <RowLabel name="The plan" model="MiniMax H3" planned />
+            </div>
             {plan.clips.map(([start, end]) => (
               <Generation
                 key={`${start}-${end}`}
                 x1={lefts[start]}
                 x2={rightOf(end - 1)}
-                top={planY + 18}
+                top={planY + 22}
                 label={`${secondsOf(start, end)} s`}
                 planned
               />
@@ -1232,7 +1276,7 @@ export function PlanFigure() {
                     x={mid}
                     y={dpY + PILL_H + depth + 13}
                     textAnchor="middle"
-                    className="fill-[var(--doki-sky)] font-mono text-[11px] font-semibold"
+                    className="fill-[var(--doki-sky)] font-mono text-[12px] font-semibold"
                   >
                     {clipName(w)}
                   </text>
@@ -1265,7 +1309,7 @@ export function PlanFigure() {
                     x={cutX(j)}
                     y={dpY + PILL_H / 2 + 3.5}
                     textAnchor="middle"
-                    className={`font-mono text-[10px] tabular-nums ${onPath(j) ? 'fill-[var(--doki-sky)] font-semibold' : 'fill-muted-foreground'}`}
+                    className={`font-mono text-[11px] tabular-nums ${onPath(j) ? 'fill-[var(--doki-sky)] font-semibold' : 'fill-muted-foreground'}`}
                   >
                     {loss.toFixed(2)}
                   </text>
@@ -1274,7 +1318,7 @@ export function PlanFigure() {
             </svg>
 
             <div
-              className="text-muted-foreground absolute left-0 flex items-center justify-between px-1 text-[11px]"
+              className="text-muted-foreground absolute left-0 flex items-center justify-between px-1 text-[12px]"
               style={{ width, top: height - 18 }}
             >
               <span className="tabular-nums">
@@ -1352,13 +1396,13 @@ export function Formula() {
       <table className="mx-auto mt-5 text-[13px] tabular-nums">
         <thead className="text-muted-foreground">
           <tr>
-            <th className="pr-5 text-left text-[11px] font-normal">
+            <th className="pr-5 text-left text-[12px] font-normal">
               Measured, MiniMax H3 Max
             </th>
             {[0, 1, 2, 3].map((n) => (
               <th key={n} className="w-14 pb-1 font-normal">
                 <span className="flex flex-col items-center gap-1">
-                  <span className="text-[11px]">{n}</span>
+                  <span className="text-[12px]">{n}</span>
                 </span>
               </th>
             ))}
@@ -1395,17 +1439,20 @@ export function Formula() {
 // Figure 4: the scene generated both ways (pair 1 of the explainer's before/after)
 // -----------------------------------------------------------------------------
 
+/** Each take's 5.6 s, from shot 3's first frame through the cut into shot 4, and the generation each part is in */
 const RESULTS = [
   {
     video: 'result-packed',
     title: 'Packed',
     plan: '[1 2 3] [4]',
     good: false,
-    /** Where shot 4 starts in the clip, and what that cut is */
-    cut: { at: 4, label: 'new generation' },
+    parts: [
+      { from: 0, to: 4, label: 'Shot 3', generation: 1 },
+      { from: 4, to: 5.6, label: 'Shot 4, a new generation', generation: 2 },
+    ],
     notes: [
-      'the morning opens in the kitchen',
-      'running, then suddenly crouching',
+      'The morning opens in the kitchen',
+      'She is running, then suddenly crouching',
     ],
   },
   {
@@ -1413,14 +1460,23 @@ const RESULTS = [
     title: 'The plan',
     plan: '[1 2] [3 4]',
     good: true,
-    cut: { at: 3.7, label: 'a cut in the same generation' },
+    parts: [
+      { from: 0, to: 3.7, label: 'Shot 3', generation: 2 },
+      {
+        from: 3.7,
+        to: 5.6,
+        label: 'Shot 4, the same generation',
+        generation: 2,
+      },
+    ],
     notes: [
-      'the morning opens on its keyframe',
-      'she slows and crouches in one move',
+      'The morning opens on its keyframe',
+      'She slows and crouches in one move',
     ],
   },
 ]
 const RESULT_SECONDS = 5.6
+const pct = (seconds: number) => `${(100 * seconds) / RESULT_SECONDS}%`
 
 /** The two takes play together, from the start, while the figure is in view - unless the reader would rather nothing moved */
 export function ResultFigure() {
@@ -1441,8 +1497,7 @@ export function ResultFigure() {
     const follow = () => {
       videos.current.forEach((video, i) => {
         const head = heads.current[i]
-        if (video && head)
-          head.style.left = `${(100 * video.currentTime) / RESULT_SECONDS}%`
+        if (video && head) head.style.left = pct(video.currentTime)
       })
       frame = requestAnimationFrame(follow)
     }
@@ -1473,25 +1528,24 @@ export function ResultFigure() {
       caption={
         <>
           The morning half of the scene, generated with each split by MiniMax H3
-          from the same keyframes and references. Packed, shot 3 comes
-          mid-generation and opens on the night before, and shot 4 starts a new
-          generation mid-run. With the plan, shot 3 opens its own generation and
-          shot 4 follows inside it.
+          from the same keyframes and references. Under each take, its shots,
+          and where its generations start and end.
         </>
       }
     >
-      <div ref={box} className="grid gap-5 text-[12px] sm:grid-cols-2">
+      <div ref={box} className="grid gap-8 sm:grid-cols-2 sm:gap-6">
         {RESULTS.map((result, i) => (
           <div key={result.video}>
-            <p className="mb-1.5">
-              <span className={`font-medium ${result.good ? SKY : ''}`}>
+            <p className="mb-2.5 flex items-baseline gap-2 text-[14px] font-medium">
+              <span className={result.good ? SKY : 'text-foreground'}>
                 {result.title}
-              </span>{' '}
-              <span className="text-muted-foreground font-mono text-[11px]">
+              </span>
+              <span className="text-muted-foreground font-mono text-[12px] font-normal">
                 {result.plan}
               </span>
             </p>
-            <Player
+            <Frame
+              kind="generated"
               video={
                 <video
                   ref={(video) => {
@@ -1505,36 +1559,52 @@ export function ResultFigure() {
                   preload="metadata"
                   controls={still}
                   aria-label={`${result.title}: ${result.notes.join('; ')}`}
-                  className="absolute inset-0 size-full object-cover"
+                  className="size-full object-cover"
                 />
               }
             />
-            <div className="relative mt-3 h-[3px] rounded-full bg-[var(--border)]">
-              <span
-                className={`absolute -top-[5px] h-[13px] w-[2px] rounded-full ${result.good ? 'bg-[var(--doki-sky-line)]' : 'bg-foreground'}`}
-                style={{ left: `${(100 * result.cut.at) / RESULT_SECONDS}%` }}
-              />
-              <span
-                className="text-muted-foreground absolute top-2 text-[10px] whitespace-nowrap"
-                style={{
-                  right: `${100 - (100 * result.cut.at) / RESULT_SECONDS}%`,
-                  marginRight: 6,
-                }}
-              >
-                {result.cut.label}
-              </span>
+            {/* The take's shots: apart where a new generation starts, joined where the cut is inside one */}
+            <div className="relative mt-3 h-[6px]">
+              {result.parts.map((part, k) => {
+                const gapBefore =
+                  k === 0
+                    ? 0
+                    : result.parts[k - 1].generation === part.generation
+                      ? 2
+                      : 6
+                const next = result.parts[k + 1]
+                const gapAfter = !next
+                  ? 0
+                  : next.generation === part.generation
+                    ? 2
+                    : 6
+                return (
+                  <span
+                    key={part.label}
+                    className={`absolute top-0 h-full ${gapBefore !== 2 ? 'rounded-l-full' : ''} ${gapAfter !== 2 ? 'rounded-r-full' : ''} ${result.good ? 'bg-[var(--doki-sky-line)]' : 'bg-muted-foreground/40'}`}
+                    style={{
+                      left: `calc(${pct(part.from)} + ${gapBefore / 2}px)`,
+                      width: `calc(${pct(part.to - part.from)} - ${(gapBefore + gapAfter) / 2}px)`,
+                    }}
+                  />
+                )
+              })}
               {!still && (
                 <span
                   ref={(head) => {
                     heads.current[i] = head
                   }}
                   aria-hidden="true"
-                  className="bg-foreground/70 absolute -top-[3px] size-[9px] -translate-x-1/2 rounded-full"
+                  className="bg-foreground absolute -top-[4px] h-[14px] w-[2px] -translate-x-1/2 rounded-full"
                   style={{ left: 0 }}
                 />
               )}
             </div>
-            <ul className="mt-6 space-y-0.5">
+            <div className="text-muted-foreground relative mt-1.5 h-4 text-[12px]">
+              <span className="absolute left-0">{result.parts[0].label}</span>
+              <span className="absolute right-0">{result.parts[1].label}</span>
+            </div>
+            <ul className="mt-3 space-y-1 text-[13px] leading-snug">
               {result.notes.map((note) => (
                 <li key={note}>
                   <Mark good={result.good}>
@@ -1570,14 +1640,14 @@ interface RiverMark {
 }
 /** The plans, as data/plan.json "river" has them (MiniMax packed, MiniMax planned, Seedance planned) */
 const RIVER_PLANS: {
-  label: string
+  name: string
   model: string
   planned: boolean
   groups: [number, number][]
   marks: RiverMark[]
 }[] = [
   {
-    label: 'Packed full',
+    name: 'Packed full',
     model: 'MiniMax H3',
     planned: false,
     groups: [
@@ -1601,7 +1671,7 @@ const RIVER_PLANS: {
     ],
   },
   {
-    label: 'The plan',
+    name: 'The plan',
     model: 'MiniMax H3',
     planned: true,
     groups: [
@@ -1617,7 +1687,7 @@ const RIVER_PLANS: {
     ],
   },
   {
-    label: 'The plan',
+    name: 'The plan',
     model: 'Seedance 2.5',
     planned: true,
     groups: [
@@ -1627,8 +1697,9 @@ const RIVER_PLANS: {
     marks: [],
   },
 ]
-const RIVER_GAP = 5
-const RIVER_ROW = 62
+const RIVER_GAP = 6
+const RIVER_THUMB_H = 54
+const RIVER_ROW = 70
 
 export function RiverFigure() {
   return (
@@ -1656,22 +1727,25 @@ export function RiverFigure() {
           'before' in at
             ? left(at.before) - RIVER_GAP / 2
             : left(at.middle) + (RIVER_SECONDS[at.middle] * px) / 2
-        const top = 104
+        const thumbsY = 30
+        const plansY = thumbsY + RIVER_THUMB_H + 46
         return (
           <div
-            className="relative text-[12px]"
-            style={{ height: top + (RIVER_PLANS.length - 1) * RIVER_ROW + 28 }}
+            className="relative"
+            style={{
+              height: plansY + (RIVER_PLANS.length - 1) * RIVER_ROW + 36,
+            }}
           >
             {RIVER_PARTS.map((part) => (
               <p
                 key={part.when}
-                className="border-border absolute border-b pb-0.5 text-center text-[11px]"
+                className="border-border absolute border-b pb-1 text-center text-[13px] leading-none"
                 style={{
                   left: left(part.from),
                   width: right(part.to - 1) - left(part.from),
                 }}
               >
-                <span className="font-medium">{part.when}</span>{' '}
+                <span className="text-foreground font-medium">{part.when}</span>{' '}
                 <span className="text-muted-foreground">· {part.where}</span>
               </p>
             ))}
@@ -1679,16 +1753,17 @@ export function RiverFigure() {
               <div
                 key={i}
                 className="absolute"
-                style={{ left: left(i), top: 26, width: seconds * px }}
+                style={{ left: left(i), top: thumbsY, width: seconds * px }}
               >
-                <div className="border-border bg-background rounded-[6px] border p-1 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
-                  <p className="mb-0.5 px-0.5 font-mono text-[10px] leading-none font-semibold">
+                <div className="border-border bg-background rounded-[var(--radius-md)] border p-1">
+                  <p className="mb-1 px-0.5 font-mono text-[12px] leading-none font-semibold">
                     {i + 1}
                   </p>
                   <img
                     src={`${IMG}/river-${i + 1}.jpg`}
                     alt={`Shot ${i + 1}`}
-                    className="h-[40px] w-full rounded-[2px] object-cover"
+                    className="w-full rounded-[3px] object-cover"
+                    style={{ height: RIVER_THUMB_H }}
                   />
                 </div>
               </div>
@@ -1697,17 +1772,14 @@ export function RiverFigure() {
               <div
                 key={plan.model + plan.groups.length}
                 className="absolute left-0"
-                style={{ top: top + row * RIVER_ROW, width }}
+                style={{ top: plansY + row * RIVER_ROW, width }}
               >
-                <p className="text-muted-foreground mb-1 text-[11px]">
-                  <span
-                    className={`font-medium ${plan.planned ? SKY : 'text-foreground'}`}
-                  >
-                    {plan.label}
-                  </span>{' '}
-                  · {plan.model}
-                </p>
-                <div className="relative h-2">
+                <RowLabel
+                  name={plan.name}
+                  model={plan.model}
+                  planned={plan.planned}
+                />
+                <div className="relative mt-2.5 h-2">
                   {plan.groups.map(([a, b]) => (
                     <Generation
                       key={a}
@@ -1723,9 +1795,11 @@ export function RiverFigure() {
                   return (
                     <p
                       key={mark.text + markX(mark.at)}
-                      className={`absolute mt-1 whitespace-nowrap ${align === 'center' ? '-translate-x-1/2' : align === 'end' ? '-translate-x-full' : ''}`}
+                      className={`absolute mt-2 whitespace-nowrap ${align === 'center' ? '-translate-x-1/2' : align === 'end' ? '-translate-x-full' : ''}`}
                       style={{
-                        left: markX(mark.at) + (align === 'start' ? 6 : 0),
+                        left:
+                          markX(mark.at) +
+                          (align === 'start' ? 6 : align === 'end' ? -6 : 0),
                       }}
                     >
                       <Mark good={mark.good}>{mark.text}</Mark>
@@ -1757,7 +1831,7 @@ function Shot({
   return (
     <div>
       <KeyframeCard image={image} alt={label} />
-      <p className="mt-2 text-[12px]">
+      <p className="mt-2 text-[13px]">
         {mark && (
           <span
             className={`mr-1.5 font-medium ${mark === 'yes' ? SKY : 'text-[var(--doki-rose)]'}`}
@@ -1940,11 +2014,11 @@ export function ReviewFigure() {
             <p className="text-muted-foreground flex h-9 items-end text-center leading-tight">
               {review.when}
             </p>
-            <span className="relative z-10 my-2 flex size-5 items-center justify-center rounded-full border border-[var(--doki-sky-line)] bg-[var(--doki-sky-bg)] text-[10px] font-semibold text-[var(--doki-sky)] tabular-nums">
+            <span className="relative z-10 my-2 flex size-5 items-center justify-center rounded-full border border-[var(--doki-sky-line)] bg-[var(--doki-sky-bg)] text-[11px] font-semibold text-[var(--doki-sky)] tabular-nums">
               {i + 1}
             </span>
             <div className="border-border bg-background w-full flex-1 rounded-[var(--radius-lg)] border p-3">
-              <p className="font-medium">{review.check}</p>
+              <p className="text-[13px] font-medium">{review.check}</p>
               <p className="text-muted-foreground mt-1 leading-snug">
                 {review.sees}
               </p>
