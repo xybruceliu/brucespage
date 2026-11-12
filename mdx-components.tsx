@@ -1,7 +1,13 @@
 import type { MDXComponents } from 'mdx/types'
 import { ComponentPropsWithoutRef } from 'react'
 import { highlight } from 'sugar-high'
-import { DrawArrow } from '@/components/ui/draw-arrow'
+
+// The underline a link grows on hover, as the homepage's links do
+// (components/ui/animated-link.tsx): 1px of the text's color, left to right in
+// 200 ms. Drawn as a background, so a link that wraps onto a second line keeps
+// flowing with the text instead of jumping to the next line whole.
+const LINK =
+  'text-foreground font-normal no-underline bg-[linear-gradient(currentColor,currentColor)] bg-no-repeat bg-[length:0%_1px] bg-[position:0_100%] transition-[background-size] duration-200 hover:bg-[length:100%_1px] focus-visible:bg-[length:100%_1px] motion-reduce:transition-none'
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -22,32 +28,39 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         </figure>
       )
     },
-    code: ({ children, ...props }: ComponentPropsWithoutRef<'code'>) => {
-      const codeHTML = highlight(children as string)
-      return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
-    },
-    // A link out of the site opens in a new tab, and on hover the arrow draws
-    // itself just past its last letter, raised, so the line doesn't reflow
-    a: ({ href = '', children, ...props }: ComponentPropsWithoutRef<'a'>) => {
-      if (!/^https?:\/\//.test(href)) {
+    // A code block is highlighted; code inline in a sentence stays plain text
+    code: ({
+      children,
+      className,
+      ...props
+    }: ComponentPropsWithoutRef<'code'>) => {
+      if (!className?.startsWith('language-')) {
         return (
-          <a href={href} {...props}>
+          <code className={className} {...props}>
             {children}
-          </a>
+          </code>
         )
       }
+      const codeHTML = highlight(children as string)
+      return (
+        <code
+          className={className}
+          dangerouslySetInnerHTML={{ __html: codeHTML }}
+          {...props}
+        />
+      )
+    },
+    // A link out of the site opens in a new tab, like the homepage's
+    a: ({ href = '', children, ...props }: ComponentPropsWithoutRef<'a'>) => {
+      const external = /^https?:\/\//.test(href)
       return (
         <a
           href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="draw-arrow-trigger"
+          className={LINK}
+          {...(external && { target: '_blank', rel: 'noopener noreferrer' })}
           {...props}
         >
           {children}
-          <span className="relative inline-block w-0">
-            <DrawArrow className="absolute bottom-[0.6em] left-[0.1em] size-[0.5em]" />
-          </span>
         </a>
       )
     },

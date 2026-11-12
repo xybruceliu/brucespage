@@ -35,11 +35,7 @@ function Figure({
 
 /** A tag, as Doki's script shows it */
 function T({ children }: { children: ReactNode }) {
-  return (
-    <span className="font-medium text-sky-700 dark:text-sky-300">
-      {children}
-    </span>
-  )
+  return <span className="text-foreground font-medium">{children}</span>
 }
 
 /** A prompt excerpt, quoted as it is in Doki's code */
@@ -774,7 +770,7 @@ function Shot({
       <p className="mt-1.5 text-[12px]">
         {mark && (
           <span
-            className={`mr-1 font-semibold ${mark === 'yes' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
+            className={`mr-1 ${mark === 'yes' ? 'text-foreground' : 'text-muted-foreground'}`}
           >
             {mark === 'yes' ? '✓' : '✕'}
           </span>
@@ -812,8 +808,7 @@ export function UpdateFigure() {
           Scene
         </span>
         <T>@Mars</T> = Endless <s className="text-muted-foreground">red</s>{' '}
-        <span className="bg-sky-100 px-0.5 dark:bg-sky-950">frozen</span> dunes
-        …
+        <span className="text-foreground font-medium">frozen</span> dunes …
       </p>
       <div className="grid grid-cols-3 gap-3">
         <Shot image="jar-mars" label="Before" />

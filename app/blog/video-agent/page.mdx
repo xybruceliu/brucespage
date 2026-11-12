@@ -72,7 +72,7 @@ Resolving a shot is a depth-first walk over what it uses (its own tags, the film
 
 ```ts
 const resolve = (tag: Tag) => {
-  if (seen.has(tag)) return // shared entries once, and cycles stop here
+  if (seen.has(tag)) return // each once, so cycles stop
   seen.add(tag)
   tagsIn(tag.definition).forEach(resolve)
   ordered.push(tag) // after everything it uses
