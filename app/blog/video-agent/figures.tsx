@@ -243,29 +243,34 @@ export function ShotList() {
   )
 }
 
-/** Dots for a 0-3 level: how much a cut needs to flow (sky), or a shot its keyframe (purple) */
-function Dots({
+/** A 0-3 rating as a numbered chip: a circle for how much a cut needs to flow (sky), a square for how much a shot needs its keyframe (purple); with onClick, the reader can change it */
+function LevelChip({
   level,
   kind,
-  vertical,
+  label,
+  onClick,
 }: {
   level: number
   kind: 'seam' | 'frame'
-  vertical?: boolean
+  label?: string
+  onClick?: () => void
 }) {
-  const on =
-    kind === 'seam' ? 'bg-[var(--doki-sky-line)]' : 'bg-[var(--doki-pur-line)]'
+  const look = `inline-flex size-5 shrink-0 items-center justify-center border font-mono text-[11px] leading-none font-semibold tabular-nums ${
+    kind === 'seam'
+      ? 'rounded-full border-[var(--doki-sky-line)] bg-[var(--doki-sky-bg)] text-[var(--doki-sky)]'
+      : 'rounded-[5px] border-[var(--doki-pur-line)] bg-[var(--doki-pur-bg)] text-[var(--doki-pur)]'
+  }`
+  if (!onClick) return <span className={look}>{level}</span>
   return (
-    <span
-      className={`inline-flex items-center gap-[3px] ${vertical ? 'flex-col' : ''}`}
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`${label}: ${level} of 3`}
+      title={`${label}: ${level} of 3. Click to change it.`}
+      className={`${look} cursor-pointer transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2`}
     >
-      {[1, 2, 3].map((n) => (
-        <i
-          key={n}
-          className={`block size-[6px] rounded-full ${n <= level ? on : 'bg-border'}`}
-        />
-      ))}
-    </span>
+      {level}
+    </button>
   )
 }
 
@@ -307,10 +312,9 @@ export function Rubric() {
             <p className="text-foreground mb-1.5 font-medium">{title}</p>
             <ul className="space-y-1.5">
               {levels.map((text, i) => (
-                <li key={i} className="flex items-baseline gap-3">
-                  <span className="flex shrink-0 items-center gap-2 font-mono text-[12px]">
-                    <Dots level={3 - i} kind={kind} />
-                    {3 - i}
+                <li key={i} className="flex items-start gap-3">
+                  <span className="translate-y-[3px]">
+                    <LevelChip level={3 - i} kind={kind} />
                   </span>
                   <span>{text}</span>
                 </li>
@@ -665,6 +669,137 @@ export function ResolveFigure() {
 }
 
 // -----------------------------------------------------------------------------
+// The planning figures' shared parts, after the clip planner explainer: a
+// keyframe is a still on a card, a generated video plays in a dark player, a
+// rating is a numbered chip, and a generation is a bracket under its shots, in
+// ink when packed and in sky when planned. Rose marks what went wrong, sky what
+// went right.
+// -----------------------------------------------------------------------------
+
+const ROSE = 'text-[var(--doki-rose)]'
+/** A badge on a player, in a rose that reads in both themes */
+const ROSE_BADGE = 'bg-[oklch(0.55_0.19_17)] text-white'
+
+/** A keyframe, as a still on a card: its shot's number and length, the image, and what happens */
+function KeyframeCard({
+  n,
+  seconds,
+  image,
+  alt,
+  says,
+  imageH,
+  children,
+}: {
+  n?: number
+  seconds?: number
+  image: string
+  alt: string
+  says?: string
+  /** The image's height; without one it's 16:9 */
+  imageH?: number
+  children?: ReactNode
+}) {
+  return (
+    <div className="border-border bg-background flex h-full flex-col rounded-[var(--radius-md)] border p-1.5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+      {n !== undefined && (
+        <p className="mb-1 px-0.5 font-mono text-[11px] leading-none">
+          <span className="font-semibold">{n}</span>
+          {seconds !== undefined && (
+            <span className="text-muted-foreground"> · {seconds}s</span>
+          )}
+        </p>
+      )}
+      <img
+        src={`${IMG}/${image}.jpg`}
+        alt={alt}
+        className={`w-full rounded-[3px] object-cover ${imageH ? '' : 'aspect-video'}`}
+        style={imageH ? { height: imageH } : undefined}
+      />
+      {says && (
+        <p className="text-muted-foreground mt-1 line-clamp-2 px-0.5 text-[11px] leading-snug">
+          {says}
+        </p>
+      )}
+      {children && <div className="mt-auto">{children}</div>}
+    </div>
+  )
+}
+
+/** A generated video, or one frame of it, in a dark player */
+function Player({
+  image,
+  video,
+  alt,
+  badge,
+}: {
+  image?: string
+  video?: ReactNode
+  alt?: string
+  badge?: string
+}) {
+  return (
+    <div className="relative aspect-video overflow-hidden rounded-[var(--radius-md)] bg-black">
+      {video ??
+        (image && (
+          <img
+            src={`${IMG}/${image}.jpg`}
+            alt={alt ?? ''}
+            className="absolute inset-0 size-full object-cover"
+          />
+        ))}
+      <span className="absolute top-1.5 left-1.5 rounded-[4px] bg-black/60 px-1.5 py-0.5 text-[10px] leading-none font-medium text-white">
+        ▶ generated video
+      </span>
+      {badge && (
+        <span
+          className={`absolute bottom-1.5 left-1.5 rounded-[4px] px-1.5 py-0.5 text-[10px] leading-none font-medium ${ROSE_BADGE}`}
+        >
+          {badge}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** One generation, as a bracket under the shots it holds: ink when packed, sky when planned */
+function Generation({
+  x1,
+  x2,
+  top,
+  label,
+  planned,
+}: {
+  x1: number
+  x2: number
+  top: number
+  label?: string
+  planned?: boolean
+}) {
+  return (
+    <div
+      className="absolute transition-[left,width] duration-300"
+      style={{ left: x1, top, width: x2 - x1 }}
+    >
+      <div
+        className={`h-2 rounded-b-[3px] border-x border-b ${planned ? 'border-[var(--doki-sky-line)]' : 'border-foreground'}`}
+      />
+      {label && (
+        <p
+          className={`mt-1 text-center text-[11px] font-medium tabular-nums ${planned ? SKY : ''}`}
+        >
+          {label}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** What went wrong (✗, rose) or right (✓ or ↑, sky) */
+function Mark({ good, children }: { good?: boolean; children: ReactNode }) {
+  return <span className={`text-[11px] ${good ? SKY : ROSE}`}>{children}</span>
+}
+
+// -----------------------------------------------------------------------------
 // The scene the planner is shown on, from the clip planner explainer
 // (clip-planner-explainer/film-after/scenes/boat.txt): its shots, keyframes and
 // the scene reader's reading, recorded the same in all six of its films
@@ -691,9 +826,9 @@ const MODEL = {
 }
 const LAMBDA = 0.5
 
-const ROSE = 'text-[var(--doki-rose)]'
 const GAP = 14
-const LEFT0 = 12
+/** Room at the sides for the planner's end points */
+const LEFT0 = 22
 
 /** The scene's shots laid out across a width: seconds to pixels, and where each shot and cut sits */
 const timeline = (width: number) => {
@@ -713,47 +848,8 @@ const timeline = (width: number) => {
   return { px, lefts, rightOf, cutX, imageH: Math.round(px * 2) }
 }
 
-/** A bracket under shots, from x1 to x2, with what it holds below it */
-function Bracket({
-  x1,
-  x2,
-  top,
-  label,
-}: {
-  x1: number
-  x2: number
-  top: number
-  label: string
-}) {
-  return (
-    <div className="absolute" style={{ left: x1, top, width: x2 - x1 }}>
-      <div className="border-foreground h-2 rounded-b-[3px] border-x border-b" />
-      <p className="mt-1 text-center text-[11px] font-medium tabular-nums">
-        {label}
-      </p>
-    </div>
-  )
-}
-
-/** What one packed take did, on either side of its split */
-const MISTAKES = [
-  {
-    title: 'Inside one generation, the moment carries on',
-    frames: [
-      { image: 'boat-3', label: 'Shot 3’s keyframe' },
-      { image: 'packed-open', label: 'Shot 3, as generated' },
-    ],
-    note: 'opens in last night’s kitchen',
-  },
-  {
-    title: 'Across generations, nothing carries over',
-    frames: [
-      { image: 'packed-run', label: 'Shot 3 ends' },
-      { image: 'packed-crouch', label: 'Shot 4 starts' },
-    ],
-    note: 'running, then suddenly crouching',
-  },
-]
+const secondsOf = (start: number, end: number) =>
+  SCENE.slice(start, end).reduce((sum, shot) => sum + shot.seconds, 0)
 
 // -----------------------------------------------------------------------------
 // Figure 2: the scene, packed full, and what that made
@@ -768,6 +864,7 @@ export function PackedFigure() {
   return (
     <Figure
       number={2}
+      fixed={false}
       caption={
         <>
           A scene of four shots, 19 s, packed into MiniMax H3&rsquo;s 15-second
@@ -778,91 +875,126 @@ export function PackedFigure() {
     >
       {(width: number) => {
         const { px, lefts, rightOf, cutX, imageH } = timeline(width)
-        const stripH = imageH + 62
-        const secondsOf = ([a, b]: [number, number]) =>
-          SCENE.slice(a, b).reduce((sum, shot) => sum + shot.seconds, 0)
+        const top = 20
+        const cardsH = imageH + 66
+        const rowY = top + cardsH + 12
         return (
           <div className="text-[12px]">
-            <div className="relative" style={{ height: stripH + 64 }}>
-              {SCENE.map((shot, i) => (
-                <div
-                  key={shot.image}
-                  className="absolute"
-                  style={{ left: lefts[i], width: shot.seconds * px }}
+            {/* The strip keeps its layout and scrolls sideways on a phone; the frames below stack */}
+            <div className="-mx-4 overflow-x-auto px-4">
+              <div
+                className="relative mx-auto"
+                style={{ width, height: rowY + 70 }}
+              >
+                <p
+                  className="absolute text-center"
+                  style={{ left: lefts[2], width: SCENE[2].seconds * px }}
                 >
-                  <p className="mb-1 flex justify-between">
-                    <span className="font-medium">{i + 1}</span>
-                    <span className="text-muted-foreground tabular-nums">
-                      {shot.seconds} s
-                    </span>
-                  </p>
-                  <img
-                    src={`${IMG}/${shot.image}.jpg`}
-                    alt={shot.says}
-                    className="w-full rounded-[var(--radius-sm)] object-cover"
-                    style={{ height: imageH }}
+                  <Mark>✗ mid-generation</Mark>
+                </p>
+                {SCENE.map((shot, i) => (
+                  <div
+                    key={shot.image}
+                    className="absolute"
+                    style={{
+                      left: lefts[i],
+                      top,
+                      width: shot.seconds * px,
+                      height: cardsH,
+                    }}
+                  >
+                    <KeyframeCard
+                      n={i + 1}
+                      seconds={shot.seconds}
+                      image={shot.image}
+                      alt={shot.says}
+                      says={shot.says}
+                      imageH={imageH}
+                    />
+                  </div>
+                ))}
+                <p
+                  className="text-muted-foreground absolute text-[11px]"
+                  style={{ left: lefts[0], top: rowY }}
+                >
+                  <span className="text-foreground font-medium">
+                    Packed full
+                  </span>{' '}
+                  · MiniMax H3
+                </p>
+                {PACKED.map(([a, b]) => (
+                  <Generation
+                    key={a}
+                    x1={lefts[a]}
+                    x2={rightOf(b - 1)}
+                    top={rowY + 18}
+                    label={`${secondsOf(a, b)} s`}
                   />
-                  <p className="text-muted-foreground mt-1 text-[11px] leading-snug">
-                    {shot.says}
-                  </p>
-                </div>
-              ))}
-              <p
-                className="text-muted-foreground absolute text-[11px]"
-                style={{ left: lefts[0], top: stripH }}
-              >
-                Packed full
-              </p>
-              {PACKED.map(([a, b]) => (
-                <Bracket
-                  key={a}
-                  x1={lefts[a]}
-                  x2={rightOf(b - 1)}
-                  top={stripH + 16}
-                  label={`${secondsOf([a, b])} s`}
-                />
-              ))}
-              <p
-                className={`absolute text-[11px] ${ROSE}`}
-                style={{
-                  left: lefts[2],
-                  top: stripH + 44,
-                  width: SCENE[2].seconds * px,
-                }}
-              >
-                ✗ the morning, mid-generation
-              </p>
-              <p
-                className={`absolute text-[11px] ${ROSE}`}
-                style={{ left: cutX(3) + 6, top: stripH + 44 }}
-              >
-                ✗ split mid-run
-              </p>
+                ))}
+                <p
+                  className="absolute -translate-x-1/2 whitespace-nowrap"
+                  style={{ left: cutX(3), top: rowY + 50 }}
+                >
+                  <Mark>✗ split mid-run</Mark>
+                </p>
+              </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-6 px-3">
-              {MISTAKES.map((mistake) => (
-                <div key={mistake.title}>
-                  <p className="mb-2 font-medium">{mistake.title}</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {mistake.frames.map((frame) => (
-                      <div key={frame.image}>
-                        <p className="text-muted-foreground mb-1 text-[11px]">
-                          {frame.label}
-                        </p>
-                        <img
-                          src={`${IMG}/${frame.image}.jpg`}
-                          alt={frame.label}
-                          className="aspect-video w-full rounded-[var(--radius-sm)] object-cover"
-                        />
-                      </div>
-                    ))}
+            <div
+              className="mx-auto mt-2 grid gap-6 sm:grid-cols-2 sm:px-[22px]"
+              style={{ maxWidth: width }}
+            >
+              <div>
+                <p className="mb-2 font-medium">
+                  Inside one generation, the moment carries on
+                </p>
+                <div className="grid grid-cols-2 items-start gap-2">
+                  <div>
+                    <p className="text-muted-foreground mb-1 text-[11px]">
+                      Shot 3&rsquo;s keyframe
+                    </p>
+                    <KeyframeCard image="boat-3" alt="Shot 3's keyframe" />
                   </div>
-                  <p className={`mt-1.5 text-[11px] ${ROSE}`}>
-                    ✗ {mistake.note}
-                  </p>
+                  <div>
+                    <p className="text-muted-foreground mb-1 text-[11px]">
+                      Shot 3, as generated
+                    </p>
+                    <Player
+                      image="packed-open"
+                      alt="Shot 3 as generated: the night kitchen"
+                      badge="its first frame"
+                    />
+                  </div>
                 </div>
-              ))}
+                <p className="mt-2">
+                  <Mark>✗ opens in last night&rsquo;s kitchen</Mark>
+                </p>
+              </div>
+              <div>
+                <p className="mb-2 font-medium">
+                  Across generations, nothing carries over
+                </p>
+                <div className="grid grid-cols-2 items-start gap-2">
+                  <div>
+                    <p className="text-muted-foreground mb-1 text-[11px]">
+                      Shot 3 ends
+                    </p>
+                    <Player image="packed-run" alt="Shot 3 ends: she runs" />
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground mb-1 text-[11px]">
+                      Shot 4 starts, a new generation
+                    </p>
+                    <Player
+                      image="packed-crouch"
+                      alt="Shot 4 starts: she is crouching"
+                    />
+                  </div>
+                </div>
+                <p className="mt-2">
+                  <Mark>✗ running, then suddenly crouching</Mark>
+                </p>
+              </div>
             </div>
           </div>
         )
@@ -870,10 +1002,6 @@ export function PackedFigure() {
     </Figure>
   )
 }
-
-// -----------------------------------------------------------------------------
-// Figure 3: planning the scene’s generations
-// -----------------------------------------------------------------------------
 
 interface Weighed {
   start: number
@@ -906,36 +1034,24 @@ const planScene = (seams: number[], frames: number[]) => {
   return { best, weighed, clips }
 }
 
-/** A level the reader can change, by clicking its dots */
+/** A level the reader can change, by clicking its chip */
 function LevelButton({
   level,
   kind,
   label,
   onClick,
-  vertical,
 }: {
   level: number
   kind: 'seam' | 'frame'
   label: string
   onClick: () => void
-  vertical?: boolean
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={`${label}: level ${level} of 3`}
-      title={`${label}: ${level} of 3`}
-      className="hover:bg-muted bg-background flex cursor-pointer items-center rounded-full p-1 transition-colors"
-    >
-      <Dots level={level} kind={kind} vertical={vertical} />
-    </button>
-  )
+  return <LevelChip level={level} kind={kind} label={label} onClick={onClick} />
 }
 
 const LEGEND_H = 30
-const BAND_H = 178
-const DP_Y = LEGEND_H + 236
+const PILL_W = 40
+const PILL_H = 20
 
 export function PlanFigure() {
   const [seams, setSeams] = useState(READ_SEAMS)
@@ -951,31 +1067,37 @@ export function PlanFigure() {
   const cycle = (values: number[], i: number) =>
     values.map((v, k) => (k === i ? (v + 1) % 4 : v))
   const clipName = (w: { start: number; end: number }) =>
-    `s${w.start + 1}${w.end - 1 > w.start ? `–s${w.end}` : ''}`
+    `${w.start + 1}${w.end - 1 > w.start ? `–${w.end}` : ''}`
 
   return (
     <Figure
       number={3}
       caption={
         <>
-          The scene of Fig. 2, planned for MiniMax H3. Between shots, the dots
-          say how much a cut needs the shots on both sides to flow together;
-          under each shot, how much it needs a fresh start on its keyframe.
-          Below, the nine generations that fit, with best[j] at each node and
-          the plan drawn dark: it splits where the story jumps to the next
-          morning. Click the dots to change a level.
+          The scene of Fig. 2, planned for MiniMax H3. Between shots, a circle
+          says how much a cut needs the shots on both sides to flow together; on
+          each shot, a square says how much it needs a fresh start on its
+          keyframe. Below, the nine generations that fit, with best[j] at each
+          point and the plan in sky: it splits where the story jumps to the next
+          morning. Click a chip to change its level.
         </>
       }
     >
       {(width: number) => {
         const { px, lefts, rightOf, cutX, imageH } = timeline(width)
+        const cardY = LEGEND_H
+        const cardH = imageH + 92
+        const planY = cardY + cardH + 10
+        const dpY = planY + 58
+        const height = dpY + 128
         const arc = (w: Weighed) => {
           const x1 = cutX(w.start)
           const x2 = cutX(w.end)
-          const depth = 14 + (x2 - x1) * 0.12
-          const pull = DP_Y + (depth * 4) / 3
+          const depth = 14 + (x2 - x1) * 0.11
+          const y = dpY + PILL_H
+          const pull = y + (depth * 4) / 3
           return {
-            d: `M${x1} ${DP_Y} C ${x1} ${pull}, ${x2} ${pull}, ${x2} ${DP_Y}`,
+            d: `M${x1} ${y} C ${x1} ${pull}, ${x2} ${pull}, ${x2} ${y}`,
             mid: (x1 + x2) / 2,
             depth,
           }
@@ -986,40 +1108,17 @@ export function PlanFigure() {
           ...plan.weighed.filter(chosen),
         ]
         return (
-          <div className="relative h-[376px] text-[12px]">
+          <div className="relative text-[12px]" style={{ height }}>
             <div className="text-muted-foreground absolute top-0 left-0 flex gap-5 px-1 text-[11px]">
               <span className="flex items-center gap-1.5">
-                <Dots level={2} kind="seam" />
+                <LevelChip level={2} kind="seam" />
                 How much a cut needs to flow
               </span>
               <span className="flex items-center gap-1.5">
-                <Dots level={2} kind="frame" />
+                <LevelChip level={2} kind="frame" />
                 How much a shot needs its keyframe
               </span>
             </div>
-
-            {plan.clips.map(([start, end]) => {
-              const seconds = SCENE.slice(start, end).reduce(
-                (sum, shot) => sum + shot.seconds,
-                0,
-              )
-              return (
-                <div
-                  key={`${start}-${end}`}
-                  className="bg-muted absolute rounded-[var(--radius-lg)] transition-[left,width] duration-300"
-                  style={{
-                    top: LEGEND_H,
-                    left: lefts[start] - 6,
-                    width: rightOf(end - 1) - lefts[start] + 12,
-                    height: BAND_H,
-                  }}
-                >
-                  <p className="text-muted-foreground px-2 pt-1.5 text-[11px]">
-                    One generation · {seconds} s
-                  </p>
-                </div>
-              )
-            })}
 
             {SCENE.map((shot, i) => (
               <div
@@ -1027,66 +1126,75 @@ export function PlanFigure() {
                 className="absolute"
                 style={{
                   left: lefts[i],
-                  top: LEGEND_H + 26,
+                  top: cardY,
                   width: shot.seconds * px,
+                  height: cardH,
                 }}
               >
-                <p className="mb-1 flex justify-between">
-                  <span className="font-medium">s{i + 1}</span>
-                  <span className="text-muted-foreground tabular-nums">
-                    {shot.seconds} s
-                  </span>
-                </p>
-                <img
-                  src={`${IMG}/${shot.image}.jpg`}
+                <KeyframeCard
+                  n={i + 1}
+                  seconds={shot.seconds}
+                  image={shot.image}
                   alt={shot.says}
-                  className="w-full rounded-[var(--radius-sm)] object-cover"
-                  style={{ height: imageH }}
-                />
-                <div className="mt-1 -ml-1">
-                  <LevelButton
-                    level={frames[i]}
-                    kind="frame"
-                    label={`How much s${i + 1} needs its keyframe`}
-                    onClick={() => setFrames(cycle(frames, i))}
-                  />
-                </div>
-                <p className="text-muted-foreground text-[11px] leading-snug">
-                  {shot.says}
-                </p>
+                  says={shot.says}
+                  imageH={imageH}
+                >
+                  <div className="mt-1.5 px-0.5">
+                    <LevelButton
+                      level={frames[i]}
+                      kind="frame"
+                      label={`How much shot ${i + 1} needs its keyframe`}
+                      onClick={() => setFrames(cycle(frames, i))}
+                    />
+                  </div>
+                </KeyframeCard>
               </div>
             ))}
 
             {seams.map((level, i) => (
               <div
                 key={i}
-                className="absolute -translate-x-1/2"
-                style={{
-                  left: cutX(i + 1),
-                  top: LEGEND_H + 44 + imageH / 2 - 15,
-                }}
+                className="absolute z-10 -translate-x-1/2"
+                style={{ left: cutX(i + 1), top: cardY + 22 + imageH / 2 - 10 }}
               >
                 <LevelButton
-                  vertical
                   level={level}
                   kind="seam"
-                  label={`How much the cut after s${i + 1} needs to flow`}
+                  label={`How much the cut after shot ${i + 1} needs to flow`}
                   onClick={() => setSeams(cycle(seams, i))}
                 />
               </div>
             ))}
 
+            <p
+              className="text-muted-foreground absolute text-[11px]"
+              style={{ left: lefts[0], top: planY }}
+            >
+              <span className={`font-medium ${SKY}`}>The plan</span> · MiniMax
+              H3
+            </p>
+            {plan.clips.map(([start, end]) => (
+              <Generation
+                key={`${start}-${end}`}
+                x1={lefts[start]}
+                x2={rightOf(end - 1)}
+                top={planY + 18}
+                label={`${secondsOf(start, end)} s`}
+                planned
+              />
+            ))}
+
             <svg
-              className="pointer-events-none absolute top-0 left-0"
+              className="pointer-events-none absolute top-0 left-0 overflow-visible"
               width={width}
-              height="376"
+              height={height}
               aria-hidden="true"
             >
               <line
                 x1={cutX(0)}
                 x2={cutX(SCENE.length)}
-                y1={DP_Y}
-                y2={DP_Y}
+                y1={dpY + PILL_H / 2}
+                y2={dpY + PILL_H / 2}
                 className="stroke-border"
                 strokeWidth="1"
               />
@@ -1101,7 +1209,7 @@ export function PlanFigure() {
                       fill="none"
                       strokeWidth={on ? 2 : hovered ? 1.75 : 1.25}
                       strokeLinecap="round"
-                      className={`transition-colors ${on ? 'stroke-foreground' : hovered ? 'stroke-[var(--doki-sky-line)]' : 'stroke-border'}`}
+                      className={`transition-colors ${on ? 'stroke-[var(--doki-sky)]' : hovered ? 'stroke-[var(--doki-sky-line)]' : 'stroke-border'}`}
                     />
                     <path
                       d={d}
@@ -1122,9 +1230,9 @@ export function PlanFigure() {
                   <text
                     key={`label-${w.start}-${w.end}`}
                     x={mid}
-                    y={DP_Y + depth + 15}
+                    y={dpY + PILL_H + depth + 13}
                     textAnchor="middle"
-                    className="fill-foreground text-[11px] font-medium tabular-nums"
+                    className="fill-[var(--doki-sky)] font-mono text-[11px] font-semibold"
                   >
                     {clipName(w)}
                   </text>
@@ -1132,22 +1240,32 @@ export function PlanFigure() {
               })}
               {plan.best.map(({ loss }, j) => (
                 <g key={j}>
-                  <circle
-                    cx={cutX(j)}
-                    cy={DP_Y}
-                    r="4"
+                  <rect
+                    x={cutX(j) - PILL_W / 2}
+                    y={dpY}
+                    width={PILL_W}
+                    height={PILL_H}
+                    rx={PILL_H / 2}
+                    className="fill-background"
+                  />
+                  <rect
+                    x={cutX(j) - PILL_W / 2}
+                    y={dpY}
+                    width={PILL_W}
+                    height={PILL_H}
+                    rx={PILL_H / 2}
+                    strokeWidth="1.25"
                     className={
                       onPath(j)
-                        ? 'fill-foreground stroke-foreground'
-                        : 'fill-background stroke-muted-foreground'
+                        ? 'fill-[var(--doki-sky-bg)] stroke-[var(--doki-sky-line)]'
+                        : 'fill-background stroke-border'
                     }
-                    strokeWidth="1.5"
                   />
                   <text
                     x={cutX(j)}
-                    y={DP_Y - 11}
+                    y={dpY + PILL_H / 2 + 3.5}
                     textAnchor="middle"
-                    className={`text-[10px] tabular-nums ${onPath(j) ? 'fill-foreground' : 'fill-muted-foreground'}`}
+                    className={`font-mono text-[10px] tabular-nums ${onPath(j) ? 'fill-[var(--doki-sky)] font-semibold' : 'fill-muted-foreground'}`}
                   >
                     {loss.toFixed(2)}
                   </text>
@@ -1156,8 +1274,8 @@ export function PlanFigure() {
             </svg>
 
             <div
-              className="text-muted-foreground absolute top-[352px] left-0 flex items-center justify-between px-1 text-[11px]"
-              style={{ width }}
+              className="text-muted-foreground absolute left-0 flex items-center justify-between px-1 text-[11px]"
+              style={{ width, top: height - 18 }}
             >
               <span className="tabular-nums">
                 {hover
@@ -1283,6 +1401,8 @@ const RESULTS = [
     title: 'Packed',
     plan: '[1 2 3] [4]',
     good: false,
+    /** Where shot 4 starts in the clip, and what that cut is */
+    cut: { at: 4, label: 'new generation' },
     notes: [
       'the morning opens in the kitchen',
       'running, then suddenly crouching',
@@ -1293,17 +1413,20 @@ const RESULTS = [
     title: 'The plan',
     plan: '[1 2] [3 4]',
     good: true,
+    cut: { at: 3.7, label: 'a cut in the same generation' },
     notes: [
       'the morning opens on its keyframe',
       'she slows and crouches in one move',
     ],
   },
 ]
+const RESULT_SECONDS = 5.6
 
 /** The two takes play together, from the start, while the figure is in view - unless the reader would rather nothing moved */
 export function ResultFigure() {
   const box = useRef<HTMLDivElement>(null)
   const videos = useRef<(HTMLVideoElement | null)[]>([])
+  const heads = useRef<(HTMLSpanElement | null)[]>([])
   const [still, setStill] = useState(false)
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -1313,19 +1436,35 @@ export function ResultFigure() {
     }
     const element = box.current
     if (!element) return
+    let frame = 0
+    // Each playhead follows its video
+    const follow = () => {
+      videos.current.forEach((video, i) => {
+        const head = heads.current[i]
+        if (video && head)
+          head.style.left = `${(100 * video.currentTime) / RESULT_SECONDS}%`
+      })
+      frame = requestAnimationFrame(follow)
+    }
     const observer = new IntersectionObserver(
-      ([entry]) =>
+      ([entry]) => {
         videos.current.forEach((video) => {
           if (!video) return
           if (entry.isIntersecting) {
             video.currentTime = 0
             void video.play().catch(() => setStill(true))
           } else video.pause()
-        }),
+        })
+        cancelAnimationFrame(frame)
+        if (entry.isIntersecting) frame = requestAnimationFrame(follow)
+      },
       { threshold: 0.5 },
     )
     observer.observe(element)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
   }, [])
   return (
     <Figure
@@ -1341,36 +1480,66 @@ export function ResultFigure() {
         </>
       }
     >
-      <div ref={box} className="grid gap-4 text-[12px] sm:grid-cols-2">
+      <div ref={box} className="grid gap-5 text-[12px] sm:grid-cols-2">
         {RESULTS.map((result, i) => (
           <div key={result.video}>
             <p className="mb-1.5">
-              <span className="font-medium">{result.title}</span>{' '}
+              <span className={`font-medium ${result.good ? SKY : ''}`}>
+                {result.title}
+              </span>{' '}
               <span className="text-muted-foreground font-mono text-[11px]">
                 {result.plan}
               </span>
             </p>
-            <video
-              ref={(video) => {
-                videos.current[i] = video
-              }}
-              src={`${IMG}/${result.video}.mp4`}
-              poster={`${IMG}/${result.video}.jpg`}
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              controls={still}
-              aria-label={`${result.title}: ${result.notes.join('; ')}`}
-              className="aspect-video w-full rounded-[var(--radius-md)] bg-black object-cover"
+            <Player
+              video={
+                <video
+                  ref={(video) => {
+                    videos.current[i] = video
+                  }}
+                  src={`${IMG}/${result.video}.mp4`}
+                  poster={`${IMG}/${result.video}.jpg`}
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  controls={still}
+                  aria-label={`${result.title}: ${result.notes.join('; ')}`}
+                  className="absolute inset-0 size-full object-cover"
+                />
+              }
             />
-            <ul className="mt-1.5 space-y-0.5 text-[11px]">
+            <div className="relative mt-3 h-[3px] rounded-full bg-[var(--border)]">
+              <span
+                className={`absolute -top-[5px] h-[13px] w-[2px] rounded-full ${result.good ? 'bg-[var(--doki-sky-line)]' : 'bg-foreground'}`}
+                style={{ left: `${(100 * result.cut.at) / RESULT_SECONDS}%` }}
+              />
+              <span
+                className="text-muted-foreground absolute top-2 text-[10px] whitespace-nowrap"
+                style={{
+                  right: `${100 - (100 * result.cut.at) / RESULT_SECONDS}%`,
+                  marginRight: 6,
+                }}
+              >
+                {result.cut.label}
+              </span>
+              {!still && (
+                <span
+                  ref={(head) => {
+                    heads.current[i] = head
+                  }}
+                  aria-hidden="true"
+                  className="bg-foreground/70 absolute -top-[3px] size-[9px] -translate-x-1/2 rounded-full"
+                  style={{ left: 0 }}
+                />
+              )}
+            </div>
+            <ul className="mt-6 space-y-0.5">
               {result.notes.map((note) => (
-                <li
-                  key={note}
-                  className={result.good ? 'text-[var(--doki-sky)]' : ROSE}
-                >
-                  {result.good ? '✓' : '✗'} {note}
+                <li key={note}>
+                  <Mark good={result.good}>
+                    {result.good ? '✓' : '✗'} {note}
+                  </Mark>
                 </li>
               ))}
             </ul>
@@ -1403,12 +1572,14 @@ interface RiverMark {
 const RIVER_PLANS: {
   label: string
   model: string
+  planned: boolean
   groups: [number, number][]
   marks: RiverMark[]
 }[] = [
   {
     label: 'Packed full',
     model: 'MiniMax H3',
+    planned: false,
     groups: [
       [0, 4],
       [4, 8],
@@ -1432,6 +1603,7 @@ const RIVER_PLANS: {
   {
     label: 'The plan',
     model: 'MiniMax H3',
+    planned: true,
     groups: [
       [0, 3],
       [3, 6],
@@ -1447,6 +1619,7 @@ const RIVER_PLANS: {
   {
     label: 'The plan',
     model: 'Seedance 2.5',
+    planned: true,
     groups: [
       [0, 8],
       [8, 10],
@@ -1454,7 +1627,7 @@ const RIVER_PLANS: {
     marks: [],
   },
 ]
-const RIVER_GAP = 4
+const RIVER_GAP = 5
 const RIVER_ROW = 62
 
 export function RiverFigure() {
@@ -1483,11 +1656,11 @@ export function RiverFigure() {
           'before' in at
             ? left(at.before) - RIVER_GAP / 2
             : left(at.middle) + (RIVER_SECONDS[at.middle] * px) / 2
-        const top = 92
+        const top = 104
         return (
           <div
             className="relative text-[12px]"
-            style={{ height: top + RIVER_PLANS.length * RIVER_ROW }}
+            style={{ height: top + (RIVER_PLANS.length - 1) * RIVER_ROW + 28 }}
           >
             {RIVER_PARTS.map((part) => (
               <p
@@ -1506,16 +1679,18 @@ export function RiverFigure() {
               <div
                 key={i}
                 className="absolute"
-                style={{ left: left(i), top: 24, width: seconds * px }}
+                style={{ left: left(i), top: 26, width: seconds * px }}
               >
-                <p className="text-muted-foreground mb-0.5 text-[10px] tabular-nums">
-                  {i + 1}
-                </p>
-                <img
-                  src={`${IMG}/river-${i + 1}.jpg`}
-                  alt={`Shot ${i + 1}`}
-                  className="h-[44px] w-full rounded-[3px] object-cover"
-                />
+                <div className="border-border bg-background rounded-[6px] border p-1 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                  <p className="mb-0.5 px-0.5 font-mono text-[10px] leading-none font-semibold">
+                    {i + 1}
+                  </p>
+                  <img
+                    src={`${IMG}/river-${i + 1}.jpg`}
+                    alt={`Shot ${i + 1}`}
+                    className="h-[40px] w-full rounded-[2px] object-cover"
+                  />
+                </div>
               </div>
             ))}
             {RIVER_PLANS.map((plan, row) => (
@@ -1524,16 +1699,22 @@ export function RiverFigure() {
                 className="absolute left-0"
                 style={{ top: top + row * RIVER_ROW, width }}
               >
-                <p className="mb-1 text-[11px]">
-                  <span className="font-medium">{plan.label}</span>{' '}
-                  <span className="text-muted-foreground">· {plan.model}</span>
+                <p className="text-muted-foreground mb-1 text-[11px]">
+                  <span
+                    className={`font-medium ${plan.planned ? SKY : 'text-foreground'}`}
+                  >
+                    {plan.label}
+                  </span>{' '}
+                  · {plan.model}
                 </p>
                 <div className="relative h-2">
                   {plan.groups.map(([a, b]) => (
-                    <div
+                    <Generation
                       key={a}
-                      className={`absolute h-2 rounded-b-[3px] border-x border-b ${row === 0 ? 'border-foreground' : 'border-[var(--doki-sky-line)]'}`}
-                      style={{ left: left(a), width: right(b - 1) - left(a) }}
+                      x1={left(a)}
+                      x2={right(b - 1)}
+                      top={0}
+                      planned={plan.planned}
                     />
                   ))}
                 </div>
@@ -1542,12 +1723,12 @@ export function RiverFigure() {
                   return (
                     <p
                       key={mark.text + markX(mark.at)}
-                      className={`absolute mt-1 text-[11px] whitespace-nowrap ${mark.good ? 'text-[var(--doki-sky)]' : ROSE} ${align === 'center' ? '-translate-x-1/2' : align === 'end' ? '-translate-x-full' : ''}`}
+                      className={`absolute mt-1 whitespace-nowrap ${align === 'center' ? '-translate-x-1/2' : align === 'end' ? '-translate-x-full' : ''}`}
                       style={{
                         left: markX(mark.at) + (align === 'start' ? 6 : 0),
                       }}
                     >
-                      {mark.text}
+                      <Mark good={mark.good}>{mark.text}</Mark>
                     </p>
                   )
                 })}
@@ -1575,17 +1756,13 @@ function Shot({
 }) {
   return (
     <div>
-      <img
-        src={`${IMG}/${image}.jpg`}
-        alt={label}
-        className="aspect-video w-full rounded-[var(--radius-md)] object-cover"
-      />
+      <KeyframeCard image={image} alt={label} />
       <p className="mt-2 text-[12px]">
         {mark && (
           <span
             className={`mr-1.5 font-medium ${mark === 'yes' ? SKY : 'text-[var(--doki-rose)]'}`}
           >
-            {mark === 'yes' ? '✓' : '✕'}
+            {mark === 'yes' ? '✓' : '✗'}
           </span>
         )}
         {label}
