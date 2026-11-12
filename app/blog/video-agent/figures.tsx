@@ -948,12 +948,12 @@ export function PlanFigure() {
       number={3}
       caption={
         <>
-          The boat scene, planned for MiniMax H3. Between shots, a circle
-          says how much a cut needs the shots on both sides to flow together; on
-          each shot, a square says how much it needs a fresh start on its
-          keyframe. Below, the nine generations that fit, with best[j] at each
-          point and the plan in sky: it splits where the story jumps to the next
-          morning. Click a chip to change its level.
+          The boat scene, planned for MiniMax H3. Between shots, a circle says
+          how much a cut needs the shots on both sides to flow together; on each
+          shot, a square says how much it needs a fresh start on its keyframe.
+          Below, the nine generations that fit, with best[j] at each point and
+          the plan in sky: it splits where the story jumps to the next morning.
+          Click a chip to change its level.
         </>
       }
     >
@@ -1534,10 +1534,10 @@ export function RiverFigure() {
       caption={
         <>
           A longer scene, 10 shots and 37 s in three parts, planned but not
-          generated. Packing makes both mistakes again. MiniMax
-          H3&rsquo;s plan starts fresh at both jumps in time and splits the
-          river part where the boat drifts away from her; Seedance 2.5, with 30
-          seconds a generation, needs two.
+          generated. Packing makes both mistakes again. MiniMax H3&rsquo;s plan
+          starts fresh at both jumps in time and splits the river part where the
+          boat drifts away from her; Seedance 2.5, with 30 seconds a generation,
+          needs two.
         </>
       }
     >
