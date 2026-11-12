@@ -272,11 +272,11 @@ So give the agent a trim tool, and have it try the fixes in this order. And keep
 
 ## 4. Review Loop
 
-To fix a problem, the agent first has to find it. But a video agent rarely watches the film it is making. It writes the script long before any image or clip exists, and it does not check the results on its own. Many language models still cannot even watch video with sound (in Doki, Gemini watches the clips for the agent). Yet almost every problem in this post shows up only on screen. So the harness needs a review loop: it checks the output automatically at fixed points, and sends what it finds back to the agent as tool results.
+Most agents, video agents included, already have some kind of review loop: a model checks the output, and the agent fixes what it flags. What matters for a long film is how the loop is designed. In Doki, three choices made the biggest difference: when the reviews run, what they watch, and how their findings reach the agent.
 
 ### Reviews the harness runs
 
-Why should the harness run the reviews, and not the agent? Because the agent will not inspect its own work unprompted. I gave Doki's agent a tool that let a VLM watch any shot and answer questions about it, and in sixteen writing runs the agent used it zero times. So in Doki, the harness runs the reviews, each one set off by what the agent just did. There are four: on the script, on each new image or video, on the whole storyboard, and on the finished film. Each review's findings come back in the result of the tool call that set it off:
+The first choice is who starts a review. It seems natural to give the agent a review tool and let it check its work when it wants to. But the agent will not inspect its own work unprompted. I gave Doki's agent a tool that let a VLM watch any shot and answer questions about it, and in sixteen writing runs the agent used it zero times. So in Doki, the harness runs the reviews, each one set off by what the agent just did. There are four: on the script, on each new image or video, on the whole storyboard, and on the finished film. Many language models still cannot watch video with sound, so Gemini does the watching for the agent. Each review's findings come back in the result of the tool call that set it off, so the agent reads them right away:
 
 <ReviewFigure />
 
