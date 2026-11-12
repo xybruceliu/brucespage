@@ -900,7 +900,7 @@ const PACKED: [number, number][] = [
 /** What one packed take did, at each numbered spot of the strip */
 const PROBLEMS = [
   {
-    title: 'Inside one generation, the moment carries on',
+    title: 'Inside one generation, it carries on across the jump',
     frames: [
       {
         kind: 'keyframe' as const,
