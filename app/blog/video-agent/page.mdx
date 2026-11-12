@@ -1,12 +1,14 @@
 import {
   Definitions,
   Formula,
+  PackedFigure,
   PlanFigure,
   Prompt,
   ResolveFigure,
+  ResultFigure,
   ReviewFigure,
+  RiverFigure,
   Rubric,
-  SceneFigure,
   ShotList,
   T,
   UpdateFigure,
@@ -140,57 +142,66 @@ The same holds at the cuts inside a multi-shot clip. The video model draws each 
 
 ## 2. Shot Planning
 
-A few filmmaking terms first. A **shot** is one continuous view from a single camera position, until a **cut** switches to the next. A **scene** is a run of shots in one place and time, such as a dinner-table conversation that cuts back and forth between two speakers. A **clip** is the video that one generation returns.
+A few terms first. A **shot** is one continuous view, until a **cut** switches to the next. A **scene** is a run of shots in one place and time. A video agent works from a **shot list**: every shot has its words and a **keyframe**, the storyboard image it should open on. A **generation** is one call to the video model, and it returns one clip.
 
 Most video agents make films that look like a slideshow, because they generate one clip per shot and stitch the clips together. In Doki Agent, we introduce a shot planner instead. It decides which shots to generate together in one clip, and where to split a long scene into several clips.
 
-### Film the scene, not the shot
+### Which shots go together?
 
-On a film set, a scene is also filmed one shot at a time, but every shot shares one physical world. The set, the actors and the light stay the same, a continuity supervisor keeps the props in place, and the editor cuts in the middle of an action, so a movement that starts in one shot finishes in the next. That shared world makes separate shots feel like one moment.
+When every shot is its own clip, each one starts over from its keyframe, so motion and sound restart at every cut. Newer video models can generate several shots in one go and cut between them, and inside one generation the people, the light, the motion and the sound carry across each cut. In my tests, this beat generating shots one by one in most comparisons, with about a third fewer continuity breaks.
 
-A video model has no such world. Each generation invents its own, so one clip per shot stitches together several slightly different worlds: the light and background shift at every cut, movements restart from a standstill, and the sound restarts from silence.
+But every model has limits. Some make one shot per generation. MiniMax H3 makes up to 15 seconds of shots, and Seedance 2.5 up to 30. A longer scene needs several generations, so the agent has to decide which shots go together.
 
-Recent video models can generate several shots in one pass and cut between them, which gives those shots a shared world again. After each cut, the people, the place and the light are the ones the model just drew, and movement and sound carry across.
+Take the scene below. At night, a woman folds a paper boat and sets it on the windowsill. The next morning, she runs out and lets it go on a puddle. The four shots run 19 seconds, too long for one MiniMax generation. The simple answer is to pack each generation full: shots 1 to 3 fill 15 seconds, and shot 4 gets a generation of its own.
 
-<SceneFigure />
+<PackedFigure />
 
-So the unit of generation should be the scene, not the shot. In my tests, a scene generated as one clip beat the same shots generated separately in most head-to-head comparisons, with about a third fewer continuity breaks.
+Packing went wrong on both sides of its split:
 
-### Why a scene still needs a plan
+- **Inside one generation, the model carries the moment on.** The morning shot, packed in after the night, did not open on its keyframe. In one take, it opened in last night's kitchen.
+- **Across generations, nothing carries over.** The split fell in the middle of her run, so she is running at the end of one clip and suddenly crouching at the start of the next.
 
-One clip per scene is not always possible, and it has costs of its own. Models generate only 10 to 30 seconds at a time, and many scenes run longer. Inside a clip, only the first shot opens exactly on its storyboard frame. The model draws every later shot itself, so those shots only come close to their frames. A new clip opens exactly on its own frame, but its motion and sound start over.
+So this is a planning problem: carry on where the story flows, and start fresh where it jumps.
 
-So every cut poses a question: is it worse to break the take here, or to let the next shot drift from its frame? The answer depends on the cut and the shot, and every extra clip also costs money.
+### How the planner works
 
-### A model judges, an algorithm decides
+The planner splits the work between a model and an algorithm. Judging what a cut needs takes taste: reading the story and looking at the keyframes, which a vision model does well. Choosing the grouping is an optimization with hard limits, where each split changes what the others cost, which a language model does poorly and a short algorithm does exactly. On 11 hard scenes, plans made this way passed 32 of 32 editing checks, while plans that Gemini wrote directly passed 79 to 85%. It works in three steps.
 
-The problem has two parts, and they suit different tools. Rating what each cut and shot needs is a matter of taste: it takes reading the story and looking at the frames, which a language model does well. Choosing the best split is an optimization with hard limits, where the choice at one cut changes what the others cost. A language model does this poorly, but a short algorithm does it exactly. On 11 hard scenes, plans made this way passed 32 of 32 editing checks, while plans that Gemini wrote directly passed 79 to 85% of them.
-
-**Reading the scene.** Before a scene's video is made, a model reads its shots, both the text and the storyboard frames, and rates each cut and each shot from 0 to 3:
+**1. A vision model reads the shot list.** It reads each shot's words and keyframe, and rates two needs from 0 to 3: how much each cut needs the shots on both sides to flow together, and how much each shot needs a fresh start on its own keyframe.
 
 <Rubric />
 
-The frames matter: rated from the words alone, the same scenes passed 28 of the 32 checks. The levels also describe the film, not the video model, so one reading serves every model, and what each level costs is measured for each model.
+The ratings describe the film, not the video model, so one reading works for any model. The keyframes matter too: rated from the words alone, the same scenes passed only 28 of the 32 checks.
 
-**Choosing the split.** Each cut either becomes a clip boundary or does not, so a scene of n shots can be split 2<sup>n−1</sup> ways. A small dynamic program finds the best split without trying them all. Let best[j] be the lowest loss of any plan for the first j shots. If that plan's last clip covers shots i+1 through j, then best[j] is the best value of best[i] plus what that clip loses:
+**2. Each need gets a price, measured for every model.** Prices are in points of a judge's 1-to-10 rating. To measure them, I generated test scenes twice, in as few generations as fit and with one per shot, and had a model compare each cut and shot that differed. For MiniMax H3, splitting a cut rated 2 or 3 cost 1.2 points, and so did a shot rated 2 or 3 that missed its fresh start. Levels 0 and 1 cost almost nothing. A model that has not been measured simply gets the fewest generations that fit.
+
+**3. Dynamic programming finds the grouping that loses least.** A scene of n shots can be grouped 2<sup>n−1</sup> ways, and the algorithm finds the best one that fits without listing them all. Let best[j] be the least a plan for the first j shots can lose. The last generation of that plan covers shots i+1 through j, so:
 
 <Formula />
 
-S and F depend on the levels from the reading, and the price is weighed at half a point per dollar. Clips longer than the model allows are never considered, and a dissolve or a fade always starts a new clip.
-
-**Measuring the costs.** S and F are measured in the same unit, points on a judge's 1-to-10 rating, so the planner can weigh one against the other. I generated each test scene both ways, in the fewest clips that fit and with a clip for every shot, and had a model compare each cut and shot that differed. For MiniMax H3, a cut rated 2 or 3 lost 1.2 points when a clip boundary fell on it, and a shot rated 2 or 3 lost 1.2 points when it did not open its own clip. Levels 0 and 1 cost nothing. With this table, the planner predicted which whole film the judge preferred in 8 of 10 scenes. A model that has not been measured simply gets the fewest clips that fit.
-
-Here is the planner on the whole platform scene from Fig. 2. At 20 seconds, the scene is longer than MiniMax's limit of 15, so it needs at least two clips. The best split breaks before s4, at a cut rated 2, so that s4 opens exactly on its frame. Breaking one cut earlier, as the camera starts to fall, would split a moment rated 3:
+Each generation pays S for the cut it splits, F for each later shot that misses its fresh start, and its price in dollars, at half a point a dollar. A dissolve or a fade always starts a new generation. Of the boat scene's eight possible groupings, seven fit in 15-second generations:
 
 <PlanFigure />
 
-The agent that writes the script never sees any of this. It writes each scene at the length the story needs, and the planner decides how the scene becomes clips.
+The agent that writes the script never sees any of this. It writes each scene at the length the story needs, and the planner decides how the scene becomes generations.
 
-### Writing the clip
+### What the plan does
 
-Each planned clip gets two prompts, one for its first frame and one for its motion. Both must give the model something to play and keep it moving.
+For MiniMax, the planner splits right where the story jumps to the next morning: shots 1 and 2 make the night, and shots 3 and 4 the morning. The plan pays for this, because shot 4 now comes mid-generation and only lands near its keyframe. The planner judged that cheaper than breaking her run. Generated with this plan, the morning opens on its keyframe, and she slows and crouches in one move:
 
-**Open on the first instant.** Image models draw any action the prompt names as already done. "She walks to the porch, crouches and watches the kitten" comes out with her already crouched, and the clip has nothing left to play. So Doki's prompt writer first names the opening instant on its own line (`OPENING: she reaches the porch steps`), then describes the frame as a still photograph of it:
+<ResultFigure />
+
+A longer scene shows the same logic at scale. It has ten shots in three parts: a morning in the kitchen, a long stretch at the river, and an evening downstream. Packing makes both mistakes again. The plan starts fresh at both jumps in time, and splits the river part where the boat drifts away from her. Seedance, with 30 seconds per generation, needs only two:
+
+<RiverFigure />
+
+The plan does not always win yet. On two other test scenes, packing did better. In one of them, a planned generation opened on a close-up and had to invent the room around it, a cost the prices do not include yet.
+
+### Writing each generation
+
+Once the plan is set, each generation needs two prompts: an image prompt for the keyframe it opens on, and a video prompt for its motion. Both must give the model something to play and keep it moving.
+
+**Open on the first instant.** Image models draw any action the prompt names as already done. "She walks to the porch, crouches and watches the kitten" comes out with her already crouched, and the clip has nothing left to play. So Doki's prompt writer first names the opening instant on its own line (`OPENING: she reaches the porch steps`), then describes the keyframe as a still photograph of it:
 
 <Prompt from="Doki's image prompt writer">
   The image model draws whatever the prompt names as done: an action's verb,
@@ -208,15 +219,15 @@ Each planned clip gets two prompts, one for its first frame and one for its moti
   none, keep the action and the camera moving through the last second [...]
 </Prompt>
 
-**Translate the plan for each model.** Keep the plan independent of the model, as a list of shots with their timings, and write it out in each model's own syntax. MiniMax, for example, ignores timed spans such as `[2-4s] cut to …` and often cuts at about two seconds regardless. Written in its own shot-list syntax, it cuts within a few hundredths of a second of each timestamp:
+**Translate the plan for each model.** Keep the plan independent of the model, as a list of shots with their timings, and write it out in each model's own syntax. MiniMax, for example, ignores timed spans such as `[2-4s] cut to …` and often cuts at about two seconds regardless. Written in its own shot-list syntax, as in the plan's morning generation, it cuts within a few hundredths of a second of each timestamp:
 
 <ShotList />
 
 <Takeaways>
 
-- Generate a scene's shots together in one clip whenever the model supports it.
-- Let a model rate what each cut and shot needs, and let an algorithm choose the split, with costs measured for each video model.
-- Write each first frame as a still photograph of the opening instant, and keep each clip moving through its cuts.
+- Generate a scene's shots together whenever the model supports it.
+- Let a vision model rate what each cut and shot needs, price each rating per video model, and let dynamic programming choose the grouping.
+- Write each keyframe as a still photograph of the opening instant, and keep each generation moving through its cuts.
 - Keep the plan independent of the model, and keep generation limits out of the script.
 
 </Takeaways>

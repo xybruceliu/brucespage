@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 // Long Film", drawn in Doki's own visual language: its editor's tag colors (sky
 // for @, purple for #, rose for the "=" of a definition; app/globals.css), its
 // definition chips. Pictures and data come from Doki's example
-// film The Last Three and the Doki demo; the clip planner is Doki's own
+// film The Last Three, the Doki demo and the clip planner explainer; the clip planner is Doki's own
 // (client/src/editor/services/clipPlanner.ts), cut down to what this scene needs.
 
 const IMG = '/img/blog/video-agent'
@@ -202,24 +202,20 @@ export function Definitions() {
   )
 }
 
-/** A scene clip's prompt in MiniMax's own shot-list form */
+/** The plan's morning generation, as Doki wrote its prompt in MiniMax's own shot-list form (the explainer's planned-1 run) */
 export function ShotList() {
   const shots = [
     {
       at: null,
-      text: 'Medium shot on the snowy platform: Mio raises the camera to her eye …',
+      text: 'Full shot, tracking backward. Mia, a young woman with short black hair wearing a yellow raincoat and red rain boots, jogs forward down the wet sidewalk holding a folded newspaper boat …',
     },
     {
-      at: '00:03.000',
-      text: 'the camera cuts to a close-up of Haruto as he looks back …',
-    },
-    {
-      at: '00:07.000',
-      text: 'the camera cuts to the camera tumbling into the snow …',
+      at: '00:04.000',
+      text: 'the camera cuts to a medium low-angle shot, as in Image 1: Mia crouches by the curb beside a large street puddle …',
     },
   ]
   return (
-    <Excerpt label="A scene clip's video prompt, in MiniMax's shot-list form">
+    <Excerpt label="The morning generation's video prompt, in MiniMax's shot-list form">
       <ol className="space-y-1.5">
         {shots.map((shot, i) => (
           <li key={i} className="flex items-baseline gap-2.5">
@@ -245,7 +241,7 @@ export function ShotList() {
   )
 }
 
-/** Dots for a 0-3 level: how much a cut needs one take (sky), or a shot its exact frame (purple) */
+/** Dots for a 0-3 level: how much a cut needs to flow (sky), or a shot its keyframe (purple) */
 function Dots({
   level,
   kind,
@@ -279,7 +275,7 @@ const SCALES: {
 }[] = [
   {
     kind: 'seam',
-    title: 'Each cut: how much the two shots need to run on as one take',
+    title: 'Each cut: how much the shots on both sides need to flow together',
     levels: [
       "one moment that can't break - a line of dialogue answered, an action caught mid-way, a sound that runs across the cut, or two nearly identical views that would jump if made apart",
       'the same moment and place, closely linked - a reaction, a detail of what was just shown',
@@ -289,8 +285,7 @@ const SCALES: {
   },
   {
     kind: 'frame',
-    title:
-      'Each shot: how much it needs to open exactly on its storyboard frame',
+    title: 'Each shot: how much it needs to open exactly on its keyframe',
     levels: [
       'it must be exact - a photo the user supplied, text or a logo that must read, a product shot',
       'a key image - a reveal, an entrance, a composition the story relies on',
@@ -668,182 +663,23 @@ export function ResolveFigure() {
 }
 
 // -----------------------------------------------------------------------------
-// Figure 2: one clip a shot, or one clip a scene
-// -----------------------------------------------------------------------------
-
-/** The platform scene's first three shots, which Figure 3's plan makes one clip */
-const OPENING = [
-  { image: 'b1', says: 'A girl raises her camera' },
-  { image: 'b2', says: 'A boy looks back, and it slips' },
-  { image: 'b3', says: 'The camera falls into the snow' },
-]
-const SHOT_GAP = 14
-const WAVE_H = 40
-const WAVE_PAD = 10
-
-const smooth = (u: number) => u * u * (3 - 2 * u)
-
-/**
- * A clip's motion and sound, as a line from x0 to x1. A clip of one shot starts
- * from a still and slows to a stop before its cut, so its swing rises from flat
- * and falls back; a clip of the whole scene keeps swinging through its cuts.
- */
-const wave = (x0: number, x1: number, settles: boolean) => {
-  const mid = WAVE_H / 2
-  const points: string[] = []
-  for (let x = x0; x <= x1 + 0.01; x += 1.5) {
-    const t = (x - x0) / (x1 - x0)
-    const envelope = settles
-      ? smooth(Math.min(1, t / 0.22)) * smooth(Math.min(1, (1 - t) / 0.32))
-      : 1
-    const swing = envelope * (0.78 + 0.22 * Math.sin(x / 29)) * (mid - 7)
-    const y = mid - swing * Math.sin(((x - x0) / 14) * Math.PI)
-    points.push(`${x.toFixed(1)} ${y.toFixed(1)}`)
-  }
-  return `M${points.join(' L')}`
-}
-
-const GENERATIONS = [
-  {
-    label: 'One clip per shot',
-    note: 'Motion and sound restart at every cut',
-    clips: [
-      [0, 1],
-      [1, 2],
-      [2, 3],
-    ],
-  },
-  {
-    label: 'One clip per scene',
-    note: 'Motion and sound carry across the cuts',
-    clips: [[0, 3]],
-  },
-]
-
-export function SceneFigure() {
-  return (
-    <Figure
-      number={2}
-      caption={
-        <>
-          Three shots of one scene, on a snowy train platform. Generated one
-          clip per shot, each clip starts from a still and slows to a stop
-          before its cut. Generated as one clip, the scene keeps moving through
-          its cuts (dashed).
-        </>
-      }
-    >
-      {(width: number) => {
-        const imageW = (width - 2 * SHOT_GAP) / OPENING.length
-        const left = (i: number) => i * (imageW + SHOT_GAP)
-        const right = (i: number) => left(i) + imageW
-        return (
-          <div className="text-[12px]">
-            <div className="flex" style={{ gap: SHOT_GAP }}>
-              {OPENING.map((shot, i) => (
-                <div key={shot.image} style={{ width: imageW }}>
-                  <p className="mb-1 font-medium">Shot {i + 1}</p>
-                  <img
-                    src={`${IMG}/${shot.image}.jpg`}
-                    alt={shot.says}
-                    className="w-full rounded-[var(--radius-sm)] object-cover"
-                    style={{ height: Math.round(imageW * 0.5625) }}
-                  />
-                  <p className="text-muted-foreground mt-1 text-[11px] leading-snug">
-                    {shot.says}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="text-muted-foreground mt-2 flex items-end gap-2 text-[11px] leading-none">
-              <span className="border-border mb-[5px] h-2 flex-1 rounded-bl-[3px] border-b border-l" />
-              One scene
-              <span className="border-border mb-[5px] h-2 flex-1 rounded-br-[3px] border-r border-b" />
-            </div>
-
-            {GENERATIONS.map((row) => {
-              const whole = row.clips.length === 1
-              return (
-                <div key={row.label} className="mt-5">
-                  <p className="mb-1.5 flex items-baseline justify-between">
-                    <span className="font-medium">{row.label}</span>
-                    <span className="text-muted-foreground text-[11px]">
-                      {row.note}
-                    </span>
-                  </p>
-                  <svg
-                    width={width}
-                    height={WAVE_H}
-                    className="block"
-                    aria-hidden="true"
-                  >
-                    {row.clips.map(([a, b]) => (
-                      <g key={a}>
-                        <rect
-                          x={left(a)}
-                          width={right(b - 1) - left(a)}
-                          height={WAVE_H}
-                          rx="8"
-                          className="fill-muted"
-                        />
-                        <path
-                          d={wave(
-                            left(a) + WAVE_PAD,
-                            right(b - 1) - WAVE_PAD,
-                            !whole,
-                          )}
-                          fill="none"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className={
-                            whole
-                              ? 'stroke-[var(--doki-sky)]'
-                              : 'stroke-muted-foreground'
-                          }
-                        />
-                      </g>
-                    ))}
-                    {whole &&
-                      OPENING.slice(1).map((shot, i) => (
-                        <line
-                          key={shot.image}
-                          x1={left(i + 1) - SHOT_GAP / 2}
-                          x2={left(i + 1) - SHOT_GAP / 2}
-                          y1="3"
-                          y2={WAVE_H - 3}
-                          strokeDasharray="2 3"
-                          className="stroke-muted-foreground"
-                        />
-                      ))}
-                  </svg>
-                </div>
-              )
-            })}
-          </div>
-        )
-      }}
-    </Figure>
-  )
-}
-
-// -----------------------------------------------------------------------------
-// Figure 3: planning a scene's clips
+// The scene the planner is shown on, from the clip planner explainer
+// (clip-planner-explainer/film-after/scenes/boat.txt): its shots, keyframes and
+// the scene reader's reading, recorded the same in all six of its films
 // -----------------------------------------------------------------------------
 
 const SCENE = [
-  { image: 'b1', seconds: 3, says: 'A girl raises her camera' },
-  { image: 'b2', seconds: 4, says: 'A boy looks back, and it slips' },
-  { image: 'b3', seconds: 7, says: 'The camera falls into the snow' },
-  { image: 'b4', seconds: 3, says: 'The boy picks it up' },
-  { image: 'b5', seconds: 3, says: 'Through the train window' },
+  { image: 'boat-1', seconds: 6, says: 'Night, rain: she folds a paper boat' },
+  { image: 'boat-2', seconds: 5, says: 'She sets it on the windowsill' },
+  { image: 'boat-3', seconds: 4, says: 'Next morning, sun: she runs out' },
+  { image: 'boat-4', seconds: 4, says: 'She lets the boat go on a puddle' },
 ]
-/** Doki's scene reader on this scene: how much each cut needs one take */
-const READ_SEAMS = [2, 3, 2, 2]
-/** ... and how much each shot needs to open exactly on its frame */
-const READ_FRAMES = [2, 2, 3, 3, 2]
-/** MiniMax H3 Max as Doki has it: clips of 5-15 s, its price a second, its measured losses by level */
+const SCENE_SECONDS = SCENE.reduce((sum, shot) => sum + shot.seconds, 0)
+/** The scene reader on this scene: how much each cut needs the shots on both sides to flow together */
+const READ_SEAMS = [2, 0, 2]
+/** ... and how much each shot needs to open exactly on its keyframe */
+const READ_FRAMES = [1, 1, 2, 2]
+/** MiniMax H3 Max as Doki has it: generations of 5-15 s, its price a second, its measured losses by level */
 const MODEL = {
   longest: 15,
   shortest: 5,
@@ -852,6 +688,190 @@ const MODEL = {
   frame: [-0.1, -0.1, 1.2, 1.2],
 }
 const LAMBDA = 0.5
+
+const ROSE = 'text-[var(--doki-rose)]'
+const GAP = 14
+const LEFT0 = 12
+
+/** The scene's shots laid out across a width: seconds to pixels, and where each shot and cut sits */
+const timeline = (width: number) => {
+  const px = (width - 2 * LEFT0 - (SCENE.length - 1) * GAP) / SCENE_SECONDS
+  const lefts = SCENE.reduce<number[]>((all, shot, i) => {
+    all.push(i === 0 ? LEFT0 : all[i - 1] + SCENE[i - 1].seconds * px + GAP)
+    return all
+  }, [])
+  const rightOf = (i: number) => lefts[i] + SCENE[i].seconds * px
+  /** Where a generation can start: before shot j (j = 0..n) */
+  const cutX = (j: number) =>
+    j === 0
+      ? lefts[0]
+      : j === SCENE.length
+        ? rightOf(SCENE.length - 1)
+        : lefts[j] - GAP / 2
+  return { px, lefts, rightOf, cutX, imageH: Math.round(px * 2) }
+}
+
+/** A bracket under shots, from x1 to x2, with what it holds below it */
+function Bracket({
+  x1,
+  x2,
+  top,
+  label,
+}: {
+  x1: number
+  x2: number
+  top: number
+  label: string
+}) {
+  return (
+    <div className="absolute" style={{ left: x1, top, width: x2 - x1 }}>
+      <div className="border-foreground h-2 rounded-b-[3px] border-x border-b" />
+      <p className="mt-1 text-center text-[11px] font-medium tabular-nums">
+        {label}
+      </p>
+    </div>
+  )
+}
+
+/** What one packed take did, on either side of its split */
+const MISTAKES = [
+  {
+    title: 'Inside one generation, the moment carries on',
+    frames: [
+      { image: 'boat-3', label: 'Shot 3’s keyframe' },
+      { image: 'packed-open', label: 'Shot 3, as generated' },
+    ],
+    note: 'opens in last night’s kitchen',
+  },
+  {
+    title: 'Across generations, nothing carries over',
+    frames: [
+      { image: 'packed-run', label: 'Shot 3 ends' },
+      { image: 'packed-crouch', label: 'Shot 4 starts' },
+    ],
+    note: 'running, then suddenly crouching',
+  },
+]
+
+// -----------------------------------------------------------------------------
+// Figure 2: the scene, packed full, and what that made
+// -----------------------------------------------------------------------------
+
+const PACKED: [number, number][] = [
+  [0, 3],
+  [3, 4],
+]
+
+export function PackedFigure() {
+  return (
+    <Figure
+      number={2}
+      caption={
+        <>
+          A scene of four shots, 19 s, packed into MiniMax H3&rsquo;s 15-second
+          generations. Below, what one packed take did on either side of the
+          split.
+        </>
+      }
+    >
+      {(width: number) => {
+        const { px, lefts, rightOf, cutX, imageH } = timeline(width)
+        const stripH = imageH + 62
+        const secondsOf = ([a, b]: [number, number]) =>
+          SCENE.slice(a, b).reduce((sum, shot) => sum + shot.seconds, 0)
+        return (
+          <div className="text-[12px]">
+            <div className="relative" style={{ height: stripH + 64 }}>
+              {SCENE.map((shot, i) => (
+                <div
+                  key={shot.image}
+                  className="absolute"
+                  style={{ left: lefts[i], width: shot.seconds * px }}
+                >
+                  <p className="mb-1 flex justify-between">
+                    <span className="font-medium">{i + 1}</span>
+                    <span className="text-muted-foreground tabular-nums">
+                      {shot.seconds} s
+                    </span>
+                  </p>
+                  <img
+                    src={`${IMG}/${shot.image}.jpg`}
+                    alt={shot.says}
+                    className="w-full rounded-[var(--radius-sm)] object-cover"
+                    style={{ height: imageH }}
+                  />
+                  <p className="text-muted-foreground mt-1 text-[11px] leading-snug">
+                    {shot.says}
+                  </p>
+                </div>
+              ))}
+              <p
+                className="text-muted-foreground absolute text-[11px]"
+                style={{ left: lefts[0], top: stripH }}
+              >
+                Packed full
+              </p>
+              {PACKED.map(([a, b]) => (
+                <Bracket
+                  key={a}
+                  x1={lefts[a]}
+                  x2={rightOf(b - 1)}
+                  top={stripH + 16}
+                  label={`${secondsOf([a, b])} s`}
+                />
+              ))}
+              <p
+                className={`absolute text-[11px] ${ROSE}`}
+                style={{
+                  left: lefts[2],
+                  top: stripH + 44,
+                  width: SCENE[2].seconds * px,
+                }}
+              >
+                ✗ the morning, mid-generation
+              </p>
+              <p
+                className={`absolute text-[11px] ${ROSE}`}
+                style={{ left: cutX(3) + 6, top: stripH + 44 }}
+              >
+                ✗ split mid-run
+              </p>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-6 px-3">
+              {MISTAKES.map((mistake) => (
+                <div key={mistake.title}>
+                  <p className="mb-2 font-medium">{mistake.title}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {mistake.frames.map((frame) => (
+                      <div key={frame.image}>
+                        <p className="text-muted-foreground mb-1 text-[11px]">
+                          {frame.label}
+                        </p>
+                        <img
+                          src={`${IMG}/${frame.image}.jpg`}
+                          alt={frame.label}
+                          className="aspect-video w-full rounded-[var(--radius-sm)] object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <p className={`mt-1.5 text-[11px] ${ROSE}`}>
+                    ✗ {mistake.note}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }}
+    </Figure>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Figure 3: planning the scene’s generations
+// -----------------------------------------------------------------------------
 
 interface Weighed {
   start: number
@@ -882,27 +902,6 @@ const planScene = (seams: number[], frames: number[]) => {
   for (let end = SCENE.length; end > 0; end = best[end].start)
     clips.unshift([best[end].start, end])
   return { best, weighed, clips }
-}
-
-const GAP = 14
-const LEFT0 = 12
-
-/** The scene's shots laid out across a width: seconds to pixels, and where each shot and cut sits */
-const timeline = (width: number) => {
-  const px = (width - 2 * LEFT0 - (SCENE.length - 1) * GAP) / 20
-  const lefts = SCENE.reduce<number[]>((all, shot, i) => {
-    all.push(i === 0 ? LEFT0 : all[i - 1] + SCENE[i - 1].seconds * px + GAP)
-    return all
-  }, [])
-  const rightOf = (i: number) => lefts[i] + SCENE[i].seconds * px
-  /** Where the planner can start a clip: before shot j (j = 0..5) */
-  const cutX = (j: number) =>
-    j === 0
-      ? lefts[0]
-      : j === SCENE.length
-        ? rightOf(SCENE.length - 1)
-        : lefts[j] - GAP / 2
-  return { px, lefts, rightOf, cutX, imageH: Math.round(px * 2) }
 }
 
 /** A level the reader can change, by clicking its dots */
@@ -957,13 +956,12 @@ export function PlanFigure() {
       number={3}
       caption={
         <>
-          The platform scene of Fig. 2, all five shots, planned for MiniMax H3
-          Max. Between shots, the dots say how much a cut needs one take; under
-          each shot, how much it needs its exact frame. Below, every clip the
-          planner weighs, with best[j] at each node and the plan it picks drawn
-          dark. The scene is 20 s, over the model&rsquo;s 15, and it splits
-          before s4, which has to open on its frame. Click the dots to change a
-          level.
+          The scene of Fig. 2, planned for MiniMax H3. Between shots, the dots
+          say how much a cut needs the shots on both sides to flow together;
+          under each shot, how much it needs a fresh start on its keyframe.
+          Below, the nine generations that fit, with best[j] at each node and
+          the plan drawn dark: it splits where the story jumps to the next
+          morning. Click the dots to change a level.
         </>
       }
     >
@@ -990,11 +988,11 @@ export function PlanFigure() {
             <div className="text-muted-foreground absolute top-0 left-0 flex gap-5 px-1 text-[11px]">
               <span className="flex items-center gap-1.5">
                 <Dots level={2} kind="seam" />
-                How much a cut needs one take
+                How much a cut needs to flow
               </span>
               <span className="flex items-center gap-1.5">
                 <Dots level={2} kind="frame" />
-                How much a shot needs its exact frame
+                How much a shot needs its keyframe
               </span>
             </div>
 
@@ -1047,7 +1045,7 @@ export function PlanFigure() {
                   <LevelButton
                     level={frames[i]}
                     kind="frame"
-                    label={`How much s${i + 1} needs its exact frame`}
+                    label={`How much s${i + 1} needs its keyframe`}
                     onClick={() => setFrames(cycle(frames, i))}
                   />
                 </div>
@@ -1070,7 +1068,7 @@ export function PlanFigure() {
                   vertical
                   level={level}
                   kind="seam"
-                  label={`How much the cut after s${i + 1} needs one take`}
+                  label={`How much the cut after s${i + 1} needs to flow`}
                   onClick={() => setSeams(cycle(seams, i))}
                 />
               </div>
@@ -1161,8 +1159,8 @@ export function PlanFigure() {
             >
               <span className="tabular-nums">
                 {hover
-                  ? `Clip ${clipName(hover)}: best[${hover.start}] plus what it loses = ${hover.loss.toFixed(2)}`
-                  : 'Hover an arc to see what that clip would lose.'}
+                  ? `Generation ${clipName(hover)}: best[${hover.start}] plus what it loses = ${hover.loss.toFixed(2)}`
+                  : 'Hover an arc to see what that generation would lose.'}
               </span>
               {changed && (
                 <button
@@ -1195,7 +1193,7 @@ export function Formula() {
           {v('S')}(seam<sub>{v('i')}</sub>)
         </>
       ),
-      says: 'a clip boundary before shot i+1',
+      says: 'splitting the cut before shot i+1',
     },
     {
       color: PUR,
@@ -1204,12 +1202,12 @@ export function Formula() {
           &Sigma; {v('F')}(frame<sub>{v('k')}</sub>)
         </>
       ),
-      says: 'each later shot opening only close to its frame',
+      says: 'each later shot that does not get a fresh start',
     },
     {
       color: 'text-foreground',
       math: <>&lambda; &middot; price</>,
-      says: 'the clip’s cost, at half a point a dollar',
+      says: 'the generation’s cost, at half a point a dollar',
     },
   ]
   return (
@@ -1249,7 +1247,7 @@ export function Formula() {
         <tbody>
           <tr className="border-border border-t">
             <th className={`py-1.5 pr-5 text-left font-normal ${SKY}`}>
-              {v('S')}, a boundary at that level
+              {v('S')}, splitting a cut at that level
             </th>
             {MODEL.seam.map((n, i) => (
               <td key={i} className="text-center">
@@ -1259,7 +1257,7 @@ export function Formula() {
           </tr>
           <tr className="border-border border-t">
             <th className={`py-1.5 pr-5 text-left font-normal ${PUR}`}>
-              {v('F')}, a later shot at that level
+              {v('F')}, a shot mid-generation at that level
             </th>
             {MODEL.frame.map((n, i) => (
               <td key={i} className="text-center">
@@ -1274,7 +1272,294 @@ export function Formula() {
 }
 
 // -----------------------------------------------------------------------------
-// Figure 4: keep, edit or remake
+// Figure 4: the scene generated both ways (pair 1 of the explainer's before/after)
+// -----------------------------------------------------------------------------
+
+const RESULTS = [
+  {
+    video: 'result-packed',
+    title: 'Packed',
+    plan: '[1 2 3] [4]',
+    good: false,
+    notes: [
+      'the morning opens in the kitchen',
+      'running, then suddenly crouching',
+    ],
+  },
+  {
+    video: 'result-plan',
+    title: 'The plan',
+    plan: '[1 2] [3 4]',
+    good: true,
+    notes: [
+      'the morning opens on its keyframe',
+      'she slows and crouches in one move',
+    ],
+  },
+]
+
+/** The two takes play together, from the start, while the figure is in view - unless the reader would rather nothing moved */
+export function ResultFigure() {
+  const box = useRef<HTMLDivElement>(null)
+  const videos = useRef<(HTMLVideoElement | null)[]>([])
+  const [still, setStill] = useState(false)
+  useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (reduced.matches) {
+      setStill(true)
+      return
+    }
+    const element = box.current
+    if (!element) return
+    const observer = new IntersectionObserver(
+      ([entry]) =>
+        videos.current.forEach((video) => {
+          if (!video) return
+          if (entry.isIntersecting) {
+            video.currentTime = 0
+            void video.play().catch(() => setStill(true))
+          } else video.pause()
+        }),
+      { threshold: 0.5 },
+    )
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return (
+    <Figure
+      number={4}
+      fixed={false}
+      caption={
+        <>
+          The morning half of the scene, generated with each split by MiniMax H3
+          from the same keyframes and references. Packed, shot 3 comes
+          mid-generation and opens on the night before, and shot 4 starts a new
+          generation mid-run. With the plan, shot 3 opens its own generation and
+          shot 4 follows inside it.
+        </>
+      }
+    >
+      <div ref={box} className="grid gap-4 text-[12px] sm:grid-cols-2">
+        {RESULTS.map((result, i) => (
+          <div key={result.video}>
+            <p className="mb-1.5">
+              <span className="font-medium">{result.title}</span>{' '}
+              <span className="text-muted-foreground font-mono text-[11px]">
+                {result.plan}
+              </span>
+            </p>
+            <video
+              ref={(video) => {
+                videos.current[i] = video
+              }}
+              src={`${IMG}/${result.video}.mp4`}
+              poster={`${IMG}/${result.video}.jpg`}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              controls={still}
+              aria-label={`${result.title}: ${result.notes.join('; ')}`}
+              className="aspect-video w-full rounded-[var(--radius-md)] bg-black object-cover"
+            />
+            <ul className="mt-1.5 space-y-0.5 text-[11px]">
+              {result.notes.map((note) => (
+                <li
+                  key={note}
+                  className={result.good ? 'text-[var(--doki-sky)]' : ROSE}
+                >
+                  {result.good ? '✓' : '✗'} {note}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </Figure>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Figure 5: a longer scene, planned for two models (read and planned, not generated)
+// -----------------------------------------------------------------------------
+
+/** clip-planner-explainer/film-after/scenes/river.txt: its shots' lengths and parts */
+const RIVER_SECONDS = [5, 3, 3, 4, 4, 3, 4, 3, 4, 4]
+const RIVER_PARTS = [
+  { from: 0, to: 3, when: 'Morning', where: 'the kitchen' },
+  { from: 3, to: 8, when: 'Later', where: 'the river' },
+  { from: 8, to: 10, when: 'Evening', where: 'downstream' },
+]
+interface RiverMark {
+  /** A boundary before shot n, or the middle of shot n */
+  at: { before: number } | { middle: number }
+  text: string
+  good: boolean
+  align?: 'start' | 'center' | 'end'
+}
+/** The plans, as data/plan.json "river" has them (MiniMax packed, MiniMax planned, Seedance planned) */
+const RIVER_PLANS: {
+  label: string
+  model: string
+  groups: [number, number][]
+  marks: RiverMark[]
+}[] = [
+  {
+    label: 'Packed full',
+    model: 'MiniMax H3',
+    groups: [
+      [0, 4],
+      [4, 8],
+      [8, 10],
+    ],
+    marks: [
+      {
+        at: { middle: 3 },
+        text: '✗ the river opens mid-generation',
+        good: false,
+        align: 'end',
+      },
+      {
+        at: { before: 4 },
+        text: '✗ her run is split',
+        good: false,
+        align: 'start',
+      },
+    ],
+  },
+  {
+    label: 'The plan',
+    model: 'MiniMax H3',
+    groups: [
+      [0, 3],
+      [3, 6],
+      [6, 8],
+      [8, 10],
+    ],
+    marks: [
+      { at: { before: 3 }, text: '↑ fresh start', good: true },
+      { at: { before: 6 }, text: '↑ the boat drifts away', good: true },
+      { at: { before: 8 }, text: '↑ fresh start', good: true },
+    ],
+  },
+  {
+    label: 'The plan',
+    model: 'Seedance 2.5',
+    groups: [
+      [0, 8],
+      [8, 10],
+    ],
+    marks: [],
+  },
+]
+const RIVER_GAP = 4
+const RIVER_ROW = 62
+
+export function RiverFigure() {
+  return (
+    <Figure
+      number={5}
+      caption={
+        <>
+          A longer scene, 10 shots and 37 s in three parts, read and planned by
+          Doki but not generated. Packing makes both mistakes again. MiniMax
+          H3&rsquo;s plan starts fresh at both jumps in time and splits the
+          river part where the boat drifts away from her; Seedance 2.5, with 30
+          seconds a generation, needs two.
+        </>
+      }
+    >
+      {(width: number) => {
+        const px =
+          (width - (RIVER_SECONDS.length - 1) * RIVER_GAP) /
+          RIVER_SECONDS.reduce((sum, s) => sum + s, 0)
+        const left = (i: number) =>
+          RIVER_SECONDS.slice(0, i).reduce((sum, s) => sum + s * px, 0) +
+          i * RIVER_GAP
+        const right = (i: number) => left(i) + RIVER_SECONDS[i] * px
+        const markX = (at: RiverMark['at']) =>
+          'before' in at
+            ? left(at.before) - RIVER_GAP / 2
+            : left(at.middle) + (RIVER_SECONDS[at.middle] * px) / 2
+        const top = 92
+        return (
+          <div
+            className="relative text-[12px]"
+            style={{ height: top + RIVER_PLANS.length * RIVER_ROW }}
+          >
+            {RIVER_PARTS.map((part) => (
+              <p
+                key={part.when}
+                className="border-border absolute border-b pb-0.5 text-center text-[11px]"
+                style={{
+                  left: left(part.from),
+                  width: right(part.to - 1) - left(part.from),
+                }}
+              >
+                <span className="font-medium">{part.when}</span>{' '}
+                <span className="text-muted-foreground">· {part.where}</span>
+              </p>
+            ))}
+            {RIVER_SECONDS.map((seconds, i) => (
+              <div
+                key={i}
+                className="absolute"
+                style={{ left: left(i), top: 24, width: seconds * px }}
+              >
+                <p className="text-muted-foreground mb-0.5 text-[10px] tabular-nums">
+                  {i + 1}
+                </p>
+                <img
+                  src={`${IMG}/river-${i + 1}.jpg`}
+                  alt={`Shot ${i + 1}`}
+                  className="h-[44px] w-full rounded-[3px] object-cover"
+                />
+              </div>
+            ))}
+            {RIVER_PLANS.map((plan, row) => (
+              <div
+                key={plan.model + plan.groups.length}
+                className="absolute left-0"
+                style={{ top: top + row * RIVER_ROW, width }}
+              >
+                <p className="mb-1 text-[11px]">
+                  <span className="font-medium">{plan.label}</span>{' '}
+                  <span className="text-muted-foreground">· {plan.model}</span>
+                </p>
+                <div className="relative h-2">
+                  {plan.groups.map(([a, b]) => (
+                    <div
+                      key={a}
+                      className={`absolute h-2 rounded-b-[3px] border-x border-b ${row === 0 ? 'border-foreground' : 'border-[var(--doki-sky-line)]'}`}
+                      style={{ left: left(a), width: right(b - 1) - left(a) }}
+                    />
+                  ))}
+                </div>
+                {plan.marks.map((mark) => {
+                  const align = mark.align ?? 'center'
+                  return (
+                    <p
+                      key={mark.text + markX(mark.at)}
+                      className={`absolute mt-1 text-[11px] whitespace-nowrap ${mark.good ? 'text-[var(--doki-sky)]' : ROSE} ${align === 'center' ? '-translate-x-1/2' : align === 'end' ? '-translate-x-full' : ''}`}
+                      style={{
+                        left: markX(mark.at) + (align === 'start' ? 6 : 0),
+                      }}
+                    >
+                      {mark.text}
+                    </p>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        )
+      }}
+    </Figure>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Figure 6: keep, edit or remake
 // -----------------------------------------------------------------------------
 
 function Shot({
@@ -1353,7 +1638,7 @@ const CASES: {
 export function UpdateFigure() {
   return (
     <Figure
-      number={4}
+      number={6}
       fixed={false}
       caption={
         <>
@@ -1426,7 +1711,7 @@ export function UpdateFigure() {
 }
 
 // -----------------------------------------------------------------------------
-// Figure 5: where the reviews run
+// Figure 7: where the reviews run
 // -----------------------------------------------------------------------------
 
 const REVIEWS = [
@@ -1455,7 +1740,7 @@ const REVIEWS = [
 export function ReviewFigure() {
   return (
     <Figure
-      number={5}
+      number={7}
       caption={
         <>
           The reviews in one request, as the agent works from left to right.
