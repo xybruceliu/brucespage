@@ -106,7 +106,7 @@ The prompt lists the definitions in this order, so by the time the model reads t
 
 ### Choosing the reference images
 
-A shot can use more definitions than a model accepts reference images, so the agent must choose. Two rules worked well:
+A shot can use more definitions than a model accepts reference images. So the agent must choose which reference images to include to make the most accurate image or video. In our experiments, two rules worked well:
 
 - **The scene so far.** When generating a new image, include the images of the scene's earlier shots, so the place, lighting and people stay the same. This was the largest consistency improvement I measured: it cut continuity errors by more than half.
 - **What the first frame does not show.** A video starts from its first frame, which already shows everyone on screen. Spend the remaining slots on what that frame leaves out, such as a person about to enter or the place a cut leads to.
