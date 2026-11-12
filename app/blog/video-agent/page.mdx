@@ -120,9 +120,13 @@ The prompt should also tell the model what to take from each reference image, or
 
 ### Text overrides images
 
-When the text and a reference image disagree, image models follow the text. If the prompt gives a character yellow boots, the red boots in her reference disappear. And when the text names only what someone wears, the model may ignore the reference and draw a stranger in those clothes. So the prompt should never add visual details to anything that has a reference, and it should describe each person by who they are (age, face, hair and build) before what they wear.
+Image and video models follow the prompt's words more closely than its reference images. This changes how the prompt should be written in three ways.
 
-The same holds at the cuts inside one generation, when a video model films several shots at once (Section 2). The model draws each shot after a cut afresh, so the look drifts: a black-and-white scene can turn to color right after the first cut. The video prompt should restate the look at every cut:
+**Don't add looks the definition doesn't have.** If a character's reference image shows red boots but the prompt says yellow boots, the model draws yellow boots. Any look the prompt adds, such as clothes, hair or colors, replaces the one in the reference. So the prompt should describe only what the shot itself decides: the pose, the expression, the action and the light.
+
+**Say who each character is, not only what they wear.** Models sometimes ignore a reference image and draw from the words alone. If the prompt calls a character "the woman in the green cardigan", the model may draw a different woman in a green cardigan. So the prompt should first describe who the character is, such as their age, face, hair and build, and only then their clothes. That way the character still looks right when the model ignores the image.
+
+**Repeat the look after every cut.** A video model starts from a single image, the first frame. When it generates several shots in one clip (Section 2), the shots after the first cut have no image of their own, so the model draws them from the words alone, and the look drifts. In our test, black-and-white scenes turned to color after the cut in 3 of 6 clips, and in none when the prompt repeated the look. So the video prompt should state the look again at every cut:
 
 <Prompt from="Doki's video prompt writer">
   The video model draws each later shot afresh and drifts from the film's look
@@ -135,8 +139,8 @@ The same holds at the cuts inside one generation, when a video model films sever
 - Give everything that appears more than once and should look the same a definition with a reference image, and do not let the agent judge what is important enough.
 - Scope definitions to the film, a part of it or a single shot, and let scopes add up rather than override.
 - Resolve definitions depth-first, list them in dependency order, and keep the graph to trace changes in reverse.
-- Spend the reference slots on the scene so far and on what the first frame leaves out, and label each image with what to take from it.
-- Never add appearance details in text to something that has a definition, and restate the look at every cut.
+- Spend the reference slots on the scene so far and on what the first frame leaves out, and say which part of each image to use.
+- Never add looks in text to something that has a definition, describe each character by who they are before their clothes, and repeat the look at every cut.
 
 </Takeaways>
 
