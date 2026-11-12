@@ -483,11 +483,8 @@ export function ResolveFigure() {
         <>
           A shot and the definitions it reaches. Its words name four
           definitions, which name three more, and the film-wide look (
-          <T>#ALL</T>) applies to every shot. The numbers are the order a
-          depth-first walk emits them: each after what it uses. The image model
-          gets the definitions in that order, and their images with the
-          shot&rsquo;s own first, then the ones they bring, then the
-          scene&rsquo;s earlier shots.
+          <T>#ALL</T>) applies to every shot. The numbers show the order the
+          prompt lists them in: each one after the definitions it uses.
         </>
       }
     >
@@ -1536,8 +1533,8 @@ export function RiverFigure() {
       number={4}
       caption={
         <>
-          A longer scene, 10 shots and 37 s in three parts, read and planned by
-          Doki but not generated. Packing makes both mistakes again. MiniMax
+          A longer scene, 10 shots and 37 s in three parts, planned but not
+          generated. Packing makes both mistakes again. MiniMax
           H3&rsquo;s plan starts fresh at both jumps in time and splits the
           river part where the boat drifts away from her; Seedance 2.5, with 30
           seconds a generation, needs two.
@@ -1715,7 +1712,7 @@ const CASES: {
   },
   {
     image: 'funeral-start',
-    change: <>New lines of dialogue in a shot of a Japanese teaser</>,
+    change: <>New lines of dialogue in a shot of another film</>,
     picks: { image: 'keep', video: 'remake' },
   },
 ]
@@ -1729,11 +1726,10 @@ export function UpdateFigure() {
         <>
           A definition changes and one shot is out of date. Made again from its
           words, the shot comes out new: another pose, another dome, another
-          light. Doki&rsquo;s judge picked an edit for its image and its video,
-          so only the ground froze. Below, its choices for that change and for a
-          shot of a Japanese teaser that got new lines of dialogue: the image
-          was kept and the video remade, since an edit can&rsquo;t change what
-          is said.
+          light. The judge picked an edit for its image and its video, so only
+          the ground froze. Below, its choices for that change and for a shot of
+          another film that got new lines of dialogue: the image was kept and
+          the video remade, since an edit can&rsquo;t change what is said.
         </>
       }
     >

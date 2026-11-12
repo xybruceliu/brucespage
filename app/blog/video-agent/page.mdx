@@ -165,15 +165,15 @@ So this is a planning problem: keep shots in one generation where the story flow
 
 The planner uses a vision-language model (VLM) and a dynamic programming algorithm, each for what it does well. The VLM (we use Gemini) looks at the keyframes and judges what each cut and shot needs, which takes taste. Dynamic programming then picks the grouping, an optimization with hard limits that language models are bad at. On 11 hard scenes, plans made this way passed 32 of 32 editing checks, while plans that Gemini wrote directly passed 79 to 85%. It works in three steps.
 
-**1. A VLM reads the shot list.** It reads each shot's words and keyframe, and rates two needs from 0 to 3: how much each cut needs the shots on both sides to flow together, and how much each shot needs a fresh start on its own keyframe.
+First, a VLM reads the shot list. It looks at each shot's words and keyframe, and rates two needs from 0 to 3: how much each cut needs the shots on both sides to flow together, and how much each shot needs a fresh start on its own keyframe.
 
 <Rubric />
 
 These ratings describe the film, not the video model, so one reading works for any model. The keyframes matter, too: rated from the words alone, the same scenes passed only 28 of the 32 checks.
 
-**2. Each video model gets its own prices.** How much a split cut or a missed fresh start hurts the film depends on the video model, so each model needs its own price for each rating. To measure them, I generated the same test scenes two ways, in as few generations as possible and with one generation per shot. A judge model then scored each cut and shot that came out differently, from 1 to 10, and the difference in score is the price. For MiniMax H3, splitting a cut rated 2 or 3 cost about 1.2 points, and so did a shot rated 2 or 3 that came mid-generation instead of getting a fresh start. Ratings of 0 and 1 cost almost nothing.
+Second, each video model gets its own prices. How much a split cut or a missed fresh start hurts the film depends on the video model, so each model needs its own price for each rating. To measure them, I generated the same test scenes two ways, in as few generations as possible and with one generation per shot. A judge model then scored each cut and shot that came out differently, from 1 to 10, and the difference in score is the price. For MiniMax H3, splitting a cut rated 2 or 3 cost about 1.2 points, and so did a shot rated 2 or 3 that came mid-generation instead of getting a fresh start. Ratings of 0 and 1 cost almost nothing.
 
-**3. Dynamic programming finds the grouping that loses least.** A scene of n shots can be grouped in 2<sup>n−1</sup> ways, and the algorithm finds the best one that fits without listing them all. Let best[j] be the least a plan for the first j shots can lose. The last generation of that plan covers some shots i+1 through j, so:
+Third, dynamic programming finds the grouping that loses least. A scene of n shots can be grouped in 2<sup>n−1</sup> ways, and the algorithm finds the best one that fits without listing them all. Let best[j] be the least a plan for the first j shots can lose. The last generation of that plan covers some shots i+1 through j, so:
 
 <Formula />
 
@@ -234,7 +234,7 @@ A better way is to treat the film like a software build: track exactly which ass
 
 ### Staleness is a diff
 
-To know what is out of date, the agent records the inputs that made every image and clip: the shot's text, the resolved definitions, the versions of the reference images, and for a video, its keyframe, its timing and the generation it shares with other shots. An asset is stale when its record no longer matches the current film, and the difference says why. Say the user decides the film's Mars should be frozen instead of red. Every shot of Mars now differs from its record, with the reason "<T>@Mars</T> changed". And because definitions are resolved through the graph from Section 1, the change also reaches every shot that uses Mars indirectly.
+To know what is out of date, the agent records the inputs that made every image and clip: the shot's text, its definitions, its reference images, and for a video, its keyframe and timing. An asset is stale when its record no longer matches the current film, and the difference says why. Say a film is set on Mars, and the user decides the planet should be frozen instead of red. Every shot of Mars now differs from its record, with the reason "<T>@Mars</T> changed". And because definitions are resolved through the graph from Section 1, the change also reaches every shot that uses Mars indirectly.
 
 ### Keep, edit or remake
 
