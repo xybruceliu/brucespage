@@ -264,6 +264,30 @@
   --sh-comment: var(--muted-foreground);
 }
 
+/* A takeaways card's points (app/blog/takeaways.tsx): checked off, not bulleted */
+.blog-prose .takeaways ul {
+  list-style: none;
+  margin: 0;
+  padding-inline-start: 0;
+}
+.blog-prose .takeaways li {
+  position: relative;
+  margin: 0.5em 0 0;
+  padding-inline-start: 1.6em;
+  color: var(--foreground);
+}
+.blog-prose .takeaways li::before {
+  content: '';
+  position: absolute;
+  left: 0.3em;
+  top: 0.4em;
+  width: 0.34em;
+  height: 0.66em;
+  border: solid var(--doki-sky);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
 /*
   Doki's editor colors, for the post's examples and figures (they're Doki's
   own, from its client/src/index.css): sky for @ tags, purple for # tags, rose

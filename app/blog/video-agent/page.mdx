@@ -12,6 +12,7 @@ import {
   UpdateFigure,
 } from './figures'
 import { PostMeta } from '../post-meta'
+import { Takeaways } from '../takeaways'
 
 export const metadata = {
   title: 'Designing a Video Agent That Can Actually Make a Long Film',
@@ -126,13 +127,15 @@ The same is true at the cuts inside a multi-shot clip. The video model draws eac
   [...] ("cuts to a close-up, in the same high-contrast black and white: …").
 </Prompt>
 
-**If you're building one**
+<Takeaways>
 
 - Create a definition with a reference image for everything that appears more than once and should look the same, and do not let the agent judge which items are important enough.
 - Scope definitions to the whole film, a part of it or a single shot, and make scopes add together rather than override one another.
 - Walk the definition graph depth-first and list the definitions in dependency order. Keep the graph, so you can trace a change in reverse.
 - Spend the reference image slots on the scene so far and on what the first frame leaves out, and label every image with what to take from it.
 - Never add appearance details in text to something that has a definition, and restate the look at every cut.
+
+</Takeaways>
 
 ## 2. Shot Planning
 
@@ -212,12 +215,14 @@ Once the clips are planned, each one needs two prompts: an image prompt for its 
 
 <ShotList />
 
-**If you're building one**
+<Takeaways>
 
 - Generate a scene's shots together in one clip whenever the model supports it.
 - Let a model rate what each cut and shot needs, and let an algorithm choose the split, with costs measured for each video model.
 - Write each first frame as a still photograph of the opening instant, and keep each clip moving through its cuts.
 - Keep the plan independent of the model, write it in each model's own syntax, and keep generation limits out of the script.
+
+</Takeaways>
 
 ## 3. Incremental Editing
 
@@ -256,12 +261,14 @@ When several shots share one clip, changing one of them should not regenerate th
 
 Trimming is cheaper still. Cutting out the half second in which a hand warps costs nothing. Give the agent a trim tool, and have it fix a shared clip from the cheapest option to the most expensive: trim first, then reword the change so an edit can make it, and remake only as a last resort. Keep every version of every asset, so a remake that turns out worse can be undone.
 
-**If you're building one**
+<Takeaways>
 
 - Record the exact inputs of every image and clip, and find stale assets by comparing those records with the current film.
 - Have a fast model choose between keeping, editing and remaking each stale asset, from a clear description of what edits can and cannot change.
 - Write edit instructions in visual terms, never in tags.
 - Prefer a trim to an edit and an edit to a remake, remake only the smallest run of shots, and keep every version.
+
+</Takeaways>
 
 ## 4. Review Loop
 
@@ -294,12 +301,14 @@ The most useful check is what I call the first-time viewer. A separate model wat
 - **Cap the loop.** Review each shot at most three times per request. Without a cap, the agent can keep remaking a shot to satisfy its own critiques.
 - **Evaluate the agent on films.** The same holds when you test a change to the agent itself. Judge finished films, watched blind, rather than the prompts the agent wrote. A prompt change can look much better to a judge reading the prompts, yet make no difference to the clips those prompts produce.
 
-**If you're building one**
+<Takeaways>
 
 - Run reviews automatically in the harness, and return their findings in the tool results.
 - Review whole clips with sound and the assembled film, and add a first-time viewer that has not read the script.
 - Require fixes to fit the existing shots, and cap the number of reviews per shot.
 - Evaluate changes to the agent on finished films, not on its prompts.
+
+</Takeaways>
 
 ## Describe, Don't Prescribe
 
@@ -323,11 +332,13 @@ There is one exception. Facts alone failed when a habit's payoff was invisible t
   left them out: its films were rows of long single takes.
 </Prompt>
 
-**If you're building one**
+<Takeaways>
 
 - Tell the agent what exists, how the models behave and what each choice costs, instead of telling it what to do.
 - Leave out rules, examples, numbers and categories that the agent would have to interpret, because it follows each one literally.
 - State outright the habits whose payoff the agent cannot see, or enforce them in code.
+
+</Takeaways>
 
 ## Looking ahead
 
