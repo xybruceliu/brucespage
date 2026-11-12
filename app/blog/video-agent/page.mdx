@@ -120,13 +120,9 @@ The prompt should also tell the model what to take from each reference image, or
 
 ### Text overrides images
 
-Image and video models follow the prompt's words more closely than its reference images. This changes how the prompt should be written in three ways.
+Image and video models follow the prompt's words more closely than its reference images. If a character's reference shows red boots but the prompt says yellow boots, the model draws yellow boots. Models also sometimes ignore the reference and draw from the words alone, so a character described only by her green cardigan can come out as a different woman in that cardigan. So the prompt should never add looks to anything that has a definition, and it should describe each character by who they are (age, face, hair and build) before what they wear.
 
-**Don't add looks the definition doesn't have.** If a character's reference image shows red boots but the prompt says yellow boots, the model draws yellow boots. Any look the prompt adds, such as clothes, hair or colors, replaces the one in the reference. So the prompt should describe only what the shot itself decides: the pose, the expression, the action and the light.
-
-**Say who each character is, not only what they wear.** Models sometimes ignore a reference image and draw from the words alone. If the prompt calls a character "the woman in the green cardigan", the model may draw a different woman in a green cardigan. So the prompt should first describe who the character is, such as their age, face, hair and build, and only then their clothes. That way the character still looks right when the model ignores the image.
-
-**Repeat the look after every cut.** A video model starts from a single image, the first frame. When it generates several shots in one clip (Section 2), the shots after the first cut have no image of their own, so the model draws them from the words alone, and the look drifts. In our test, black-and-white scenes turned to color after the cut in 3 of 6 clips, and in none when the prompt repeated the look. So the video prompt should state the look again at every cut:
+Cuts inside a video have the same problem. When a video model generates several shots in one clip (Section 2), only the first shot has an image to start from, so the shots after a cut are drawn from the words alone and drift from the film's look. In our test, black-and-white scenes turned to color after the cut in 3 of 6 clips, and in none once the prompt repeated the look at every cut:
 
 <Prompt from="Doki's video prompt writer">
   The video model draws each later shot afresh and drifts from the film's look
