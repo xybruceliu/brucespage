@@ -1801,24 +1801,24 @@ export function UpdateFigure() {
 
 const REVIEWS = [
   {
-    when: 'A few shots are written',
-    check: 'Script read',
-    sees: 'The script, read as its viewer will see the film',
+    when: 'The script is written',
+    check: 'Script review',
+    sees: 'The script, read the way a viewer will see the film',
   },
   {
     when: 'Each image or video is made',
-    check: 'Picture check',
-    sees: 'The new pictures, their neighbors, the reference images of what they tag',
+    check: 'Shot check',
+    sees: 'Each new shot, next to its neighbors and its references',
   },
   {
     when: 'Every shot has a picture',
-    check: 'Film review',
-    sees: 'Every picture in order, with the lengths added up by code',
+    check: 'Storyboard review',
+    sees: 'All the pictures in order, as one storyboard',
   },
   {
     when: 'Every shot has a video',
-    check: 'First viewer, then film review',
-    sees: 'The clips with sound. The viewer gets no script and no request',
+    check: 'Film review',
+    sees: 'The finished film with sound, watched first by a viewer who has not read the script',
   },
 ]
 
@@ -1828,10 +1828,9 @@ export function ReviewFigure() {
       number={6}
       caption={
         <>
-          The reviews in one request, as the agent works from left to right.
-          Each is set off by what the agent just did, not by the agent asking,
-          and what it finds comes back in that tool&rsquo;s result. A shot is
-          checked at most three times a request.
+          The four reviews, as the agent makes a film from left to right. Each
+          one runs on its own as soon as its stage is done, and sends what it
+          finds back to the agent.
         </>
       }
     >
@@ -1850,7 +1849,9 @@ export function ReviewFigure() {
               {i + 1}
             </span>
             <div className="border-border bg-background w-full flex-1 rounded-[var(--radius-lg)] border p-3">
-              <p className="text-[13px] font-medium">{review.check}</p>
+              <p className="text-foreground text-[13px] font-medium">
+                {review.check}
+              </p>
               <p className="text-muted-foreground mt-1 leading-snug">
                 {review.sees}
               </p>

@@ -272,19 +272,23 @@ So give the agent a trim tool, and have it try the fixes in this order. And keep
 
 ## 4. Review Loop
 
-Most agents, video agents included, already have some kind of review loop: a model checks the output, and the agent fixes what it flags. What matters for a long film is how the loop is designed, and three choices matter most: when the reviews run, what they watch, and how their findings reach the agent.
+Most agents, video agents included, already have some kind of review loop: a model checks the output, and the agent fixes what it flags. For a long film, what matters is how the loop is designed: what it reviews, when, and what it asks the agent to change.
 
-### Reviews the harness runs
+### Review every stage
 
-The first choice is who starts a review. It seems natural to give the agent a review tool and let it check its work when it wants to. But the agent will not inspect its own work unprompted. I gave our agent a tool that let a VLM watch any shot and answer questions about it, and in sixteen writing runs the agent used it zero times. So the harness should run the reviews itself, each one set off by what the agent just did. Four points work well: the script, each new image or video, the whole storyboard, and the finished film. Many language models still cannot watch video with sound, so a model that can, such as Gemini, does the watching for the agent. Each review's findings come back in the result of the tool call that set it off, so the agent reads them right away:
+A film can go wrong at every stage of its making: in the script, in each image and clip, across the storyboard, and in the finished film. A problem in the script is much cheaper to fix before any video exists. So the loop should review each stage as soon as it is made, and run automatically instead of waiting for the agent to ask:
 
 <ReviewFigure />
 
 In tests on storyboards, films made with these reviews won most blind comparisons against films made without them, and had about a fifth fewer continuity breaks.
 
+### Watch what is on screen
+
+Most continuity errors happen during generation, such as a cut that forgets where someone was standing or a prop that changes shape. A review that reads only the script cannot see them: in my tests, a text-only checker flagged many issues in the scripts and changed nothing in the films. So the reviews should watch the output itself, as whole clips with sound rather than still frames. Findings from whole clips held up almost every time, while findings from three frames per clip held up only about two times in three. Only whole clips revealed a bicycle rolling backward, a hand that never lets go of a cup, or a voice that changes between shots.
+
 ### The first-time viewer
 
-One check turned out to be the most useful: what I call the first-time viewer. A separate model watches the finished film without seeing the script or the user's request, and says what it understood. This matters because the film review has read the script, so it fills in story details that the screen leaves out. The first-time viewer has only the video and its sound. So wherever its account differs from the script, the film is failing to tell the story.
+The most useful review is what I call the first-time viewer. A separate model watches the finished film without seeing the script or the user's request, and says what it understood. A reviewer who has read the script fills in story details that the screen leaves out. The first-time viewer has only the video and its sound, so wherever its account differs from the script, the film is failing to tell the story:
 
 <Prompt from="Doki's first-time viewer">
   Say what you understood, in plain words: [...] What you couldn't follow: who
@@ -293,26 +297,16 @@ One check turned out to be the most useful: what I call the first-time viewer. A
   came - each with its shot.
 </Prompt>
 
-### What makes reviews work
+### Keep the fixes small
 
-A few lessons made the reviews work.
-
-The first is to watch whole clips, not frames. Findings from watching whole clips with sound held up almost every time, while findings from three still frames per clip held up only about two times in three. Only whole clips revealed a bicycle rolling backward, a hand that never lets go of a cup, or a voice that changes between shots.
-
-For the same reason, the reviews should check the output, not the script. Most continuity errors happen during generation, such as a cut that forgets where someone was standing or a prop that changes shape, and a checker that reads only the script cannot see them. In my tests, a text-only continuity checker flagged many issues in the scripts and changed nothing in the films.
-
-Fixes also have to fit the film. Left alone, the agent answers story feedback by adding events to the script, and clips with too much happening break more often. So every review tells the agent that a fix "has to fit in the shots the film has [...] and never add a shot, a part or a cut."
-
-The loop needs a cap, too, such as at most three reviews per shot for each request. Without a cap, the agent can keep remaking a shot to satisfy its own critiques.
-
-The same goes for testing a change to the agent itself: judge the finished films, watched blind, not the prompts the agent wrote. A prompt change can look much better on paper and make no difference to the clips.
+Reviews can also make a film worse. Left alone, the agent answers story feedback by adding events to the script, and clips with too much happening break more often. So each review should ask for fixes that fit the shots the film already has. The loop also needs a limit, such as three reviews per shot, so the agent does not keep remaking a shot to satisfy its own critiques.
 
 <Takeaways>
 
-- Run reviews automatically in the harness, and return their findings in the tool results.
-- Review whole clips with sound and the assembled film, and add a first-time viewer that has not read the script.
-- Require fixes to fit the existing shots, and cap the number of reviews per shot.
-- Evaluate changes to the agent on finished films, not on its prompts.
+- Review every stage, from the script to the finished film, automatically as each one is made.
+- Review what is on screen: whole clips with sound and the assembled film, not the script or still frames.
+- Add a first-time viewer that has not read the script.
+- Ask for fixes that fit the existing shots, and limit how often a shot is reviewed.
 
 </Takeaways>
 
