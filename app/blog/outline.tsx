@@ -138,11 +138,12 @@ export function Outline() {
                 title={section ? undefined : item.title}
                 aria-label={item.title}
                 aria-current={item.id === active?.id ? 'location' : undefined}
-                className="group/item relative flex h-2 items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="group/item relative flex h-[10px] w-8 items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
               >
+                {/* The row is the target, wider and taller than its line; the line thickens a little under the pointer */}
                 <span
                   aria-hidden="true"
-                  className={`block h-[2px] rounded-full transition-[width,background-color] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] ${
+                  className={`block h-[2px] rounded-full transition-[width,height,background-color] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover/item:h-[3px] ${
                     section
                       ? 'w-[18px] group-hover/item:w-6'
                       : 'w-[9px] group-hover/item:w-[14px]'
