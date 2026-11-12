@@ -3,7 +3,6 @@ import {
   Formula,
   PlanFigure,
   Prompt,
-  QuirksTable,
   ResolveFigure,
   ReviewFigure,
   Rubric,
@@ -212,10 +211,6 @@ Once the clips are planned, each one needs two prompts: an image prompt for its 
 **Translate the plan for each model.** Keep the plan itself independent of the model: a list of shots with their timings. Then write it out in each video model's own syntax, because models read prompts differently. MiniMax ignores timed spans such as `[2-4s] cut to …` and often cuts at around two seconds regardless. Written in its own shot-list syntax, it cuts within a few hundredths of a second of each timestamp:
 
 <ShotList />
-
-Each model also has quirks that the right wording fixes. These are the ones I met most often:
-
-<QuirksTable />
 
 **If you're building one**
 
