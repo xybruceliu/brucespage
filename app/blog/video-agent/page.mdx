@@ -253,7 +253,7 @@ Most of the judge's prompt describes what an edit can and cannot change:
   video it can't change what is said, the voices or the timing.
 </Prompt>
 
-The edit model sees only the picture, not the script, so the judge writes its instruction in visual terms ("the woman in the red coat") rather than definition names. On 62 labeled cases, Doki's judge chose correctly 61 times. Rules that must always hold stay in code: a failed edit falls back to a remake, and a photo the user uploaded is never overwritten. Every video edit goes to a model that keeps the original take, whichever model made the clip. Doki uses [Gemini Omni](https://ai.google.dev/gemini-api/docs/omni), which changes what was asked and keeps the motion frame for frame.
+On 62 labeled cases, the judge chose correctly 61 times. For video edits, Doki uses [Gemini Omni](https://ai.google.dev/gemini-api/docs/omni), which changes what was asked and keeps the motion frame for frame.
 
 ### Remake the smallest run
 
@@ -263,7 +263,6 @@ When several shots share one generation, changing one of them should not regener
 
 - Record the exact inputs of every image and clip, and find stale assets by comparing those records with the current film.
 - Have a fast model choose between keeping, editing and remaking each stale asset, from a clear description of what edits can and cannot change.
-- Write edit instructions in visual terms, never in tags.
 - Prefer a trim to an edit and an edit to a remake, remake only the smallest run of shots, and keep every version.
 
 </Takeaways>
