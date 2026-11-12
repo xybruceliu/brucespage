@@ -137,11 +137,19 @@ The same applies to cuts within a clip, which a model filming several shots in o
 
 ## 2. Shot Planning
 
+This section relies on three units of film. A **shot** is one continuous view from one camera position, lasting until a **cut** switches to the next. A **scene** is a run of shots in one place and time: in _The Last Three_, one scene on a snowy train platform opens with Mio raising her film camera, cuts to a close-up of Haruto looking back, and then to the camera tumbling into the snow. A **clip** is what one video generation returns.
+
 The slideshow effect originates in the obvious pipeline: one storyboard image and one clip per shot, cut together. Each clip starts from a still, its motion and sound start from zero, and, unconstrained, it slows to a stop before its cut. A video agent needs a planner instead: one that decides which shots are filmed together in a single generation, where a long scene is split into clips, and how each clip's prompt keeps the motion going through its cuts.
 
 ### Film the scene, not the shot
 
-Recent video models can film several shots in one generation and cut between them. Within a generation, people, lighting, motion and sound carry across the cuts, and a reverse angle can show the other side of the room, which separately generated images handle poorly (image models tend to copy the earlier shot's camera position). The unit of generation should therefore be the scene. In my tests, a scene generated as one clip outperformed the same shots generated separately in most pairwise comparisons, with about a third fewer continuity breaks.
+On a film set, a scene's shots are also filmed one at a time, but they share one physical world. The set, the actors and the light are the same from one shot to the next, a continuity supervisor checks that every object is where it was, and the editor cuts in the middle of an action so that a movement begun in one shot finishes in the next. That shared world is what lets separate shots read as one continuous moment.
+
+A video model has no such world. Each generation invents its own, so a scene generated one shot per clip is several slightly different worlds cut together. On the platform, the snowfall and the light would shift at every cut, and the camera that slips in one clip would start the next from a standstill, with the sound of the station starting again from silence.
+
+Recent video models can film several shots in one generation and cut between them, which restores the shared world within that generation. When the model cuts from Mio to Haruto, the platform, the light and the snow are the ones it has just drawn; when it cuts to the camera, the camera is still falling, and the sound carries across both cuts. The model can also turn the camera around: a reverse angle shows the other side of the platform, which separately generated images handle poorly, since image models tend to copy the earlier shot's camera position.
+
+The unit of generation should therefore be the scene, not the shot. In my tests, a scene generated as one clip outperformed the same shots generated separately in most pairwise comparisons, with about a third fewer continuity breaks.
 
 ### Where to split
 
