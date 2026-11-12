@@ -272,7 +272,7 @@ So give the agent a trim tool, and have it try the fixes in this order. And keep
 
 ## 4. Review Loop
 
-All of this assumes that someone has noticed the problem. A video agent rarely does, because it rarely watches the film it is making. It writes the script long before any image or clip exists, and it does not check the results on its own. Many language models still cannot even watch video with sound (in Doki, Gemini watches the clips for the agent). Yet almost every problem in this post shows up only on screen. So the harness needs a review loop: it checks the output automatically at fixed points, and sends what it finds back to the agent as tool results.
+To fix a problem, the agent first has to find it. But a video agent rarely watches the film it is making. It writes the script long before any image or clip exists, and it does not check the results on its own. Many language models still cannot even watch video with sound (in Doki, Gemini watches the clips for the agent). Yet almost every problem in this post shows up only on screen. So the harness needs a review loop: it checks the output automatically at fixed points, and sends what it finds back to the agent as tool results.
 
 ### Reviews the harness runs
 
