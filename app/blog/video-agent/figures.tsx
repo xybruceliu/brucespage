@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 // The figures and examples of "Designing a Video Agent That Can Actually Make a
 // Long Film", drawn in Doki's own visual language: its editor's tag colors (sky
 // for @, purple for #, rose for the "=" of a definition; app/globals.css), its
-// definition chips and its 🎬 shots. Pictures and data come from Doki's example
+// definition chips. Pictures and data come from Doki's example
 // film The Last Three and the Doki demo; the clip planner is Doki's own
 // (client/src/editor/services/clipPlanner.ts), cut down to what this scene needs.
 
@@ -46,10 +46,13 @@ function useFigureWidth() {
 
 /** A figure that keeps its layout and scrolls sideways on a narrow screen */
 function Figure({
+  number,
   children,
   caption,
   fixed = true,
 }: {
+  /** Its number in the post, which its caption leads with */
+  number: number
   /** What it shows - or, for a figure laid out for a width, what it shows at a width */
   children: ReactNode | ((width: number) => ReactNode)
   caption: ReactNode
@@ -72,6 +75,7 @@ function Figure({
       <figcaption
         className={`text-muted-foreground mt-4 text-sm leading-relaxed ${BACK_IN}`}
       >
+        <span className="text-foreground font-medium">Fig. {number}.</span>{' '}
         {caption}
       </figcaption>
     </figure>
@@ -184,9 +188,6 @@ export function Definitions() {
               <TypeChip type={line.type} />
               <T>{line.tag}</T>
               <Eq />
-              <span aria-hidden="true" className="mr-1">
-                🎬
-              </span>
               {line.text}
             </p>
             <img
@@ -516,6 +517,7 @@ export function ResolveFigure() {
 
   return (
     <Figure
+      number={1}
       caption={
         <>
           One shot of <i>The Last Three</i>. Its words name four definitions,
@@ -589,9 +591,6 @@ export function ResolveFigure() {
                 />
                 <div className="self-center pr-3">
                   <p className="text-foreground leading-snug">
-                    <span aria-hidden="true" className="mr-1">
-                      🎬
-                    </span>
                     Overhead close-up of <T>@PhotoShop</T>&rsquo;s counter: the
                     last three photos, <T>@PlatformPhoto</T>, <T>@RoadPhoto</T>{' '}
                     and <T>@WindowPhoto</T>.
@@ -834,6 +833,7 @@ export function PlanFigure() {
 
   return (
     <Figure
+      number={2}
       caption={
         <>
           A scene of <i>The Last Three</i>, planned for MiniMax H3 Max. Between
@@ -1231,6 +1231,7 @@ const CASES: {
 export function UpdateFigure() {
   return (
     <Figure
+      number={3}
       fixed={false}
       caption={
         <>
@@ -1332,6 +1333,7 @@ const REVIEWS = [
 export function ReviewFigure() {
   return (
     <Figure
+      number={4}
       caption={
         <>
           The reviews in one request, as the agent works from left to right.
