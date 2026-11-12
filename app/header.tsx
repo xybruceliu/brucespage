@@ -4,6 +4,7 @@ import { CompanyTag, AdobeIcon } from '@/components/ui/company-tag'
 import { Tilt } from '@/components/ui/tilt'
 import Image from 'next/image'
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import {
   motion,
   useMotionTemplate,
@@ -69,6 +70,10 @@ function ProfilePhoto() {
 
 export function Header() {
   const [isChinese, setIsChinese] = useState(false)
+  const pathname = usePathname()
+
+  // A post has its own one-line nav (app/blog/layout.tsx) instead
+  if (pathname?.startsWith('/blog')) return null
 
   return (
     <header className="mb-6 flex items-center justify-between sm:mb-8">

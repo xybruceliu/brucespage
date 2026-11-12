@@ -12,6 +12,8 @@ type Project = {
 type BlogPost = {
   title: string
   description: string
+  /** When it was published, as the homepage lists it */
+  date: string
   link: string
   uid: string
 }
@@ -330,11 +332,19 @@ export const PROJECTS: Project[] = [
   },
 ]
 
-// Blog is currently disabled (see the commented-out section in page.tsx).
-// To publish a post: add an entry here (e.g. link: '/blog/<slug>') and create
-// app/blog/<slug>/page.mdx — it can `export const metadata = { title, ... }`
-// for its <title> and social card.
-export const BLOG_POSTS: BlogPost[] = []
+// The homepage lists these, newest first, and the sitemap includes them. A post
+// is app/blog/<slug>/page.mdx, linked here as '/blog/<slug>' - it can
+// `export const metadata = { title, ... }` for its <title> and social card.
+export const BLOG_POSTS: BlogPost[] = [
+  {
+    title: 'Designing a Video Agent That Can Actually Make a Long Film',
+    description:
+      'Definitions, shot planning, incremental editing and reviews: the four parts a video agent needs to make a long film.',
+    date: 'Nov 2026',
+    link: '/blog/video-agent',
+    uid: 'video-agent',
+  },
+]
 
 export const SOCIAL_LINKS: SocialLink[] = [
   {

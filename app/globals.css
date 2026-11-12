@@ -165,3 +165,156 @@
     background-color: oklch(0.985 0 0 / 0.18);
   }
 }
+
+/*
+  The arrow that draws itself on hover (components/ui/draw-arrow.tsx). At rest
+  each stroke is hidden by its own dash; hovering or focusing the link slides
+  the shaft in, then the head. Leaving undraws both at once, quickly, so it
+  never lingers. Reduced motion shows it without the drawing.
+*/
+.draw-arrow path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition:
+    stroke-dashoffset 140ms cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 100ms ease-out;
+}
+.draw-arrow-trigger:hover .draw-arrow path,
+.draw-arrow-trigger:focus-visible .draw-arrow path {
+  stroke-dashoffset: 0;
+  opacity: 1;
+  transition:
+    stroke-dashoffset 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 40ms linear;
+}
+.draw-arrow-trigger:hover .draw-arrow .draw-arrow-head,
+.draw-arrow-trigger:focus-visible .draw-arrow .draw-arrow-head {
+  transition-delay: 120ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .draw-arrow path,
+  .draw-arrow-trigger:hover .draw-arrow path,
+  .draw-arrow-trigger:focus-visible .draw-arrow path {
+    transition: none;
+  }
+}
+
+/*
+  A post reads like the homepage: body text in the muted gray of its intro,
+  and the foreground only for what matters - headings, bold lead-ins, links
+  (which have no underline until hovered, see mdx-components.tsx). The same
+  tokens switch for dark mode, so prose-invert maps to them too. Code stays
+  monochrome: inline code is plain text on a faint chip, and a code block
+  sits in the same card as the prompt excerpts, with only comments and
+  punctuation muted.
+*/
+.blog-prose {
+  --tw-prose-body: var(--muted-foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--muted-foreground);
+  --tw-prose-links: var(--foreground);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: var(--muted-foreground);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-quote-borders: var(--border);
+  --tw-prose-captions: var(--muted-foreground);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-pre-code: var(--foreground);
+  --tw-prose-pre-bg: color-mix(in oklch, var(--muted) 50%, transparent);
+  --tw-prose-invert-body: var(--muted-foreground);
+  --tw-prose-invert-headings: var(--foreground);
+  --tw-prose-invert-lead: var(--muted-foreground);
+  --tw-prose-invert-links: var(--foreground);
+  --tw-prose-invert-bold: var(--foreground);
+  --tw-prose-invert-counters: var(--muted-foreground);
+  --tw-prose-invert-bullets: var(--muted-foreground);
+  --tw-prose-invert-hr: var(--border);
+  --tw-prose-invert-quotes: var(--foreground);
+  --tw-prose-invert-quote-borders: var(--border);
+  --tw-prose-invert-captions: var(--muted-foreground);
+  --tw-prose-invert-code: var(--foreground);
+  --tw-prose-invert-pre-code: var(--foreground);
+  --tw-prose-invert-pre-bg: color-mix(in oklch, var(--muted) 50%, transparent);
+}
+.blog-prose :not(pre) > code {
+  background: var(--muted);
+  border-radius: calc(var(--radius) - 4px);
+  padding: 0.1em 0.35em;
+  font-size: 0.875em;
+  font-weight: 400;
+}
+.blog-prose :not(pre) > code::before,
+.blog-prose :not(pre) > code::after {
+  content: none;
+}
+.blog-prose pre {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  --sh-class: var(--foreground);
+  --sh-identifier: var(--foreground);
+  --sh-keyword: var(--foreground);
+  --sh-string: var(--foreground);
+  --sh-property: var(--foreground);
+  --sh-entity: var(--foreground);
+  --sh-jsxliterals: var(--foreground);
+  --sh-sign: var(--muted-foreground);
+  --sh-comment: var(--muted-foreground);
+}
+
+/* A takeaways card's points (app/blog/takeaways.tsx): checked off, not bulleted */
+.blog-prose .takeaways ul {
+  list-style: none;
+  margin: 0;
+  padding-inline-start: 0;
+}
+.blog-prose .takeaways li {
+  position: relative;
+  margin: 0.5em 0 0;
+  padding-inline-start: 1.6em;
+  color: var(--foreground);
+}
+.blog-prose .takeaways li::before {
+  content: '';
+  position: absolute;
+  left: 0.3em;
+  top: 0.4em;
+  width: 0.34em;
+  height: 0.66em;
+  border: solid var(--doki-sky);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+/*
+  Doki's editor colors, for the post's examples and figures (they're Doki's
+  own, from its client/src/index.css): sky for @ tags, purple for # tags, rose
+  for the "=" of a definition, cyan for sound. Each has a tint for chips and a
+  line color for borders and edges, and a dark-mode version.
+*/
+:root {
+  --doki-sky: oklch(0.5 0.12 243);
+  --doki-sky-bg: oklch(0.95 0.03 237);
+  --doki-sky-line: oklch(0.68 0.15 237);
+  --doki-pur: oklch(0.5 0.24 302);
+  --doki-pur-bg: oklch(0.95 0.03 307);
+  --doki-pur-line: oklch(0.63 0.23 304);
+  --doki-rose: oklch(0.51 0.2 17);
+  --doki-rose-bg: oklch(0.95 0.03 17);
+  --doki-rose-line: oklch(0.7 0.16 17);
+  --doki-cyan: oklch(0.52 0.09 223);
+}
+.dark {
+  --doki-sky: oklch(0.8 0.1 237);
+  --doki-sky-bg: oklch(0.33 0.06 243 / 0.5);
+  --doki-sky-line: oklch(0.62 0.12 240);
+  --doki-pur: oklch(0.8 0.13 304);
+  --doki-pur-bg: oklch(0.33 0.1 302 / 0.5);
+  --doki-pur-line: oklch(0.62 0.17 304);
+  --doki-rose: oklch(0.76 0.14 17);
+  --doki-rose-bg: oklch(0.33 0.08 17 / 0.5);
+  --doki-rose-line: oklch(0.62 0.15 17);
+  --doki-cyan: oklch(0.8 0.09 215);
+}
