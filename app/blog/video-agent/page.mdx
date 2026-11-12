@@ -35,14 +35,14 @@ The clips aren't the problem. Today's video agents weren't built for long videos
 
 I've been working on these problems in [Doki Agent](https://doki.mov) (Doki's interface is also super interesting, but I'll save it for another post). This post is about the four parts that did most of the work of turning many clips into one film, which I think any video agent needs, however it's built:
 
-1. **Memory**: what has to look the same, and how each generation is told.
-2. **Planning**: how a scene is split into generations for the best continuity.
-3. **Editing**: how a change reaches the film without re-rolling it.
-4. **Feedback**: how the agent reviews what it made and improves it on its own.
+1. **Definition System**: what has to look the same, and how each generation is told.
+2. **Shot Planning**: how a scene is split into generations for the best continuity.
+3. **Incremental Editing**: how a change reaches the film without re-rolling it.
+4. **Review Loop**: how the agent checks what it made and improves it on its own.
 
 Everything below comes from building Doki: the real prompts, what broke, and what fixed it.
 
-## 1. Memory
+## 1. Definition System
 
 A long film shows the same people, places, objects and looks across dozens of generations, and image and video models remember nothing from one generation to the next. Each one sees only its own prompt and a few reference images, so anything that exists only as words is drawn anew every time. A video agent therefore needs a **definition system**: everything the film reuses is defined once, with a description and a reference image, and every shot references it instead of describing it again. Before each generation, the agent resolves the shot's references into the definitions and images the model needs.
 
@@ -124,7 +124,7 @@ The same goes for the cuts inside a clip, which a model filming several shots at
 - Spend the image budget on the scene so far and on what the first frame doesn't show, and label every image with what to take from it.
 - Never add visual details in words to a defined thing. Restate the style at every cut.
 
-## 2. Planning
+## 2. Shot Planning
 
 The slideshow look comes from the obvious pipeline: one storyboard image and one clip per shot, cut together. Each clip starts from a still, its motion and sound start from zero, and left alone it slows to a stop before its cut. A video agent needs a planner instead, one that decides which shots are filmed together in one generation, where a long scene splits into clips, and how each clip's prompt keeps the motion going through its cuts.
 
@@ -191,7 +191,7 @@ That's one quirk of many. These are the ones I hit most often, with the wording 
 - Make each frame the opening instant, written in states. Keep clips moving through their cuts.
 - Hide model duration limits from the writing agent, and count the plans before shipping a planner.
 
-## 3. Editing
+## 3. Incremental Editing
 
 A long film is never right on the first try, and it keeps changing as you work: a character's hair, a planet that should be frozen, a new line of dialogue. Regenerating whatever a change touches is the default, and it's a coin flip. In my logs, when a review flagged a problem and the shot was made again, the remake fixed it about half the time, and a second try did no better than the first. Each remake also throws away what was right: the camera angle, the faces, the take the user approved.
 
@@ -235,7 +235,7 @@ The cheapest fix of all is a trim. Cutting the half second where a hand warps co
 - Write edit instructions using visible descriptions, never internal tags.
 - Prefer a trim to an edit and an edit to a remake, regenerate only the smallest contiguous run, and version everything.
 
-## 4. Feedback
+## 4. Review Loop
 
 A video agent can't fix what it doesn't see, and even a multimodal one rarely sees the film it's making. It writes each shot long before that shot exists, it doesn't look at what comes back unless something makes it, and many models still can't watch a video with its sound (in Doki, Gemini does the watching for the agent). Yet almost everything above pays off on screen. So the agent needs a feedback loop built into its harness: reviews that run at fixed points as it works, whose findings come back inside its tool results.
 
@@ -295,7 +295,7 @@ The same rule applies to whoever builds the agent: judge the film, not the text.
 
 ## Last thing
 
-None of these ideas is tied to Doki's script format. Whether you're building a chat agent driving a video API, a node-based canvas or a timeline editor, making a film means coordinating dozens of separate generations, so the agent needs a memory, a plan, a way to change one thing without remaking the rest, and eyes. Video models will absorb parts of this as clips get longer, reference slots multiply and editing improves. What I don't expect to change is that a film is many generations, and that the agent writing it won't watch it unless you make it.
+None of these ideas is tied to Doki's script format. Whether you're building a chat agent driving a video API, a node-based canvas or a timeline editor, making a film means coordinating dozens of separate generations, so the agent needs a definition system, a shot planner, incremental edits and a review loop. Video models will absorb parts of this as clips get longer, reference slots multiply and editing improves. What I don't expect to change is that a film is many generations, and that the agent writing it won't watch it unless you make it.
 
 I'm still figuring plenty of this out. If you're building a video agent too, I'd love to hear what's worked for you. You can try Doki at [doki.mov](https://doki.mov) with your own API keys, and read our paper, co-authored with [Mira Dontcheva](https://research.adobe.com/person/mira-dontcheva) and [Dingzeyu Li](https://dingzeyu.li/), [at UIST 2026](https://dl.acm.org/doi/10.1145/3830398.3830715).
 
