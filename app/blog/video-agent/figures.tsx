@@ -2,12 +2,18 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
-// The figures of "Designing a Video Agent That Can Actually Make a Long Film".
-// Pictures and data come from Doki's example film The Last Three and from the
-// Doki demo; the clip planner is Doki's own
+// The figures and examples of "Designing a Video Agent That Can Actually Make a
+// Long Film", drawn in Doki's own visual language: its editor's tag colors (sky
+// for @, purple for #, rose for the "=" of a definition; app/globals.css), its
+// definition chips and its 🎬 shots. Pictures and data come from Doki's example
+// film The Last Three and the Doki demo; the clip planner is Doki's own
 // (client/src/editor/services/clipPlanner.ts), cut down to what this scene needs.
 
 const IMG = '/img/blog/video-agent'
+
+// -----------------------------------------------------------------------------
+// The figure frame
+// -----------------------------------------------------------------------------
 
 // A figure is wider than the text on a large screen: it reaches out by BREAKOUT
 // on each side of the text column (608px), so it's up to FIGURE_MAX wide, while
@@ -72,9 +78,67 @@ function Figure({
   )
 }
 
-/** A tag, as Doki's script shows it */
-function T({ children }: { children: ReactNode }) {
-  return <span className="text-foreground font-medium">{children}</span>
+// -----------------------------------------------------------------------------
+// Doki's script, as its editor shows it
+// -----------------------------------------------------------------------------
+
+const SKY = 'text-[var(--doki-sky)]'
+const PUR = 'text-[var(--doki-pur)]'
+
+/** A tag, colored as Doki's editor colors it: sky for @, purple for # */
+export function T({ children }: { children: string }) {
+  return (
+    <span className={`font-medium ${children.startsWith('#') ? PUR : SKY}`}>
+      {children}
+    </span>
+  )
+}
+
+const TYPES = {
+  Character: { emoji: '👤', symbol: '@' },
+  Scene: { emoji: '🏠', symbol: '@' },
+  Ingredient: { emoji: '🧩', symbol: '@' },
+  Ambience: { emoji: '✨', symbol: '#' },
+} as const
+
+/** A definition's type, as the chip Doki puts before it */
+function TypeChip({ type }: { type: keyof typeof TYPES }) {
+  const { emoji, symbol } = TYPES[type]
+  const tint =
+    symbol === '@'
+      ? 'border-[var(--doki-sky-line)] bg-[var(--doki-sky-bg)] text-[var(--doki-sky)]'
+      : 'border-[var(--doki-pur-line)] bg-[var(--doki-pur-bg)] text-[var(--doki-pur)]'
+  return (
+    <span
+      className={`mr-1.5 inline-flex items-center gap-1 rounded-md border px-1.5 py-px align-[0.06em] text-[0.82em] font-medium whitespace-nowrap ${tint}`}
+    >
+      <span aria-hidden="true">{emoji}</span>
+      {type}
+    </span>
+  )
+}
+
+/** The "=" of a definition */
+function Eq() {
+  return <span className="mx-1 font-medium text-[var(--doki-rose)]">=</span>
+}
+
+/** A card that holds an excerpt: a label, then what it quotes */
+function Excerpt({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="not-prose border-border bg-muted/40 my-6 rounded-[var(--radius-lg)] border px-4 py-3">
+      <p className="text-muted-foreground mb-2 flex items-center gap-2 font-mono text-[11px] tracking-wide uppercase">
+        <span
+          aria-hidden="true"
+          className="size-1.5 rounded-full bg-[var(--doki-sky-line)]"
+        />
+        {label}
+      </p>
+      <div className="text-foreground/90 text-[14px] leading-relaxed">
+        {children}
+      </div>
+    </div>
+  )
 }
 
 /** A prompt excerpt, quoted as it is in Doki's code */
@@ -86,20 +150,159 @@ export function Prompt({
   children: ReactNode
 }) {
   return (
-    <div className="not-prose border-border bg-muted/50 my-6 rounded-[var(--radius-lg)] border px-4 py-3">
-      <p className="text-muted-foreground mb-1.5 font-mono text-[11px] tracking-wide uppercase">
-        {from}
-      </p>
-      <div
-        className={`text-foreground/90 space-y-2 text-[14px] leading-relaxed ${typeof children === 'string' ? 'whitespace-pre-line' : ''}`}
-      >
-        {children}
-      </div>
-    </div>
+    <Excerpt label={from}>
+      <div className="space-y-2">{children}</div>
+    </Excerpt>
   )
 }
 
-/** The model quirks I hit most, and the wording that helped */
+/** Two of The Last Three's definitions, as Doki's script shows them, with their reference shots */
+export function Definitions() {
+  const lines = [
+    {
+      type: 'Ingredient' as const,
+      tag: '@Camera',
+      image: 'camera',
+      text: 'an old silver-and-black 35mm film SLR, a well-worn brown leather strap, and on its back a strip of masking tape with “3 left” written by hand',
+    },
+    {
+      type: 'Character' as const,
+      tag: '@Mio',
+      image: 'mio',
+      text: 'a high-school senior, 17, a black bob to her chin, pale skin with cheeks red from the cold, shy and gentle eyes; a navy duffle coat over a navy blazer and a gray check skirt, black tights, brown snow boots, a red knit scarf and red mittens',
+    },
+  ]
+  return (
+    <Excerpt label="Two definitions from The Last Three, translated from Japanese">
+      <div className="divide-border divide-y">
+        {lines.map((line) => (
+          <div
+            key={line.tag}
+            className="flex items-start gap-4 py-3 first:pt-1 last:pb-1"
+          >
+            <p className="flex-1">
+              <TypeChip type={line.type} />
+              <T>{line.tag}</T>
+              <Eq />
+              <span aria-hidden="true" className="mr-1">
+                🎬
+              </span>
+              {line.text}
+            </p>
+            <img
+              src={`${IMG}/${line.image}.jpg`}
+              alt={`${line.tag}'s reference shot`}
+              className="border-border size-16 shrink-0 rounded-[var(--radius-md)] border object-cover"
+            />
+          </div>
+        ))}
+      </div>
+    </Excerpt>
+  )
+}
+
+/** A scene clip's prompt in MiniMax's own shot-list form */
+export function ShotList() {
+  const shots = [
+    {
+      at: null,
+      text: 'Medium shot on the snowy platform: Mio raises the camera to her eye …',
+    },
+    {
+      at: '00:03.000',
+      text: 'the camera cuts to a close-up of Haruto as he looks back …',
+    },
+    {
+      at: '00:07.000',
+      text: 'the camera cuts to the camera tumbling into the snow …',
+    },
+  ]
+  return (
+    <Excerpt label="A scene clip's video prompt, in MiniMax's shot-list form">
+      <ol className="space-y-1.5">
+        {shots.map((shot, i) => (
+          <li key={i} className="flex items-baseline gap-2.5">
+            <span className="bg-background border-border shrink-0 rounded-md border px-1.5 font-mono text-[12px]">
+              [Shot {i + 1}]
+            </span>
+            <span>
+              {shot.at && (
+                <>
+                  At{' '}
+                  <span className={`font-mono text-[13px] ${SKY}`}>
+                    {shot.at}
+                  </span>
+                  ,{' '}
+                </>
+              )}
+              {shot.text}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </Excerpt>
+  )
+}
+
+/** Dots for a 0-3 level: how much a cut needs one take (sky), or a shot its exact frame (purple) */
+function Dots({
+  level,
+  kind,
+  vertical,
+}: {
+  level: number
+  kind: 'seam' | 'frame'
+  vertical?: boolean
+}) {
+  const on =
+    kind === 'seam' ? 'bg-[var(--doki-sky-line)]' : 'bg-[var(--doki-pur-line)]'
+  return (
+    <span
+      className={`inline-flex items-center gap-[3px] ${vertical ? 'flex-col' : ''}`}
+    >
+      {[1, 2, 3].map((n) => (
+        <i
+          key={n}
+          className={`block size-[6px] rounded-full ${n <= level ? on : 'bg-border'}`}
+        />
+      ))}
+    </span>
+  )
+}
+
+/** Two levels of the scene reader's rubric for a cut, with the dots the planner figure uses */
+export function Rubric() {
+  const levels = [
+    {
+      level: 3,
+      text: "one moment that can't break - a line of dialogue answered, an action caught mid-way, a sound that runs across the cut, or two nearly identical views that would jump if made apart",
+    },
+    {
+      level: 0,
+      text: 'a new place or time, or a deliberate break - nothing needs to carry over',
+    },
+  ]
+  return (
+    <Excerpt label="Doki's scene reader, how much a cut needs one take">
+      <ul className="space-y-2">
+        {levels.map(({ level, text }) => (
+          <li key={level} className="flex items-baseline gap-3">
+            <span className="flex shrink-0 items-center gap-2 font-mono text-[12px]">
+              <Dots level={level} kind="seam" />
+              {level}
+            </span>
+            <span>{text}</span>
+          </li>
+        ))}
+      </ul>
+    </Excerpt>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// The model quirks I hit most, and the wording that helped
+// -----------------------------------------------------------------------------
+
 const QUIRKS: [string, string][] = [
   [
     'The first frame shows the end of the action ("starting to sit" comes out seated)',
@@ -146,17 +349,17 @@ const QUIRKS: [string, string][] = [
 export function QuirksTable() {
   return (
     <div className="not-prose border-border my-6 overflow-hidden rounded-[var(--radius-lg)] border text-[14px]">
-      <div className="bg-muted/50 text-muted-foreground grid grid-cols-2 gap-4 px-4 py-2 font-mono text-[11px] tracking-wide uppercase">
+      <div className="bg-muted/40 text-muted-foreground grid grid-cols-2 gap-6 px-4 py-2 font-mono text-[11px] tracking-wide uppercase">
         <span>What goes wrong</span>
         <span>What helped</span>
       </div>
       {QUIRKS.map(([wrong, fix]) => (
         <div
           key={wrong}
-          className="border-border grid grid-cols-2 gap-4 border-t px-4 py-2.5 leading-snug"
+          className="border-border grid grid-cols-2 gap-6 border-t px-4 py-2.5 leading-snug"
         >
           <span className="text-muted-foreground">{wrong}</span>
-          <span className="text-foreground/90">{fix}</span>
+          <span className="text-foreground">{fix}</span>
         </div>
       ))}
     </div>
@@ -179,8 +382,10 @@ interface DefNode {
 }
 
 const NODE_GAP = 16
-const NODE_H = 78
+const NODE_H = 80
 
+// The second row sits under what uses it, so no two lines cross: the platform
+// under the photo of it, Mio in the middle of the three photos of her
 const NODES: DefNode[] = [
   { key: 'shop', name: '@PhotoShop', order: 1, image: 'shop', col: 0, row: 0 },
   {
@@ -222,21 +427,21 @@ const NODES: DefNode[] = [
     col: 3,
     row: 0,
   },
-  { key: 'mio', name: '@Mio', order: 2, image: 'mio', col: 1, row: 1 },
   {
     key: 'platform',
     name: '@Platform',
     order: 3,
     image: 'platform',
-    col: 2,
+    col: 1,
     row: 1,
   },
+  { key: 'mio', name: '@Mio', order: 2, image: 'mio', col: 2, row: 1 },
   { key: 'blue', name: '#BlueHour', order: 6, col: 3, row: 1 },
 ]
 
 const EDGES: [string, string][] = [
-  ['platform-photo', 'mio'],
   ['platform-photo', 'platform'],
+  ['platform-photo', 'mio'],
   ['road-photo', 'mio'],
   ['window-photo', 'mio'],
   ['window-photo', 'blue'],
@@ -254,6 +459,27 @@ const RESOLVED = [
   '#ALL',
 ]
 
+/** A line down, across at `turnY`, and down again, its corners rounded */
+const elbow = (
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  turnY: number,
+) => {
+  if (Math.abs(x1 - x2) < 0.5) return `M${x1} ${y1} V${y2}`
+  const r = Math.min(8, Math.abs(x2 - x1) / 2, turnY - y1, y2 - turnY)
+  const dir = x2 > x1 ? 1 : -1
+  return [
+    `M${x1} ${y1}`,
+    `V${turnY - r}`,
+    `Q${x1} ${turnY} ${x1 + dir * r} ${turnY}`,
+    `H${x2 - dir * r}`,
+    `Q${x2} ${turnY} ${x2} ${turnY + r}`,
+    `V${y2}`,
+  ].join(' ')
+}
+
 function Badge({ n }: { n: number }) {
   return (
     <span className="bg-foreground text-background absolute -top-2 -left-2 flex size-[18px] items-center justify-center rounded-full text-[10px] font-semibold tabular-nums">
@@ -270,16 +496,23 @@ export function ResolveFigure() {
     const imageW = Math.round(width * 0.3)
     const imageH = Math.round(imageW * 0.56)
     const cardH = imageH + 18
-    const rowY = [cardH + 46, cardH + 46 + NODE_H + 30]
+    const rowY = [cardH + 48, cardH + 48 + NODE_H + 36]
     const x = (n: DefNode) => n.col * (nodeW + NODE_GAP)
     const y = (n: DefNode) => rowY[n.row]
-    return { nodeW, imageW, imageH, cardH, height: rowY[1] + NODE_H, x, y }
+    const centerX = (n: DefNode) => x(n) + nodeW / 2
+    return {
+      nodeW,
+      imageW,
+      imageH,
+      cardH,
+      rowY,
+      height: rowY[1] + NODE_H,
+      x,
+      y,
+      centerX,
+    }
   }
   const node = (key: string) => NODES.find((n) => n.key === key)!
-  const curve = ([x1, y1]: readonly number[], [x2, y2]: readonly number[]) => {
-    const mid = (y1 + y2) / 2
-    return `M${x1} ${y1} C ${x1} ${mid}, ${x2} ${mid}, ${x2} ${y2}`
-  }
 
   return (
     <Figure
@@ -295,37 +528,53 @@ export function ResolveFigure() {
       }
     >
       {(width: number) => {
-        const { nodeW, imageW, imageH, cardH, height, x, y } = layout(width)
-        const top = (n: DefNode) => [x(n) + nodeW / 2, y(n)] as const
-        const bottom = (n: DefNode) =>
-          [x(n) + nodeW / 2, y(n) + NODE_H] as const
+        const { nodeW, imageW, imageH, cardH, rowY, height, x, y, centerX } =
+          layout(width)
         return (
           <>
             <div className="relative text-[13px]" style={{ height }}>
               <svg
-                className="text-border absolute inset-0"
+                className="absolute inset-0 overflow-visible"
                 width={width}
                 height={height}
+                fill="none"
+                strokeWidth="1.5"
+                strokeLinecap="round"
                 aria-hidden="true"
               >
-                {NODES.filter((n) => n.row === 0).map((n) => (
-                  <path
-                    key={n.key}
-                    d={curve([width / 2, cardH], top(n))}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                ))}
-                {EDGES.map(([from, to]) => (
-                  <path
-                    key={from + to}
-                    d={curve(bottom(node(from)), top(node(to)))}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                ))}
+                {/* The shot's words name four: one trunk, a branch to each */}
+                <g className="stroke-[var(--doki-sky-line)] opacity-60">
+                  {NODES.filter((n) => n.row === 0).map((n) => (
+                    <path
+                      key={n.key}
+                      d={elbow(
+                        width / 2,
+                        cardH,
+                        centerX(n),
+                        rowY[0],
+                        cardH + 24,
+                      )}
+                    />
+                  ))}
+                </g>
+                {/* What those use, each line to the definition it brings */}
+                {EDGES.map(([from, to]) => {
+                  const a = node(from)
+                  const b = node(to)
+                  return (
+                    <path
+                      key={from + to}
+                      className={`opacity-60 ${b.name.startsWith('#') ? 'stroke-[var(--doki-pur-line)]' : 'stroke-[var(--doki-sky-line)]'}`}
+                      d={elbow(
+                        centerX(a),
+                        rowY[0] + NODE_H,
+                        centerX(b),
+                        rowY[1],
+                        rowY[0] + NODE_H + 18,
+                      )}
+                    />
+                  )
+                })}
               </svg>
 
               <div
@@ -338,14 +587,17 @@ export function ResolveFigure() {
                   className="shrink-0 rounded-[var(--radius-md)] object-cover"
                   style={{ width: imageW, height: imageH }}
                 />
-                <div className="self-center pr-2">
+                <div className="self-center pr-3">
                   <p className="text-foreground leading-snug">
+                    <span aria-hidden="true" className="mr-1">
+                      🎬
+                    </span>
                     Overhead close-up of <T>@PhotoShop</T>&rsquo;s counter: the
                     last three photos, <T>@PlatformPhoto</T>, <T>@RoadPhoto</T>{' '}
                     and <T>@WindowPhoto</T>.
                   </p>
-                  <p className="text-muted-foreground relative mt-2 inline-block pl-5 text-[12px]">
-                    <span className="bg-foreground text-background absolute top-0 left-0 flex size-[16px] items-center justify-center rounded-full text-[9px] font-semibold">
+                  <p className="text-muted-foreground relative mt-2 inline-block pl-6 text-[12px]">
+                    <span className="bg-foreground text-background absolute top-0 left-0 flex size-[18px] items-center justify-center rounded-full text-[10px] font-semibold">
                       8
                     </span>
                     + <T>#ALL</T>, in every shot
@@ -356,7 +608,7 @@ export function ResolveFigure() {
               {NODES.map((n) => (
                 <div
                   key={n.key}
-                  className="border-border bg-background absolute rounded-[var(--radius-lg)] border px-2 py-1.5"
+                  className="border-border bg-background absolute rounded-[var(--radius-lg)] border px-2.5 py-2"
                   style={{
                     left: x(n),
                     top: y(n),
@@ -365,7 +617,7 @@ export function ResolveFigure() {
                   }}
                 >
                   <Badge n={n.order} />
-                  <p className="mb-1 pl-1.5 text-[12.5px]">
+                  <p className="mb-1.5 text-[12.5px] leading-none">
                     <T>{n.name}</T>
                   </p>
                   <div className="flex items-center gap-2">
@@ -373,10 +625,12 @@ export function ResolveFigure() {
                       <img
                         src={`${IMG}/${n.image}.jpg`}
                         alt=""
-                        className="size-[44px] shrink-0 rounded-[var(--radius-sm)] object-cover"
+                        className="size-[42px] shrink-0 rounded-[var(--radius-sm)] object-cover"
                       />
                     ) : (
-                      <span className="bg-muted text-muted-foreground flex size-[44px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-lg">
+                      <span
+                        className={`flex size-[42px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--doki-pur-bg)] text-lg ${PUR}`}
+                      >
                         #
                       </span>
                     )}
@@ -390,30 +644,30 @@ export function ResolveFigure() {
               ))}
             </div>
 
-            <div className="border-border mt-6 grid grid-cols-[1fr_auto] gap-8 rounded-[var(--radius-xl)] border p-4 text-[13px]">
+            <div className="border-border mt-8 grid grid-cols-[1fr_auto] gap-8 rounded-[var(--radius-xl)] border p-4 text-[13px]">
               <div>
-                <p className="text-muted-foreground mb-2 font-mono text-[11px] tracking-wide uppercase">
-                  Prompt
+                <p className="text-muted-foreground mb-2.5 font-mono text-[11px] tracking-wide uppercase">
+                  The prompt&rsquo;s definitions
                 </p>
-                <ol className="space-y-[3px] text-[12px]">
+                <ol className="space-y-1 text-[12.5px]">
                   {RESOLVED.map((name, i) => (
                     <li key={name} className="flex items-center gap-2">
-                      <span className="text-muted-foreground w-3 text-right tabular-nums">
+                      <span className="text-muted-foreground w-3 text-right text-[11px] tabular-nums">
                         {i + 1}
                       </span>
                       <T>{name}</T>
-                      <span className="text-muted-foreground">=</span>
+                      <Eq />
                       <span
                         className="bg-muted h-[7px] rounded-full"
-                        style={{ width: 60 + ((i * 37) % 70) }}
+                        style={{ width: 70 + ((i * 37) % 80) }}
                       />
                     </li>
                   ))}
                 </ol>
               </div>
               <div className="w-[236px]">
-                <p className="text-muted-foreground mb-2 font-mono text-[11px] tracking-wide uppercase">
-                  Images
+                <p className="text-muted-foreground mb-2.5 font-mono text-[11px] tracking-wide uppercase">
+                  Its images
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {[
@@ -531,15 +785,18 @@ const timeline = (width: number) => {
   return { px, lefts, rightOf, cutX, imageH: Math.round(px * 2) }
 }
 
-function Pips({
+/** A level the reader can change, by clicking its dots */
+function LevelButton({
   level,
-  onClick,
+  kind,
   label,
+  onClick,
   vertical,
 }: {
   level: number
-  onClick: () => void
+  kind: 'seam' | 'frame'
   label: string
+  onClick: () => void
   vertical?: boolean
 }) {
   return (
@@ -548,19 +805,16 @@ function Pips({
       onClick={onClick}
       aria-label={`${label}: level ${level} of 3`}
       title={`${label}: ${level} of 3`}
-      className={`hover:bg-muted flex cursor-pointer items-center gap-[3px] rounded-full p-1 transition-colors ${vertical ? 'flex-col' : ''}`}
+      className="hover:bg-muted bg-background flex cursor-pointer items-center rounded-full p-1 transition-colors"
     >
-      {[1, 2, 3].map((n) => (
-        <i
-          key={n}
-          className={`block size-[6px] rounded-full ${n <= level ? 'bg-foreground' : 'bg-border'}`}
-        />
-      ))}
+      <Dots level={level} kind={kind} vertical={vertical} />
     </button>
   )
 }
 
-const DP_Y = 236
+const LEGEND_H = 30
+const BAND_H = 178
+const DP_Y = LEGEND_H + 236
 
 export function PlanFigure() {
   const [seams, setSeams] = useState(READ_SEAMS)
@@ -572,26 +826,56 @@ export function PlanFigure() {
     frames.some((v, i) => v !== READ_FRAMES[i])
   const chosen = (w: Weighed) =>
     plan.clips.some(([s, e]) => s === w.start && e === w.end)
+  const onPath = (j: number) => j === 0 || plan.clips.some(([, e]) => e === j)
   const cycle = (values: number[], i: number) =>
     values.map((v, k) => (k === i ? (v + 1) % 4 : v))
+  const clipName = (w: { start: number; end: number }) =>
+    `s${w.start + 1}${w.end - 1 > w.start ? `–s${w.end}` : ''}`
 
   return (
     <Figure
       caption={
         <>
-          A scene of <i>The Last Three</i>, planned for MiniMax H3 Max. The dots
-          are the scene reader&rsquo;s levels: between shots, how much a cut
-          needs one take; under each shot, how much it needs its exact frame.
-          Below, every clip the planner weighs, with best[j] at each node. The
-          scene is 20 s, over the model&rsquo;s 15, and it splits before s4,
+          A scene of <i>The Last Three</i>, planned for MiniMax H3 Max. Between
+          shots, the dots say how much a cut needs one take; under each shot,
+          how much it needs its exact frame. Below, every clip the planner
+          weighs, with best[j] at each node and the plan it picks drawn dark.
+          The scene is 20 s, over the model&rsquo;s 15, and it splits before s4,
           which has to open on its frame. Click the dots to change a level.
         </>
       }
     >
       {(width: number) => {
         const { px, lefts, rightOf, cutX, imageH } = timeline(width)
+        const arc = (w: Weighed) => {
+          const x1 = cutX(w.start)
+          const x2 = cutX(w.end)
+          const depth = 14 + (x2 - x1) * 0.12
+          const pull = DP_Y + (depth * 4) / 3
+          return {
+            d: `M${x1} ${DP_Y} C ${x1} ${pull}, ${x2} ${pull}, ${x2} ${DP_Y}`,
+            mid: (x1 + x2) / 2,
+            depth,
+          }
+        }
+        // The plan's own arcs go last, so they're drawn over the others
+        const ordered = [
+          ...plan.weighed.filter((w) => !chosen(w)),
+          ...plan.weighed.filter(chosen),
+        ]
         return (
-          <div className="relative h-[346px] text-[12px]">
+          <div className="relative h-[376px] text-[12px]">
+            <div className="text-muted-foreground absolute top-0 left-0 flex gap-5 px-1 text-[11px]">
+              <span className="flex items-center gap-1.5">
+                <Dots level={2} kind="seam" />
+                How much a cut needs one take
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Dots level={2} kind="frame" />
+                How much a shot needs its exact frame
+              </span>
+            </div>
+
             {plan.clips.map(([start, end]) => {
               const seconds = SCENE.slice(start, end).reduce(
                 (sum, shot) => sum + shot.seconds,
@@ -600,15 +884,16 @@ export function PlanFigure() {
               return (
                 <div
                   key={`${start}-${end}`}
-                  className="bg-muted absolute top-0 rounded-[var(--radius-lg)] transition-all duration-300"
+                  className="bg-muted absolute rounded-[var(--radius-lg)] transition-[left,width] duration-300"
                   style={{
+                    top: LEGEND_H,
                     left: lefts[start] - 6,
                     width: rightOf(end - 1) - lefts[start] + 12,
-                    height: 178,
+                    height: BAND_H,
                   }}
                 >
                   <p className="text-muted-foreground px-2 pt-1.5 text-[11px]">
-                    One generation, {seconds} s
+                    One generation · {seconds} s
                   </p>
                 </div>
               )
@@ -618,7 +903,11 @@ export function PlanFigure() {
               <div
                 key={shot.image}
                 className="absolute"
-                style={{ left: lefts[i], top: 26, width: shot.seconds * px }}
+                style={{
+                  left: lefts[i],
+                  top: LEGEND_H + 26,
+                  width: shot.seconds * px,
+                }}
               >
                 <p className="mb-1 flex justify-between">
                   <span className="font-medium">s{i + 1}</span>
@@ -633,8 +922,9 @@ export function PlanFigure() {
                   style={{ height: imageH }}
                 />
                 <div className="mt-1 -ml-1">
-                  <Pips
+                  <LevelButton
                     level={frames[i]}
+                    kind="frame"
                     label={`How much s${i + 1} needs its exact frame`}
                     onClick={() => setFrames(cycle(frames, i))}
                   />
@@ -649,11 +939,15 @@ export function PlanFigure() {
               <div
                 key={i}
                 className="absolute -translate-x-1/2"
-                style={{ left: cutX(i + 1), top: 44 + imageH / 2 - 13 }}
+                style={{
+                  left: cutX(i + 1),
+                  top: LEGEND_H + 44 + imageH / 2 - 15,
+                }}
               >
-                <Pips
+                <LevelButton
                   vertical
                   level={level}
+                  kind="seam"
                   label={`How much the cut after s${i + 1} needs one take`}
                   onClick={() => setSeams(cycle(seams, i))}
                 />
@@ -663,7 +957,7 @@ export function PlanFigure() {
             <svg
               className="pointer-events-none absolute top-0 left-0"
               width={width}
-              height="346"
+              height="376"
               aria-hidden="true"
             >
               <line
@@ -674,21 +968,18 @@ export function PlanFigure() {
                 className="stroke-border"
                 strokeWidth="1"
               />
-              {plan.weighed.map((w) => {
-                const x1 = cutX(w.start)
-                const x2 = cutX(w.end)
-                const depth = 14 + (x2 - x1) * 0.12
-                const pull = DP_Y + (depth * 4) / 3
+              {ordered.map((w) => {
+                const { d } = arc(w)
                 const on = chosen(w)
-                const d = `M${x1} ${DP_Y} C ${x1} ${pull}, ${x2} ${pull}, ${x2} ${DP_Y}`
                 const hovered = hover?.start === w.start && hover?.end === w.end
                 return (
                   <g key={`${w.start}-${w.end}`}>
                     <path
                       d={d}
                       fill="none"
-                      strokeWidth={on ? 2 : 1.25}
-                      className={`transition-colors ${on ? 'stroke-foreground' : hovered ? 'stroke-muted-foreground' : 'stroke-border'}`}
+                      strokeWidth={on ? 2 : hovered ? 1.75 : 1.25}
+                      strokeLinecap="round"
+                      className={`transition-colors ${on ? 'stroke-foreground' : hovered ? 'stroke-[var(--doki-sky-line)]' : 'stroke-border'}`}
                     />
                     <path
                       d={d}
@@ -704,19 +995,16 @@ export function PlanFigure() {
                 )
               })}
               {plan.weighed.filter(chosen).map((w) => {
-                const x1 = cutX(w.start)
-                const x2 = cutX(w.end)
-                const depth = 14 + (x2 - x1) * 0.12
+                const { mid, depth } = arc(w)
                 return (
                   <text
                     key={`label-${w.start}-${w.end}`}
-                    x={(x1 + x2) / 2}
-                    y={DP_Y + depth + 14}
+                    x={mid}
+                    y={DP_Y + depth + 15}
                     textAnchor="middle"
-                    className="fill-foreground text-[11px] tabular-nums"
+                    className="fill-foreground text-[11px] font-medium tabular-nums"
                   >
-                    s{w.start + 1}
-                    {w.end - 1 > w.start ? `–s${w.end}` : ''}
+                    {clipName(w)}
                   </text>
                 )
               })}
@@ -726,14 +1014,18 @@ export function PlanFigure() {
                     cx={cutX(j)}
                     cy={DP_Y}
                     r="4"
-                    className="fill-background stroke-foreground"
+                    className={
+                      onPath(j)
+                        ? 'fill-foreground stroke-foreground'
+                        : 'fill-background stroke-muted-foreground'
+                    }
                     strokeWidth="1.5"
                   />
                   <text
                     x={cutX(j)}
-                    y={DP_Y - 10}
+                    y={DP_Y - 11}
                     textAnchor="middle"
-                    className="fill-muted-foreground text-[10px] tabular-nums"
+                    className={`text-[10px] tabular-nums ${onPath(j) ? 'fill-foreground' : 'fill-muted-foreground'}`}
                   >
                     {loss.toFixed(2)}
                   </text>
@@ -742,12 +1034,12 @@ export function PlanFigure() {
             </svg>
 
             <div
-              className="text-muted-foreground absolute top-[324px] left-0 flex items-center justify-between px-3 text-[11px]"
+              className="text-muted-foreground absolute top-[352px] left-0 flex items-center justify-between px-1 text-[11px]"
               style={{ width }}
             >
               <span className="tabular-nums">
                 {hover
-                  ? `Clip s${hover.start + 1}${hover.end - 1 > hover.start ? `–s${hover.end}` : ''}: best[${hover.start}] + its losses = ${hover.loss.toFixed(2)}`
+                  ? `Clip ${clipName(hover)}: best[${hover.start}] plus what it loses = ${hover.loss.toFixed(2)}`
                   : 'Hover an arc to see what that clip would lose.'}
               </span>
               {changed && (
@@ -770,46 +1062,82 @@ export function PlanFigure() {
   )
 }
 
-/** The planner's recurrence, with the model's measured losses */
+/** The planner's recurrence, each term in the color of the dots it comes from, with the model's measured losses */
 export function Formula() {
   const v = (s: string) => <i className="font-serif">{s}</i>
+  const terms = [
+    {
+      color: SKY,
+      math: (
+        <>
+          {v('S')}(seam<sub>{v('i')}</sub>)
+        </>
+      ),
+      says: 'a clip boundary before shot i+1',
+    },
+    {
+      color: PUR,
+      math: (
+        <>
+          &Sigma; {v('F')}(frame<sub>{v('k')}</sub>)
+        </>
+      ),
+      says: 'each later shot opening only close to its frame',
+    },
+    {
+      color: 'text-foreground',
+      math: <>&lambda; &middot; price</>,
+      says: 'the clip’s cost, at half a point a dollar',
+    },
+  ]
   return (
-    <div className="not-prose border-border my-6 rounded-[var(--radius-lg)] border px-4 py-4 text-[15px]">
-      <p className="text-center leading-loose">
+    <div className="not-prose border-border my-6 rounded-[var(--radius-lg)] border px-5 py-5">
+      <p className="text-center text-[17px] leading-loose">
         best[{v('j')}] = min
         <sub className="text-[11px]">
           {v('i')} &lt; {v('j')}
         </sub>{' '}
-        ( best[{v('i')}] + {v('S')}(seam<sub>{v('i')}</sub>) + &Sigma;
-        <sub className="text-[11px]">
-          {v('k')}={v('i')}+2..{v('j')}
-        </sub>{' '}
-        {v('F')}(frame<sub>{v('k')}</sub>) + &lambda; &middot; price(
-        {v('i')}, {v('j')}] )
+        ( best[{v('i')}] + <span className={SKY}>{terms[0].math}</span> +{' '}
+        <span className={PUR}>{terms[1].math}</span> + {terms[2].math}({v('i')},{' '}
+        {v('j')}] )
       </p>
-      <table className="mx-auto mt-3 text-[13px] tabular-nums">
+      <dl className="mx-auto mt-4 grid max-w-[460px] grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-[13px]">
+        {terms.map((term) => (
+          <div key={term.says} className="contents">
+            <dt className={`text-right ${term.color}`}>{term.math}</dt>
+            <dd className="text-muted-foreground">{term.says}</dd>
+          </div>
+        ))}
+      </dl>
+      <table className="mx-auto mt-5 text-[13px] tabular-nums">
         <thead className="text-muted-foreground">
           <tr>
-            <th className="pr-4 text-left font-normal">level</th>
+            <th className="pr-5 text-left text-[11px] font-normal">
+              Measured, MiniMax H3 Max
+            </th>
             {[0, 1, 2, 3].map((n) => (
-              <th key={n} className="w-12 font-normal">
-                {n}
+              <th key={n} className="w-14 pb-1 font-normal">
+                <span className="flex flex-col items-center gap-1">
+                  <span className="text-[11px]">{n}</span>
+                </span>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <th className="pr-4 text-left font-normal">{v('S')}, a boundary</th>
+          <tr className="border-border border-t">
+            <th className={`py-1.5 pr-5 text-left font-normal ${SKY}`}>
+              {v('S')}, a boundary at that level
+            </th>
             {MODEL.seam.map((n, i) => (
               <td key={i} className="text-center">
                 {n}
               </td>
             ))}
           </tr>
-          <tr>
-            <th className="pr-4 text-left font-normal">
-              {v('F')}, a later shot
+          <tr className="border-border border-t">
+            <th className={`py-1.5 pr-5 text-left font-normal ${PUR}`}>
+              {v('F')}, a later shot at that level
             </th>
             {MODEL.frame.map((n, i) => (
               <td key={i} className="text-center">
@@ -819,9 +1147,6 @@ export function Formula() {
           </tr>
         </tbody>
       </table>
-      <p className="text-muted-foreground mt-2 text-center text-[12px]">
-        MiniMax H3 Max, measured; &lambda; = 0.5 points per dollar
-      </p>
     </div>
   )
 }
@@ -846,10 +1171,10 @@ function Shot({
         alt={label}
         className="aspect-video w-full rounded-[var(--radius-md)] object-cover"
       />
-      <p className="mt-1.5 text-[12px]">
+      <p className="mt-2 text-[12px]">
         {mark && (
           <span
-            className={`mr-1 ${mark === 'yes' ? 'text-foreground' : 'text-muted-foreground'}`}
+            className={`mr-1.5 font-medium ${mark === 'yes' ? SKY : 'text-[var(--doki-rose)]'}`}
           >
             {mark === 'yes' ? '✓' : '✕'}
           </span>
@@ -860,12 +1185,48 @@ function Shot({
   )
 }
 
-const CHOICES = ['keep', 'edit', 'remake'] as const
+type Choice = 'keep' | 'edit' | 'remake'
+
+/** A choice of the judge's, as a pill: keep is quiet, edit sky, remake rose */
+function ChoicePill({ choice }: { choice: Choice }) {
+  const tint = {
+    keep: 'border-border text-muted-foreground',
+    edit: 'border-[var(--doki-sky-line)] bg-[var(--doki-sky-bg)] text-[var(--doki-sky)]',
+    remake:
+      'border-[var(--doki-rose-line)] bg-[var(--doki-rose-bg)] text-[var(--doki-rose)]',
+  }[choice]
+  return (
+    <span
+      className={`inline-flex rounded-full border px-2 py-0.5 text-[12px] font-medium sm:px-2.5 ${tint}`}
+    >
+      {choice}
+    </span>
+  )
+}
+
 /** What Doki's judge picked: the demo's frozen Mars, and new lines in a Japanese teaser */
-const PICKS = {
-  image: { mars: 'edit', teaser: 'keep' },
-  video: { mars: 'edit', teaser: 'remake' },
-} as const
+const CASES: {
+  image: string
+  change: ReactNode
+  picks: { image: Choice; video: Choice }
+}[] = [
+  {
+    image: 'jar-frozen',
+    change: (
+      <>
+        <T>@Mars</T>
+        <Eq />
+        endless <s className="text-muted-foreground">red</s> frozen dunes
+      </>
+    ),
+    picks: { image: 'edit', video: 'edit' },
+  },
+  {
+    image: 'funeral-start',
+    change: <>New lines of dialogue in a shot of a Japanese teaser</>,
+    picks: { image: 'keep', video: 'remake' },
+  },
+]
 
 export function UpdateFigure() {
   return (
@@ -876,18 +1237,24 @@ export function UpdateFigure() {
           A definition changes and one shot is out of date. Made again from its
           words, the shot comes out new: another pose, another dome, another
           light. Doki&rsquo;s judge picked an edit for its image and its video,
-          so only the ground froze. Below, the same choice for a shot of a
-          Japanese teaser that got new lines of dialogue: the image was kept and
-          the video remade, since an edit can&rsquo;t change what is said.
+          so only the ground froze. Below, its choices for that change and for a
+          shot of a Japanese teaser that got new lines of dialogue: the image
+          was kept and the video remade, since an edit can&rsquo;t change what
+          is said.
         </>
       }
     >
       <p className="mb-3 text-[14px]">
-        <span className="bg-muted mr-2 rounded-md px-1.5 py-0.5 text-[12px]">
-          Scene
-        </span>
-        <T>@Mars</T> = Endless <s className="text-muted-foreground">red</s>{' '}
-        <span className="text-foreground font-medium">frozen</span> dunes …
+        <TypeChip type="Scene" />
+        <T>@Mars</T>
+        <Eq />
+        Endless <s className="text-muted-foreground">red</s>{' '}
+        <span
+          className={`rounded-sm bg-[var(--doki-sky-bg)] px-0.5 font-medium ${SKY}`}
+        >
+          frozen
+        </span>{' '}
+        dunes …
       </p>
       <div className="grid grid-cols-3 gap-3">
         <Shot image="jar-mars" label="Before" />
@@ -903,67 +1270,35 @@ export function UpdateFigure() {
         />
       </div>
 
-      <div className="border-border mt-6 grid grid-cols-[64px_repeat(3,1fr)] items-center gap-x-3 gap-y-2 rounded-[var(--radius-xl)] border p-3 text-[12px]">
-        <span />
-        {CHOICES.map((choice) => (
-          <span key={choice} className="text-muted-foreground text-center">
-            {choice}
-          </span>
+      <div className="border-border mt-6 overflow-hidden rounded-[var(--radius-xl)] border text-[13px]">
+        <div className="bg-muted/40 text-muted-foreground grid grid-cols-[1fr_64px_76px] items-center gap-2 px-3 py-2 font-mono text-[11px] tracking-wide uppercase sm:grid-cols-[1fr_96px_96px] sm:gap-4 sm:px-4">
+          <span>The change</span>
+          <span className="text-center">Image</span>
+          <span className="text-center">Video</span>
+        </div>
+        {CASES.map((c) => (
+          <div
+            key={c.image}
+            className="border-border grid grid-cols-[1fr_64px_76px] items-center gap-2 border-t px-3 py-2.5 sm:grid-cols-[1fr_96px_96px] sm:gap-4 sm:px-4"
+          >
+            <span className="flex items-center gap-3">
+              <img
+                src={`${IMG}/${c.image}.jpg`}
+                alt=""
+                className="hidden h-9 w-16 shrink-0 rounded-[var(--radius-sm)] object-cover sm:block"
+              />
+              <span>{c.change}</span>
+            </span>
+            <span className="text-center">
+              <ChoicePill choice={c.picks.image} />
+            </span>
+            <span className="text-center">
+              <ChoicePill choice={c.picks.video} />
+            </span>
+          </div>
         ))}
-        {(['image', 'video'] as const).map((row) => (
-          <Row key={row} row={row} />
-        ))}
-        <span />
-        <p className="text-muted-foreground col-span-3 mt-1 flex flex-wrap gap-x-5 gap-y-1 text-[11px]">
-          <span className="flex items-center gap-1.5">
-            <img
-              src={`${IMG}/jar-frozen.jpg`}
-              alt=""
-              className="h-4 w-7 rounded-sm object-cover"
-            />
-            Frozen Mars
-          </span>
-          <span className="flex items-center gap-1.5">
-            <img
-              src={`${IMG}/funeral-start.jpg`}
-              alt=""
-              className="h-4 w-7 rounded-sm object-cover"
-            />
-            New lines of dialogue
-          </span>
-        </p>
       </div>
     </Figure>
-  )
-}
-
-function Row({ row }: { row: 'image' | 'video' }) {
-  const picks = PICKS[row]
-  return (
-    <>
-      <span className="font-medium capitalize">{row}</span>
-      {CHOICES.map((choice) => (
-        <span
-          key={choice}
-          className="bg-muted/60 flex h-[44px] items-center justify-center gap-1.5 rounded-[var(--radius-md)]"
-        >
-          {picks.mars === choice && (
-            <img
-              src={`${IMG}/jar-frozen.jpg`}
-              alt="Frozen Mars"
-              className="h-[34px] w-[60px] rounded-sm object-cover"
-            />
-          )}
-          {picks.teaser === choice && (
-            <img
-              src={`${IMG}/${row === 'video' ? 'funeral-new' : 'funeral-start'}.jpg`}
-              alt="New lines of dialogue"
-              className="h-[34px] w-[60px] rounded-sm object-cover"
-            />
-          )}
-        </span>
-      ))}
-    </>
   )
 }
 
@@ -1006,20 +1341,21 @@ export function ReviewFigure() {
         </>
       }
     >
-      <div className="grid grid-cols-4 gap-3 text-[12px]">
+      <div className="relative grid grid-cols-4 gap-3 text-[12px]">
+        {/* One line through all four moments */}
+        <span
+          aria-hidden="true"
+          className="bg-border absolute top-[46px] right-[12.5%] left-[12.5%] h-px"
+        />
         {REVIEWS.map((review, i) => (
-          <div key={review.check} className="flex flex-col">
-            <p className="text-muted-foreground flex h-9 items-end leading-tight">
+          <div key={review.check} className="flex flex-col items-center">
+            <p className="text-muted-foreground flex h-9 items-end text-center leading-tight">
               {review.when}
             </p>
-            <div className="relative my-2 flex items-center">
-              <span className="bg-border h-px flex-1" />
-              <span className="bg-foreground size-2 rounded-full" />
-              <span
-                className={`h-px flex-1 ${i < REVIEWS.length - 1 ? 'bg-border' : 'bg-transparent'}`}
-              />
-            </div>
-            <div className="border-border flex-1 rounded-[var(--radius-lg)] border p-2.5">
+            <span className="relative z-10 my-2 flex size-5 items-center justify-center rounded-full border border-[var(--doki-sky-line)] bg-[var(--doki-sky-bg)] text-[10px] font-semibold text-[var(--doki-sky)] tabular-nums">
+              {i + 1}
+            </span>
+            <div className="border-border bg-background w-full flex-1 rounded-[var(--radius-lg)] border p-3">
               <p className="font-medium">{review.check}</p>
               <p className="text-muted-foreground mt-1 leading-snug">
                 {review.sees}

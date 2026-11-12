@@ -1,10 +1,14 @@
 import {
+  Definitions,
   Formula,
   PlanFigure,
   Prompt,
   QuirksTable,
   ResolveFigure,
   ReviewFigure,
+  Rubric,
+  ShotList,
+  T,
   UpdateFigure,
 } from './figures'
 
@@ -38,16 +42,11 @@ Everything below comes from building Doki: the real prompts, what broke, and wha
 
 Image and video models remember nothing. Each shot's image and each video clip are generated solely from their own prompt and the images passed alongside it. If a character exists only as words, every generation draws a new person who fits those words. Even inside a single clip, when the model cuts to a close-up, it draws that close-up from scratch.
 
-Most models do accept a few reference images alongside the prompt, and they draw what's in them. That's the only memory you get. So the first thing a video agent needs is a list of everything the film reuses (the people, places, objects and looks), each with a name, a description and a reference image that goes into every generation using it. In Doki each item is a line in the script, and the 🎬 makes its image:
+Most models do accept a few reference images alongside the prompt, and they draw what's in them. That's the only memory you get. So the first thing a video agent needs is a list of everything the film reuses (the people, places, objects and looks), each with a name, a description and a reference image that goes into every generation using it. In Doki each item is a line in the script, and the <span className="mx-0.5">🎬</span> makes its image:
 
-<Prompt from="Two entries from The Last Three, translated from Japanese">
-  {`Ingredient @Camera = 🎬 an old silver-and-black 35mm film SLR, a well-worn brown leather strap, and on its back a strip of masking tape with "3 left" written by hand
+<Definitions />
 
-Character @Mio = 🎬 a high-school senior, 17, a black bob to her chin, pale skin with cheeks red from the cold, shy and gentle eyes; a navy duffle coat over a navy blazer and a gray check skirt, black tights, brown snow boots, a red knit scarf and red mittens`}
-
-</Prompt>
-
-Every shot that tags @Camera is drawn from that image, so the tape reading "3 left" looks the same in all of them.
+Every shot that tags <T>@Camera</T> is drawn from that image, so the tape reading "3 left" looks the same in all of them.
 
 **Don't let the agent decide what's important.** An earlier version of my prompt said "characters and key places or objects" get a reference image, leaving the agent to decide what counted as key. It decided a coin, a takeout bag and an orange were simple enough to describe in words. A scarf an old woman knits on a train, which a girl wears at the end, "changes form", so it got no image either. All of them came out different in every shot. What fixed this was explaining how the models actually behave, instead of handing the agent a category:
 
@@ -80,7 +79,7 @@ const resolve = (tag: Tag) => {
 ;[...shot.tags, ...globals, ...fromHeadings].forEach(resolve)
 ```
 
-Order matters because the prompt lists the definitions in that order: by the time the model reads that @WindowPhoto is "@Mio on a train", it already knows who Mio is. Keep this graph around, too, because reading it backwards tells you what an edit breaks. Change Mio, and every shot that reaches her, directly or through a photo of her, is out of date (more on this in section 3).
+Order matters because the prompt lists the definitions in that order: by the time the model reads that <T>@WindowPhoto</T> is "<T>@Mio</T> on a train", it already knows who Mio is. Keep this graph around, too, because reading it backwards tells you what an edit breaks. Change Mio, and every shot that reaches her, directly or through a photo of her, is out of date (more on this in section 3).
 
 **Spend the image budget carefully.** Video models accept only a handful of reference images, four or six right now, and a shot can easily reference more entries than that. Two rules decide what makes the cut. First, the scene's earlier shots go into every new image generation, so the scene keeps its place, light and people; this was the biggest consistency win I measured, cutting errors by more than half. Second, for video generation, the opening frame already shows whoever is on screen, so reference slots go first to what that frame doesn't show: the person about to walk in, or the place a cut moves to.
 
@@ -134,11 +133,7 @@ Most video agents, Doki included, work in two steps: first generating a still im
 
 **Speak each model's dialect.** MiniMax ignored timed spans like `[2-4s] cut to …` and often cut at around two seconds regardless of what we wrote. Formatted in its native shot-list syntax, though, it cut within a few hundredths of a second of our timestamps:
 
-<Prompt from="A scene clip's video prompt, in MiniMax's shot-list form">
-  {`[Shot 1] Medium shot on the snowy platform: Mio raises the camera to her eye …
-[Shot 2] At 00:03.000, the camera cuts to a close-up of Haruto as he looks back …
-[Shot 3] At 00:07.000, the camera cuts to the camera tumbling into the snow …`}
-</Prompt>
+<ShotList />
 
 That's one quirk of many. Here are the ones I hit most often, along with the wording that helped:
 
@@ -148,10 +143,7 @@ That's one quirk of many. Here are the ones I hit most often, along with the wor
 
 Before filming a scene, a model reads its shots (both the text and the storyboard frames) and scores two things from 0 to 3: for each cut, how badly the two sides need to stay in one take; and for each shot, how badly it needs its exact frame. Here are two lines from the cut rubric:
 
-<Prompt from="Doki's scene reader">
-  {`3: one moment that can't break - a line of dialogue answered, an action caught mid-way, a sound that runs across the cut, or two nearly identical views that would jump if made apart
-0: a new place or time, or a deliberate break - nothing needs to carry over`}
-</Prompt>
+<Rubric />
 
 A small dynamic program then picks the optimal split. Let best[j] be the minimum loss for a plan covering the first j shots. A clip spanning from shot i+1 to shot j incurs a boundary cost before it, a frame-drift loss for each shot after its first, and its generation price:
 
@@ -178,7 +170,7 @@ A five-minute film has dozens of clips, and many will come out wrong on the firs
 
 Fortunately, models can edit media directly now. Give one an image or clip and an instruction, and it changes what you asked while keeping the rest ([Gemini Omni](https://fal.ai/models/google/gemini-omni-flash/edit/api) is what I use for video). Treat the film like a software build: track exactly what is out of date, and rebuild as little as possible.
 
-**Record what each output was made from.** Whenever Doki generates an image or video, it logs the exact inputs: the shot's text, the resolved definitions, the versions of the reference images, and (for video) the starting frame, timing and shared clip. Staleness is simply a diff between that saved record and the film as it is now, complete with human-readable reasons ("@Mars changed"). We write the record only after a generation succeeds, so a failed run never marks a shot as up to date.
+**Record what each output was made from.** Whenever Doki generates an image or video, it logs the exact inputs: the shot's text, the resolved definitions, the versions of the reference images, and (for video) the starting frame, timing and shared clip. Staleness is simply a diff between that saved record and the film as it is now, complete with human-readable reasons ("<T>@Mars</T> changed"). We write the record only after a generation succeeds, so a failed run never marks a shot as up to date.
 
 **Keep, edit or remake.** For every stale image or video, a fast model compares what the shot was originally built from against what the script says now, choosing one of three actions.
 

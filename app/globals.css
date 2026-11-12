@@ -263,3 +263,34 @@
   --sh-sign: var(--muted-foreground);
   --sh-comment: var(--muted-foreground);
 }
+
+/*
+  Doki's editor colors, for the post's examples and figures (they're Doki's
+  own, from its client/src/index.css): sky for @ tags, purple for # tags, rose
+  for the "=" of a definition, cyan for sound. Each has a tint for chips and a
+  line color for borders and edges, and a dark-mode version.
+*/
+:root {
+  --doki-sky: oklch(0.5 0.12 243);
+  --doki-sky-bg: oklch(0.95 0.03 237);
+  --doki-sky-line: oklch(0.68 0.15 237);
+  --doki-pur: oklch(0.5 0.24 302);
+  --doki-pur-bg: oklch(0.95 0.03 307);
+  --doki-pur-line: oklch(0.63 0.23 304);
+  --doki-rose: oklch(0.51 0.2 17);
+  --doki-rose-bg: oklch(0.95 0.03 17);
+  --doki-rose-line: oklch(0.7 0.16 17);
+  --doki-cyan: oklch(0.52 0.09 223);
+}
+.dark {
+  --doki-sky: oklch(0.8 0.1 237);
+  --doki-sky-bg: oklch(0.33 0.06 243 / 0.5);
+  --doki-sky-line: oklch(0.62 0.12 240);
+  --doki-pur: oklch(0.8 0.13 304);
+  --doki-pur-bg: oklch(0.33 0.1 302 / 0.5);
+  --doki-pur-line: oklch(0.62 0.17 304);
+  --doki-rose: oklch(0.76 0.14 17);
+  --doki-rose-bg: oklch(0.33 0.08 17 / 0.5);
+  --doki-rose-line: oklch(0.62 0.15 17);
+  --doki-cyan: oklch(0.8 0.09 215);
+}
