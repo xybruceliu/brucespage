@@ -16,7 +16,7 @@ import {
 export const metadata = {
   title: 'Designing a Video Agent That Can Actually Make a Long Film',
   description:
-    'Memory, planning, editing and feedback: the four parts a video agent needs once it makes more than one clip, from building Doki.',
+    'Definitions, shot planning, incremental editing and reviews: the four parts a video agent needs to make a long film, from building Doki.',
   alternates: { canonical: '/blog/video-agent' },
 }
 
@@ -49,7 +49,7 @@ A long film must keep its people, places, objects and looks consistent across do
 
 ### Definitions
 
-A definition has four parts: a type (a character, a place, an object or a look), a name the script can reference, a description, and a reference image generated from that description. Two examples from _The Last Three_, an example film made in Doki:
+A definition has four parts: a type (a character, a place, an object or a look), a name the script can reference, a description, and a reference image generated from that description. Two examples, from a short film made in Doki:
 
 <Definitions />
 
@@ -67,7 +67,7 @@ Two properties keep scopes predictable. First, reach follows references, not loc
 
 ### Resolving a shot
 
-Definitions can be nested and can depend on other definitions: a photo of Mio on the platform requires both Mio and the platform. The references therefore form a dependency graph, and resolving a shot means traversing it. The following shot from _The Last Three_, in which a girl named Mio leaves her last three photos at a shop, illustrates this:
+Definitions can be nested and can depend on other definitions: a photo of a character on a train platform requires both the character and the platform. The references therefore form a dependency graph, and resolving a shot means traversing it. In the shot below, a close-up of three photos left on a shop counter, each photo is itself a definition that uses others:
 
 <ResolveFigure />
 
@@ -83,7 +83,7 @@ const resolve = (def: Definition) => {
 ;[...shot.references, ...inScope(shot)].forEach(resolve)
 ```
 
-The order matters because the prompt lists the definitions in that order: by the time the model reads that <T>@WindowPhoto</T> is "<T>@Mio</T> on a train", it already knows who Mio is. The graph is also worth keeping. Read in reverse, it identifies what a change affects: if Mio changes, every shot that reaches her, directly or through a photo of her, is out of date (Section 3).
+The order matters because the prompt lists the definitions in that order: by the time the model reads that a photo shows a character on a train, it already knows who that character is. The graph is also worth keeping. Read in reverse, it identifies what a change affects: if a character changes, every shot that reaches them, directly or through a photo of them, is out of date (Section 3).
 
 ### Choosing the reference images
 

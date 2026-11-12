@@ -177,7 +177,7 @@ export function Definitions() {
     },
   ]
   return (
-    <Excerpt label="Two definitions from The Last Three, translated from Japanese">
+    <Excerpt label="Two definitions from a film made in Doki, translated from Japanese">
       <div className="divide-border divide-y">
         {lines.map((line) => (
           <div
@@ -520,12 +520,13 @@ export function ResolveFigure() {
       number={1}
       caption={
         <>
-          One shot of <i>The Last Three</i>. Its words name four definitions,
-          which name three more, and the film-wide look (<T>#ALL</T>) applies to
-          every shot. The numbers are the order a depth-first walk emits them:
-          each after what it uses. The image model gets the definitions in that
-          order, and their images with the shot&rsquo;s own first, then the ones
-          they bring, then the scene&rsquo;s earlier shots.
+          A shot and the definitions it reaches. Its words name four
+          definitions, which name three more, and the film-wide look (
+          <T>#ALL</T>) applies to every shot. The numbers are the order a
+          depth-first walk emits them: each after what it uses. The image model
+          gets the definitions in that order, and their images with the
+          shot&rsquo;s own first, then the ones they bring, then the
+          scene&rsquo;s earlier shots.
         </>
       }
     >
@@ -873,10 +874,10 @@ export function SceneFigure() {
 // -----------------------------------------------------------------------------
 
 const SCENE = [
-  { image: 'b1', seconds: 3, says: 'Mio raises the camera' },
-  { image: 'b2', seconds: 4, says: 'Haruto looks back; it slips' },
-  { image: 'b3', seconds: 7, says: 'The camera falls in the snow' },
-  { image: 'b4', seconds: 3, says: 'Haruto picks it up' },
+  { image: 'b1', seconds: 3, says: 'A girl raises her camera' },
+  { image: 'b2', seconds: 4, says: 'A boy looks back, and it slips' },
+  { image: 'b3', seconds: 7, says: 'The camera falls into the snow' },
+  { image: 'b4', seconds: 3, says: 'The boy picks it up' },
   { image: 'b5', seconds: 3, says: 'Through the train window' },
 ]
 /** Doki's scene reader on this scene: how much each cut needs one take */
