@@ -17,8 +17,10 @@ import {
 } from '@/components/ui/dialog'
 import { InfiniteSlider } from '@/components/ui/infinite-slider'
 import Image, { getImageProps } from 'next/image'
-// Note: re-import BLOG_POSTS from './data' when re-enabling the Blog section below.
+import Link from 'next/link'
+import { AnimatedBackground } from '@/components/ui/animated-background'
 import {
+  BLOG_POSTS,
   PROJECTS,
   EMAIL,
   SOCIAL_LINKS,
@@ -447,41 +449,42 @@ export default function Personal() {
         </div>
       </motion.section>
 
-      {/* <motion.section
-        variants={VARIANTS_SECTION}
-        transition={TRANSITION_SECTION}
-      >
-        <h3 className="mb-3 text-lg font-medium">Blog</h3>
-        <div className="flex flex-col space-y-0">
-          <AnimatedBackground
-            enableHover
-            className="h-full w-full rounded-[var(--radius-lg)] bg-muted"
-            transition={{
-              type: 'spring',
-              bounce: 0,
-              duration: 0.2,
-            }}
-          >
-            {BLOG_POSTS.map((post) => (
-              <Link
-                key={post.uid}
-                className="-mx-3 rounded-[var(--radius-xl)] px-3 py-3"
-                href={post.link}
-                data-id={post.uid}
-              >
-                <div className="flex flex-col space-y-1">
-                  <h4 className="font-normal text-foreground">
-                    {post.title}
-                  </h4>
-                  <p className="text-muted-foreground">
-                    {post.description}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </AnimatedBackground>
-        </div>
-      </motion.section> */}
+      {BLOG_POSTS.length > 0 && (
+        <motion.section
+          variants={VARIANTS_SECTION}
+          transition={TRANSITION_SECTION}
+        >
+          <h3 className="mb-3 text-lg font-medium">Blog</h3>
+          {/* One line a post, highlighted on hover like the theme switch */}
+          <div className="-mx-3 flex flex-col">
+            <AnimatedBackground
+              enableHover
+              className="bg-muted h-full w-full rounded-[var(--radius-lg)]"
+              transition={{
+                type: 'spring',
+                bounce: 0,
+                duration: 0.2,
+              }}
+            >
+              {BLOG_POSTS.map((post) => (
+                <Link
+                  key={post.uid}
+                  href={post.link}
+                  data-id={post.uid}
+                  className="w-full rounded-[var(--radius-lg)] px-3 py-2.5 focus-visible:outline-2 [&>div]:flex-1"
+                >
+                  <div className="flex items-baseline justify-between gap-6">
+                    <span className="text-foreground">{post.title}</span>
+                    <span className="text-muted-foreground shrink-0 text-sm tabular-nums">
+                      {post.date}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </AnimatedBackground>
+          </div>
+        </motion.section>
+      )}
 
       <motion.section
         variants={VARIANTS_SECTION}
