@@ -1659,8 +1659,11 @@ function Shot({
 }) {
   return (
     <div>
-      <KeyframeCard image={image} alt={label} />
-      <p className="mt-2 text-[13px]">
+      {/* Its own box, so the card is as tall as its picture rather than the grid cell */}
+      <div>
+        <KeyframeCard image={image} alt={label} />
+      </div>
+      <p className="mt-2 text-[13px] leading-snug">
         {mark && (
           <span
             className={`mr-1.5 font-medium ${mark === 'yes' ? SKY : 'text-[var(--doki-rose)]'}`}
@@ -1760,7 +1763,7 @@ export function UpdateFigure() {
         />
       </div>
 
-      <div className="border-border mt-6 overflow-hidden rounded-[var(--radius-xl)] border text-[13px]">
+      <div className="border-border mt-8 overflow-hidden rounded-[var(--radius-xl)] border text-[13px]">
         <div className="bg-muted/40 text-muted-foreground grid grid-cols-[1fr_64px_76px] items-center gap-2 px-3 py-2 font-mono text-[11px] tracking-wide uppercase sm:grid-cols-[1fr_96px_96px] sm:gap-4 sm:px-4">
           <span>The change</span>
           <span className="text-center">Image</span>
