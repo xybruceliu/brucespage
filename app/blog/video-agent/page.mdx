@@ -54,13 +54,23 @@ A definition has four parts: a type (a character, a place, an object or a look),
 
 Every shot that references <T>@Camera</T> is generated with this image, so the tape reading "3 left" looks the same throughout. The image carries most of the consistency; the description is what the image is generated from, and what each prompt repeats.
 
+### Scoping
+
+Definitions differ in how far they reach. A film's visual style should hold in every shot, the weather of one sequence only in that sequence, and a camera move only in the shot that calls for it. Definitions therefore need scopes, much as style rules in CSS do:
+
+- **Film.** A film-wide definition (Doki names it ALL, as in <T>#ALL</T> for the film's look) applies to every shot without being referenced, including flashbacks, dreams and scenes set elsewhere.
+- **Section.** A definition referenced in a section heading applies to every shot below it, until the next heading of the same level or higher. It suits what only one part of the film shares, such as a flashback's color grade.
+- **Shot.** A definition referenced in a shot applies to that shot alone.
+
+Scope follows references, not location: a definition can be written anywhere in the script and reaches only the shots that reference it, directly or through a scope. Scopes also accumulate rather than override. A shot that references its own style still receives the film-wide one, so a local choice refines the shared look instead of replacing it.
+
 ### Resolving a shot
 
-Definitions can depend on other definitions: a photo of Mio on the platform requires both Mio and the platform. The references therefore form a dependency graph, and resolving a shot means traversing it. The following shot from _The Last Three_, in which a girl named Mio leaves her last three photos at a shop, illustrates this:
+Definitions can be nested and can depend on other definitions: a photo of Mio on the platform requires both Mio and the platform. The references therefore form a dependency graph, and resolving a shot means traversing it. The following shot from _The Last Three_, in which a girl named Mio leaves her last three photos at a shop, illustrates this:
 
 <ResolveFigure />
 
-Traverse the graph depth-first from everything the shot references (its own tags, plus whatever applies to the whole film or to its section), and emit each definition after the definitions it depends on:
+Traverse the graph depth-first from the shot's roots, which are its own references plus the film-wide and section definitions in scope, and emit each definition after the definitions it depends on:
 
 ```ts
 const resolve = (tag: Tag) => {
@@ -120,6 +130,7 @@ The same applies to cuts within a clip, which a model filming several shots in o
 **If you're building one**
 
 - Give a definition with a reference image to everything that appears more than once and should look the same. Do not leave it to the agent to judge what is important.
+- Scope definitions to the film, a section or a shot, and let scopes accumulate rather than override.
 - Resolve definitions depth-first and list them in dependency order. Keep the graph, since you will need it in reverse.
 - Spend the image budget on the scene so far and on what the first frame does not show, and label every image with what to take from it.
 - Never add visual details in text to a defined element. Restate the style at every cut.
