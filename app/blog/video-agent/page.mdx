@@ -161,7 +161,7 @@ So this is a planning problem: keep shots in one generation where the story flow
 
 ### How the planner works
 
-The planner splits the work between a model and an algorithm. Judging what a cut needs takes taste: reading the story and looking at the keyframes, which a vision model does well. Choosing the grouping is an optimization with hard limits, where each split changes what the others cost, which a language model does poorly and a short algorithm does exactly. On 11 hard scenes, plans made this way passed 32 of 32 editing checks, while plans that Gemini wrote directly passed 79 to 85%. It works in three steps.
+The planner uses a vision model and an algorithm, each for what it does well. The vision model judges what each cut and shot needs, which takes taste. The algorithm then picks the grouping, which is an optimization that language models are bad at. On 11 hard scenes, plans made this way passed 32 of 32 editing checks, while plans that Gemini wrote directly passed 79 to 85%. It works in three steps.
 
 **1. A vision model reads the shot list.** It reads each shot's words and keyframe, and rates two needs from 0 to 3: how much each cut needs the shots on both sides to flow together, and how much each shot needs a fresh start on its own keyframe.
 
