@@ -313,7 +313,8 @@ export function Rubric() {
             <ul className="space-y-1.5">
               {levels.map((text, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <span className="translate-y-[3px]">
+                  {/* As tall as the text's first line, so the chip sits on its middle */}
+                  <span className="flex h-[1lh] shrink-0 items-center">
                     <LevelChip level={3 - i} kind={kind} />
                   </span>
                   <span>{text}</span>
