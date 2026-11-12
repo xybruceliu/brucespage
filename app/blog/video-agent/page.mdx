@@ -111,7 +111,7 @@ A shot can use more definitions than a model accepts reference images. So the ag
 - **The scene so far.** When generating a new image, include the images of the scene's earlier shots, so the place, lighting and people stay the same. This was the largest consistency improvement I measured: it cut continuity errors by more than half.
 - **What the first frame does not show.** A video starts from its first frame, which already shows everyone on screen. Spend the remaining slots on what that frame leaves out, such as a person about to enter or the place a cut leads to.
 
-The prompt should also tell the model what to take from each reference image, or the model may copy the wrong thing. For example, if an image is there only for its style, the model may also copy what the image shows into the shot. So the prompt says to take only the style:
+The prompt should also tell the model what to take from each reference image, or the model may copy the wrong thing. For example, if an image is there only for its style, the model may also copy what the image shows into the shot. So when we write the prompt, we must say clearly which part of each reference image to use:
 
 <Prompt from="Doki's image prompt writer">
   An image that is "the overall style" [...] gives only that quality ("in the
