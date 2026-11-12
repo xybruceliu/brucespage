@@ -33,7 +33,7 @@ However, making a whole film remains hard, even for a one-minute video. Most peo
 
 The result tends to play like a **slideshow**.
 
-If you try to make a one-minute film with Claude Code and a video model, you will quickly see the problem: the film doesn't look continuous. Each shot looks fine on its own, but the motion stops and restarts at every cut, nothing plans the pacing of the shots, and an old woman's face, or the scarf she knits, changes from shot to shot.
+If you try to make a one-minute film with Claude Code and a video model, you will quickly see the problem: the film doesn't look continuous. Each shot looks fine on its own, but the motion stops and restarts at every cut, nothing plans the pacing of the shots, and the same character looks different from shot to shot.
 
 Individual clip quality is no longer the bottleneck. Current video agents were not designed for long videos, so their harnesses (the code that runs the agent and its tools) leave the problems specific to film unsolved: planning and pacing the shots of a scene, keeping people, places and looks consistent, keeping motion continuous across cuts, and making the story flow from one scene to the next.
 
@@ -49,7 +49,7 @@ The examples come from Doki, with its actual prompts and algorithms.
 
 ## 1. Definition System
 
-A long film must keep its people, places, objects and visual styles consistent across dozens of generations, but image and video models remember nothing from one generation to the next. Each generation sees only its own prompt and a few reference images, so anything described only in text is redrawn every time. That is why the old woman's face, or her scarf, changes from shot to shot. A video agent therefore needs a **definition system**. Everything the film reuses is defined once, with a description and a reference image, and every shot references that definition instead of describing the item again.
+A long film must keep its people, places, objects and visual styles consistent across dozens of generations, but image and video models remember nothing from one generation to the next. Each generation sees only its own prompt and a few reference images, so anything described only in text is redrawn every time. That is why the same character, place or object looks different from shot to shot. A video agent therefore needs a **definition system**. Everything the film reuses is defined once, with a description and a reference image, and every shot references that definition instead of describing the item again.
 
 ### Definitions
 
