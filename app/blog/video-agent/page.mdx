@@ -142,7 +142,7 @@ Cuts inside a video have the same problem. When a video model generates several 
 
 ## 2. Shot Planning
 
-A few terms first. A **shot** is one continuous view, until a **cut** switches to the next. A **scene** is a run of shots in one place and time. A video agent works from a **shot list**: every shot has its words and a **keyframe**, the storyboard image it should open on. A **generation** is one call to the video model, and it returns one clip.
+A film is a series of **shots**. Each shot is one continuous view, and a **cut** switches to the next one. A run of shots in one place and time is a **scene**. A video agent usually plans each scene as a **shot list**, with the words for every shot and a **keyframe**, the storyboard image the shot should open on. Then it calls the video model, and each call, or **generation**, returns one clip.
 
 Most video agents make films that look like a slideshow, because they generate one clip per shot and stitch the clips together. In Doki Agent, we introduce a shot planner instead. It decides which shots to generate together in one clip, and where to split a long scene into several clips.
 
