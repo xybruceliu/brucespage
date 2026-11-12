@@ -165,3 +165,37 @@
     background-color: oklch(0.985 0 0 / 0.18);
   }
 }
+
+/*
+  The arrow that draws itself on hover (components/ui/draw-arrow.tsx). At rest
+  each stroke is hidden by its own dash; hovering or focusing the link slides
+  the shaft in, then the head. Leaving undraws both at once, quickly, so it
+  never lingers. Reduced motion shows it without the drawing.
+*/
+.draw-arrow path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition:
+    stroke-dashoffset 140ms cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 100ms ease-out;
+}
+.draw-arrow-trigger:hover .draw-arrow path,
+.draw-arrow-trigger:focus-visible .draw-arrow path {
+  stroke-dashoffset: 0;
+  opacity: 1;
+  transition:
+    stroke-dashoffset 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 40ms linear;
+}
+.draw-arrow-trigger:hover .draw-arrow .draw-arrow-head,
+.draw-arrow-trigger:focus-visible .draw-arrow .draw-arrow-head {
+  transition-delay: 120ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .draw-arrow path,
+  .draw-arrow-trigger:hover .draw-arrow path,
+  .draw-arrow-trigger:focus-visible .draw-arrow path {
+    transition: none;
+  }
+}

@@ -8,6 +8,7 @@ import { AwardBadge } from '@/components/ui/award-badge'
 import { WaveEmoji } from '@/components/ui/wave-emoji'
 import { CompanyTag, GoogleIcon } from '@/components/ui/company-tag'
 import { ArrowUpRightIcon } from '@/components/ui/arrow-up-right'
+import { DrawArrow } from '@/components/ui/draw-arrow'
 import { SiMeta, SiSnapchat } from 'react-icons/si'
 import {
   Dialog,
@@ -354,80 +355,14 @@ export default function Personal() {
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="ring-border hover:bg-accent hover:text-accent-foreground relative inline-flex items-center rounded-full px-2.5 py-1 text-xs ring-1 shadow-sm transition-colors after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] sm:after:hidden"
-                          initial="initial"
-                          whileHover="hover"
+                          className="draw-arrow-trigger group ring-border hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent relative inline-flex items-center rounded-full px-2.5 py-1 text-xs ring-1 shadow-sm transition-colors after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] focus-visible:outline-2 sm:after:hidden"
                           whileTap={{ scale: 0.95 }}
                         >
                           {type}
-                          <motion.span
-                            variants={{
-                              initial: {
-                                width: 0,
-                                opacity: 0,
-                                marginLeft: 0,
-                              },
-                              hover: {
-                                width: 'auto',
-                                opacity: 1,
-                                marginLeft: 2,
-                                transition: { duration: 0.2 },
-                              },
-                            }}
-                            className="flex items-center overflow-hidden"
-                          >
-                            <svg
-                              width="15"
-                              height="15"
-                              viewBox="0 0 15 15"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-3 w-3 shrink-0"
-                            >
-                              <motion.path
-                                d="M3.5 11.5L11.5 3.5"
-                                stroke="currentColor"
-                                strokeWidth="1.2"
-                                strokeLinecap="round"
-                                variants={{
-                                  initial: { pathLength: 0, opacity: 0 },
-                                  hover: {
-                                    pathLength: 1,
-                                    opacity: 1,
-                                    transition: {
-                                      pathLength: {
-                                        duration: 0.2,
-                                        ease: 'easeOut',
-                                      },
-                                      opacity: { duration: 0.05 },
-                                    },
-                                  },
-                                }}
-                              />
-                              <motion.path
-                                d="M6.5 3.5H11.5V8.5"
-                                stroke="currentColor"
-                                strokeWidth="1.2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                variants={{
-                                  initial: { pathLength: 0, opacity: 0 },
-                                  hover: {
-                                    pathLength: 1,
-                                    opacity: 1,
-                                    transition: {
-                                      pathLength: {
-                                        duration: 0.2,
-                                        ease: 'easeOut',
-                                        delay: 0.2,
-                                      },
-                                      opacity: { duration: 0.05, delay: 0.2 },
-                                    },
-                                  },
-                                }}
-                              />
-                            </svg>
-                          </motion.span>
+                          {/* Opens to make room, then the arrow draws itself */}
+                          <span className="flex max-w-0 items-center overflow-hidden transition-[max-width,margin] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:ml-0.5 group-hover:max-w-3 group-focus-visible:ml-0.5 group-focus-visible:max-w-3 motion-reduce:transition-none">
+                            <DrawArrow className="h-3 w-3 shrink-0" />
+                          </span>
                         </motion.a>
                       ))}
                     </div>
