@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { PERSONAL_INFO } from '../data'
+import { Outline } from './outline'
 
 // A post's page: one quiet line of nav in place of the homepage's header - the
 // way home on the left, Copy URL on the right - then the post.
@@ -71,6 +72,7 @@ export default function LayoutBlogPost({
       <main className="blog-prose prose prose-gray prose-h4:prose-base dark:prose-invert prose-h1:text-xl prose-h1:font-medium prose-h2:mt-12 prose-h2:scroll-m-20 prose-h2:text-lg prose-h2:font-medium prose-h3:text-base prose-h3:font-medium prose-h4:font-medium prose-h5:text-base prose-h5:font-medium prose-h6:text-base prose-h6:font-medium prose-strong:font-medium mt-12 pb-20 sm:mt-16">
         {children}
       </main>
+      <Outline />
     </>
   )
 }
