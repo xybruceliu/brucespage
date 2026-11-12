@@ -49,15 +49,30 @@ The examples come from Doki, with its actual prompts and algorithms.
 
 ## 1. Definition System
 
-A long film must keep its people, places, objects and visual styles consistent across dozens of generations, but image and video models remember nothing from one generation to the next. Each generation sees only its own prompt and a few reference images, so anything described only in text is redrawn every time. A video agent therefore needs a **definition system**. Everything the film reuses is defined once, with a description and a reference image, and every shot references that definition instead of describing the item again.
+A long film must keep its people, places, objects and visual styles consistent across dozens of generations, but image and video models remember nothing from one generation to the next. Each generation sees only its own prompt and a few reference images, so anything described only in text is redrawn every time. That is why the old woman's face, or her scarf, changes from shot to shot. A video agent therefore needs a **definition system**. Everything the film reuses is defined once, with a description and a reference image, and every shot references that definition instead of describing the item again.
 
 ### Definitions
 
-A definition has four parts: a type (character, place, object or look), a name that the script can reference, a text description, and a reference image generated from that description. Here are two examples from a short film made in Doki:
+A definition has four parts: a type (character, place, object or look), a name that the script can reference (with an @ in Doki), a text description, and a reference image generated from that description. Here are two examples from a short film made in Doki:
 
 <Definitions />
 
 Every shot that references <T>@Camera</T> is generated with this image, so the tape reading "3 left" looks the same throughout the film. The image carries most of the consistency, and the description is what the image is generated from.
+
+### What gets a definition
+
+Anything that appears more than once and must look the same needs a definition, however small or plain. Without one, a coin, a takeout bag or a scarf is redrawn from its words in every shot and comes out different each time. So do not leave it to the agent to decide which items are important enough. Tell it how the models behave instead:
+
+<Prompt from="Doki's agent prompt">
+  Without one, they get only its text, and each picture draws it anew - each
+  shot's image, and each later cut, which has no image of its own: the same
+  words come out as a different face, outfit, place or object each time, however
+  small or plain it is. [...] So whatever is seen more than once and should look
+  the same each time - someone, a place, a vehicle, a prop - gets a definition
+  with a reference shot.
+</Prompt>
+
+A reference image also locks in everything it shows. If a shop's reference shows its exterior, every shot that uses it is pulled toward an exterior view, even a shot set inside. So an interior, a costume from another period, or what a character transforms into each needs a definition of its own.
 
 ### Scoping
 
@@ -103,26 +118,11 @@ Each image also needs a label that says what the model should take from it. A st
   art style of image 3"). Never put its content in the shot.
 </Prompt>
 
-### What gets a definition
-
-Anything that appears more than once and must look the same needs a definition, however small or plain. Without one, a coin, a takeout bag or a scarf is redrawn from its words in every shot and comes out different each time. So do not leave it to the agent to decide which items are important enough. Tell it how the models behave instead:
-
-<Prompt from="Doki's agent prompt">
-  Without one, they get only its text, and each picture draws it anew - each
-  shot's image, and each later cut, which has no image of its own: the same
-  words come out as a different face, outfit, place or object each time, however
-  small or plain it is. [...] So whatever is seen more than once and should look
-  the same each time - someone, a place, a vehicle, a prop - gets a definition
-  with a reference shot.
-</Prompt>
-
-A reference image also locks in everything it shows. If a shop's reference shows its exterior, every shot that uses it is pulled toward an exterior view, even a shot set inside. So an interior, a costume from another period, or what a character transforms into each needs a definition of its own.
-
 ### Text overrides images
 
 When the text and a reference image disagree, image models follow the text. If the prompt gives a character yellow boots, the red boots in her reference disappear. And when the text names only what someone wears, the model may ignore the reference and draw a stranger in those clothes. So the prompt should never add visual details to anything that has a reference, and it should describe each person by who they are (age, face, hair and build) before what they wear.
 
-The same holds at the cuts inside a multi-shot clip. The video model draws each shot after a cut afresh, so the look drifts: a black-and-white scene can turn to color right after the first cut. The video prompt should restate the look at every cut:
+The same holds at the cuts inside one generation, when a video model films several shots at once (Section 2). The model draws each shot after a cut afresh, so the look drifts: a black-and-white scene can turn to color right after the first cut. The video prompt should restate the look at every cut:
 
 <Prompt from="Doki's video prompt writer">
   The video model draws each later shot afresh and drifts from the film's look
@@ -240,11 +240,11 @@ A video agent should instead treat the film like a software build. It tracks exa
 
 ### Staleness is a diff
 
-For every image and clip, record the inputs that made it: the shot's text, the resolved definitions, the versions of the reference images, and for a video, its first frame, its timing and the clip it shares with other shots. An asset is stale when its record differs from the current film, and the difference is the reason ("<T>@Mars</T> changed"). Because definitions are resolved through the graph from Section 1, a change to one definition reaches every shot that depends on it.
+For every image and clip, record the inputs that made it: the shot's text, the resolved definitions, the versions of the reference images, and for a video, its keyframe, its timing and the generation it shares with other shots. An asset is stale when its record differs from the current film, and the difference is the reason. Say the user decides the film's Mars should be frozen instead of red. Every shot of Mars now differs from its record, with the reason "<T>@Mars</T> changed". Because definitions are resolved through the graph from Section 1, the change also reaches every shot that uses Mars indirectly.
 
 ### Keep, edit or remake
 
-For each stale image or clip, a fast model compares the recorded inputs with the shot's new state and chooses to keep the asset, edit it or remake it:
+For each stale image or clip, a fast model compares the recorded inputs with the shot's new state and chooses to keep the asset, edit it or remake it. For the frozen Mars, a remake would redraw the whole shot, while an edit freezes only the ground:
 
 <UpdateFigure />
 
@@ -263,7 +263,7 @@ The edit model sees only the picture, not the script, so the judge writes its in
 
 ### Remake the smallest run
 
-When several shots share one clip, changing one of them should not regenerate the whole scene. An edit can run on that shot's segment alone. A remake regenerates only the run of neighboring shots that need new video, at the cost of a new clip boundary there. Trimming is cheaper still: cutting out the half second in which a hand warps costs nothing. So give the agent a trim tool and have it fix a clip in order of cost, trimming first, then editing, and remaking only as a last resort. Keep every version, so a remake that turns out worse can be undone.
+When several shots share one generation, changing one of them should not regenerate the whole scene. An edit can run on that shot's segment alone. A remake regenerates only the run of neighboring shots that need new video, at the cost of a new split there. Trimming is cheaper still: cutting out the half second in which a hand warps costs nothing. So give the agent a trim tool and have it fix a shot in order of cost, trimming first, then editing, and remaking only as a last resort. Keep every version, so a remake that turns out worse can be undone.
 
 <Takeaways>
 
@@ -280,15 +280,15 @@ A video agent cannot fix problems it never sees, and even a multimodal agent rar
 
 ### Reviews the harness runs
 
-An agent will not inspect its own work unprompted. I gave Doki's agent a tool that let a vision model watch any shot and answer questions about it, and in sixteen writing runs the agent used it zero times. So the reviews run in the harness:
+An agent will not inspect its own work unprompted. I gave Doki's agent a tool that let a vision model watch any shot and answer questions about it, and in sixteen writing runs the agent used it zero times. So the reviews run in the harness, each set off by what the agent just did. Doki runs four: on the script, on each new image or video, on the whole storyboard, and on the finished film. Each review's findings come back in the result of the tool that set it off:
 
 <ReviewFigure />
 
-In storyboard tests, films made with these reviews won most blind comparisons against films made without them, with about a fifth fewer continuity breaks.
+In tests on storyboards, films made with these reviews won most blind comparisons against films made without them, with about a fifth fewer continuity breaks.
 
 ### The first-time viewer
 
-The most useful check is what I call the first-time viewer. A separate model watches the finished film without seeing the script or the user's request, and says what it understood. The regular film review has read the script, so it fills in story details that the screen leaves out. The first-time viewer has only the video and its sound, so wherever its account differs from the script, the film is failing to tell the story.
+The most useful check is what I call the first-time viewer. A separate model watches the finished film without seeing the script or the user's request, and says what it understood. The film review has read the script, so it fills in story details that the screen leaves out. The first-time viewer has only the video and its sound, so wherever its account differs from the script, the film is failing to tell the story.
 
 <Prompt from="Doki's first-time viewer">
   Say what you understood, in plain words: [...] What you couldn't follow: who

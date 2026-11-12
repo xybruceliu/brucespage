@@ -98,16 +98,18 @@ export function T({ children }: { children: string }) {
   )
 }
 
+// Doki's four types, with the post's plain names for them: what Doki calls a
+// Scene is a place, an Ingredient an object, an Ambience a look
 const TYPES = {
-  Character: { emoji: '👤', symbol: '@' },
-  Scene: { emoji: '🏠', symbol: '@' },
-  Ingredient: { emoji: '🧩', symbol: '@' },
-  Ambience: { emoji: '✨', symbol: '#' },
+  Character: { emoji: '👤', symbol: '@', name: 'Character' },
+  Scene: { emoji: '🏠', symbol: '@', name: 'Place' },
+  Ingredient: { emoji: '🧩', symbol: '@', name: 'Object' },
+  Ambience: { emoji: '✨', symbol: '#', name: 'Look' },
 } as const
 
 /** A definition's type, as the chip Doki puts before it */
 function TypeChip({ type }: { type: keyof typeof TYPES }) {
-  const { emoji, symbol } = TYPES[type]
+  const { emoji, symbol, name } = TYPES[type]
   const tint =
     symbol === '@'
       ? 'border-[var(--doki-sky-line)] bg-[var(--doki-sky-bg)] text-[var(--doki-sky)]'
@@ -117,7 +119,7 @@ function TypeChip({ type }: { type: keyof typeof TYPES }) {
       className={`mr-1.5 inline-flex items-center gap-1 rounded-md border px-1.5 py-px align-[0.06em] text-[0.82em] font-medium whitespace-nowrap ${tint}`}
     >
       <span aria-hidden="true">{emoji}</span>
-      {type}
+      {name}
     </span>
   )
 }
