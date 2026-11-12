@@ -35,14 +35,15 @@ If you try to make a one-minute film with Claude Code and a video model, you wil
 
 Individual clip quality is no longer the bottleneck. Current video agents were not designed for long videos, so their harnesses (the code that runs the agent and its tools) leave the problems specific to film unsolved: planning and pacing the shots of a scene, keeping people, places and looks consistent, keeping motion continuous across cuts, and making the story flow from one scene to the next.
 
-I have been working on these problems in [Doki Agent](https://doki.mov) (Doki's interface is also super interesting, and I will cover it in a separate post). This post describes the four components that did most of the work to turn many clips into one coherent film. I believe any video agent needs these four parts, regardless of how it is built:
+I have been working on these problems in [Doki Agent](https://doki.mov) (Doki's interface is also super interesting, and I will cover it in a separate post). This post describes the four components that did most of the work to turn many clips into one coherent film, and the principle behind all of them. I believe any video agent needs these, regardless of how it is built:
 
 1. **Definition System**: how the agent tracks things that must look the same, and how it sets up each generation to keep them consistent.
 2. **Shot Planning**: how the agent splits a scene into video generations for the best continuity.
 3. **Incremental Editing**: how the agent applies a change to the film without regenerating everything from scratch.
 4. **Review Loop**: how the agent checks what it made and improves the film on its own.
+5. **Describe, Don't Prescribe**: how to instruct the agent, by describing how the models behave and what the film needs instead of prescribing rules.
 
-A closing section covers the principle behind all four: describe to the agent how the models behave and what the film needs, instead of prescribing rules. The examples come from Doki, with its actual prompts and algorithms.
+The examples come from Doki, with its actual prompts and algorithms.
 
 ## 1. Definition System
 
@@ -302,7 +303,7 @@ The most useful check is what I call the first-time viewer. A separate model wat
 
 </Takeaways>
 
-## Describe, Don't Prescribe
+## 5. Describe, Don't Prescribe
 
 One principle connects all four components: describe to the agent how the models behave and what the film needs, instead of prescribing rules, examples or rules of thumb. When a prompt explains how the system works, the agent can reason about situations the prompt never anticipated. When a prompt gives a rule, the agent follows it literally, even where it no longer applies.
 
