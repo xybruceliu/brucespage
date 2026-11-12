@@ -37,7 +37,7 @@ If you try to make a one-minute film with Claude Code and a video model, you wil
 
 So the quality of each clip is no longer the bottleneck. The hard part is making the clips work together as one film, and today's video agents were not built for that. Their harnesses (the code that runs the agent and its tools) leave the film problems unsolved: planning and pacing the shots of a scene, keeping people, places and looks consistent, keeping motion continuous across cuts, and making the story flow from one scene to the next.
 
-I have been working on these problems in [Doki Agent](https://doki.mov). This post covers five parts: the four components that did most of the work of turning many clips into one coherent film, and the principle behind all of them. I believe any video agent needs them, however it is built:
+I have been working on these problems in [Doki Agent](https://doki.mov). I won't cover the agent architecture that is fast becoming a commodity, such as the tool-calling loop or context management. This post is about what a video agent needs that a coding or general-purpose agent doesn't. It covers five parts: the four components that did most of the work of turning many clips into one coherent film, and the principle behind all of them. I believe any video agent needs them, however it is built:
 
 1. **Definition System**: how the agent tracks things that must look the same, and how it sets up each generation to keep them consistent.
 2. **Shot Planning**: how the agent splits a scene into video generations for the best continuity.
@@ -172,13 +172,13 @@ First, a VLM reads the shot list. It looks at each shot's words and keyframe, an
 
 These ratings describe the film, not the video model, so one reading works for any model. The keyframes matter, too: rated from the words alone, the same scenes passed only 28 of the 32 checks.
 
-Second, each video model gets its own penalties. How much the film suffers when a new generation starts at a cut, or when a shot misses its fresh start, depends on the video model, so each model needs its own penalty for each rating. To measure them, I generated the same test scenes two ways, in as few generations as possible and with one generation per shot. A judge model then scored each cut and shot that came out differently, from 1 to 10, and the difference in score is the penalty. For MiniMax H3, starting a new generation at a cut rated 2 or 3 cost about 1.2 points, and so did a shot rated 2 or 3 that came mid-generation instead of getting a fresh start. Ratings of 0 and 1 cost nothing, within the noise of the measurement.
+Second, each video model gets its own penalties. How much the film suffers when a new generation starts at a cut, or when a shot misses its fresh start, depends on the video model, so each model needs its own penalty for each rating. To measure them, I generated the same test scenes two ways, in as few generations as possible and with one generation per shot. A judge model then scored each cut and shot that came out differently, from 1 to 10, and the difference in score is the penalty. For MiniMax H3, starting a new generation at a cut rated 2 or 3 cost about 1.2 points, and so did a shot rated 2 or 3 that came mid-generation instead of getting a fresh start. Ratings of 0 and 1 cost nothing.
 
 Third, dynamic programming finds the grouping that loses least, much as a text layout engine breaks a paragraph into lines. A scene of n shots can be grouped in 2<sup>n−1</sup> ways, and the algorithm finds the best one that fits without listing them all. Let best[j] be the least a plan for the first j shots can lose. The last generation of that plan covers some shots i+1 through j, so:
 
 <Formula />
 
-In words, each generation adds three things to the plan's loss. S is the penalty for the cut where the generation starts, because the shots on both sides of it no longer flow together. F is the penalty for each shot after its first, because those shots don't get a fresh start on their keyframes. The last term is the generation's price in dollars, counted at half a point a dollar, so money matters a little too. The boat scene can be grouped eight ways, and seven of them fit in MiniMax's 15-second generations. Those seven plans are built from nine possible generations, drawn below as arcs, and the algorithm weighs them all. You can click a rating to see the plan change:
+In words, each generation adds three things to the plan's loss. S is the penalty for the cut where the generation starts, because the shots on both sides of it no longer flow together. F is the penalty for each shot after its first, because those shots don't get a fresh start on their keyframes. The last term is the generation's price in dollars, at half a point a dollar, so money matters a little too. The boat scene can be grouped eight ways, and seven of them fit in MiniMax's 15-second generations. They are built from nine possible generations, drawn below as arcs. You can click a rating to see the plan change:
 
 <PlanFigure />
 
@@ -188,7 +188,7 @@ None of this reaches the agent that writes the script. It writes each scene at t
 
 Back to the boat scene. For MiniMax, the planner picks the split from Fig. 2: shots 1 and 2 make the night, and shots 3 and 4 the morning. The split is not free, because shot 4 now comes mid-generation and only lands near its keyframe. Splitting her run instead would lose just as much and need a third generation, so the cheaper plan wins.
 
-A longer scene shows the same logic at a larger scale. It has ten shots in three parts: a morning in the kitchen, a long stretch at the river, and an evening downstream. Packing makes both mistakes again. For MiniMax, the plan starts fresh at both jumps in time, and splits the river part where the boat drifts away from her. Seedance gets a different plan from its own penalties. A new Seedance generation loses about a point at any cut, whatever its rating, so its plan uses as few 30-second generations as fit and keeps the kitchen and the river together:
+A longer scene shows the same logic at a larger scale. It has ten shots in three parts: a morning in the kitchen, a long stretch at the river, and an evening downstream. Packing makes both mistakes again. For MiniMax, the plan starts fresh at both jumps in time, and splits the river part where the boat drifts away from her. A new Seedance generation loses about a point at any cut, whatever its rating, so its plan uses as few 30-second generations as fit and keeps the kitchen and the river together:
 
 <RiverFigure />
 
