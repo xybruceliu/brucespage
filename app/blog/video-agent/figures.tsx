@@ -64,6 +64,70 @@ export function Prompt({
   )
 }
 
+/** The model quirks I hit most, and the wording that helped */
+const QUIRKS: [string, string][] = [
+  [
+    'The first frame shows the end of the action ("starting to sit" comes out seated)',
+    'Describe the frame as a photo of the first instant, in states, not actions',
+  ],
+  [
+    'Every clip slows to a stop before its cut',
+    'Keep the action and the camera moving through the last second, except where a scene ends',
+  ],
+  [
+    'The model cuts on its own, especially in dialogue',
+    'Start with "Single continuous shot" and end with "No scene cuts."',
+  ],
+  [
+    'A later cut in the same clip loses the film’s style',
+    'Restate the look at the start of every cut',
+  ],
+  [
+    'A crowd reacts on the same beat, like a flash mob',
+    'Give each person who reacts a moment of their own, one after another',
+  ],
+  [
+    'Speech in another language comes out as burned-in subtitles',
+    'Name the language: “says in Mandarin”',
+  ],
+  [
+    'A shot with no action plays nearly frozen',
+    'Give the subject one small, natural action',
+  ],
+  [
+    'A character’s voice changes from clip to clip',
+    'Write how they sound in their definition, and tag them in their lines',
+  ],
+  [
+    'A reverse angle comes out as the same view again',
+    'Cut to it inside one clip instead of making a separate image',
+  ],
+  [
+    'An invented sound (“a magical hum”) is heard as music',
+    'Don’t add sounds the shot doesn’t have a source for',
+  ],
+]
+
+export function QuirksTable() {
+  return (
+    <div className="not-prose border-border my-6 overflow-hidden rounded-[var(--radius-lg)] border text-[14px]">
+      <div className="bg-muted/50 text-muted-foreground grid grid-cols-2 gap-4 px-4 py-2 font-mono text-[11px] tracking-wide uppercase">
+        <span>What goes wrong</span>
+        <span>What helped</span>
+      </div>
+      {QUIRKS.map(([wrong, fix]) => (
+        <div
+          key={wrong}
+          className="border-border grid grid-cols-2 gap-4 border-t px-4 py-2.5 leading-snug"
+        >
+          <span className="text-muted-foreground">{wrong}</span>
+          <span className="text-foreground/90">{fix}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // -----------------------------------------------------------------------------
 // Figure 1: a shot's definitions, resolved
 // -----------------------------------------------------------------------------
