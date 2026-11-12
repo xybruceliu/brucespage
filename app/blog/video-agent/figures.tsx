@@ -2,9 +2,9 @@
 
 import { useMemo, useState, type ReactNode } from 'react'
 
-// The figures of "How to Design a Video Agent That Makes a 5-Minute Film, Not
-// a 10-Second Clip". Pictures and data come from Doki's example film The Last
-// Three and from the Doki demo; the clip planner is Doki's own
+// The figures of "Designing a Video Agent That Can Actually Tell a Story".
+// Pictures and data come from Doki's example film The Last Three and from the
+// Doki demo; the clip planner is Doki's own
 // (client/src/editor/services/clipPlanner.ts), cut down to what this scene needs.
 
 const IMG = '/img/blog/video-agent'
