@@ -31,9 +31,9 @@ However, making a whole film remains hard, even for a one-minute video. Most peo
 
 The result tends to play like a **slideshow**.
 
-If you try to make a one-minute film with Claude Code and a video model, you will quickly see the problem. Each shot looks fine on its own, yet it does not connect to the shot before it. Clips start from a still image and stop before the cut, so motion and sound do not carry across cuts. Nothing plans the rhythm of the film: which moment gets a close-up, which shot holds, and where each cut falls. Visual consistency slips as well. An old woman's face or the scarf she knits changes from shot to shot.
+If you try to make a one-minute film with Claude Code and a video model, you will quickly see the problem. Each shot looks fine on its own, yet it does not connect to the shot before it. Clips start from a still image and stop before the cut, so motion and sound do not carry across. Nothing plans the rhythm: which moment gets a close-up, which shot holds, and where each cut falls. And an old woman's face, or the scarf she knits, changes from shot to shot.
 
-Individual clip quality is no longer the bottleneck. Current video agents were not designed for long videos, so their harnesses (the code that runs the agent and its tools) leave the problems specific to film unsolved. Nothing in them plans the shots in a scene or supplies the film knowledge needed to pace those shots and write a storyboard. Nothing keeps people, places and visual styles consistent, keeps motion continuous across cuts, or makes the story flow from one scene to the next.
+Individual clip quality is no longer the bottleneck. Current video agents were not designed for long videos, so their harnesses (the code that runs the agent and its tools) leave the problems specific to film unsolved: planning and pacing the shots of a scene, keeping people, places and looks consistent, keeping motion continuous across cuts, and making the story flow from one scene to the next.
 
 I have been working on these problems in [Doki Agent](https://doki.mov) (Doki's interface is also super interesting, and I will cover it in a separate post). This post describes the four components that did most of the work to turn many clips into one coherent film. I believe any video agent needs these four parts, regardless of how it is built:
 
@@ -46,7 +46,7 @@ A closing section covers the principle behind all four: describe to the agent ho
 
 ## 1. Definition System
 
-A long film must keep its people, places, objects and visual styles consistent across dozens of generations. However, image and video models remember nothing from one generation to the next. Each generation sees only its own prompt and a few reference images, so the model redraws anything described only in text every time. A video agent therefore needs a **definition system**. Everything the film reuses is defined once, with a text description and a reference image, and every shot references that definition instead of describing the item again. Before each generation, the agent resolves the shot's references: it collects the definitions and reference images the shot uses and passes them to the model.
+A long film must keep its people, places, objects and visual styles consistent across dozens of generations, but image and video models remember nothing from one generation to the next. Each generation sees only its own prompt and a few reference images, so anything described only in text is redrawn every time. A video agent therefore needs a **definition system**. Everything the film reuses is defined once, with a description and a reference image, and every shot references that definition instead of describing the item again.
 
 ### Definitions
 
@@ -54,25 +54,25 @@ A definition has four parts: a type (character, place, object or look), a name t
 
 <Definitions />
 
-Every shot that references <T>@Camera</T> is generated with this reference image, so the tape reading "3 left" looks the same throughout the film. The image provides most of the consistency. The description is what the image is generated from, and each shot's prompt repeats it.
+Every shot that references <T>@Camera</T> is generated with this image, so the tape reading "3 left" looks the same throughout the film. The image carries most of the consistency, and the description is what the image is generated from.
 
 ### Scoping
 
-Different definitions apply to different parts of the film. A film's visual style should apply to every shot, the weather of one sequence only within that sequence, and a specific camera move only to a single shot. A definition system therefore needs scopes, much like style rules in CSS:
+Different definitions apply to different parts of the film. The visual style should hold in every shot, the weather of one sequence only in that sequence, and a camera move only in one shot. So a definition system needs scopes, much like style rules in CSS:
 
-- **Film.** A film-wide definition applies to every shot automatically, including flashbacks and dreams, even when a shot does not reference it. It holds what the whole film shares, such as its visual style, lighting and mood.
+- **Film.** A film-wide definition applies to every shot without being referenced, flashbacks and dreams included. It holds what the whole film shares, such as its look, lighting and mood.
 - **Part of the film.** A definition attached to an act, a sequence or a flashback applies to every shot inside that part, and to nothing outside it.
-- **Shot.** A definition referenced in a single shot applies to that shot alone.
+- **Shot.** A definition referenced in a shot applies to that shot alone.
 
-Two rules keep scopes predictable. First, a definition applies only where it is referenced or scoped, regardless of where it is written. Second, scopes add together instead of overriding one another. If a shot references its own visual style, it still receives the film-wide style, so the shot's choice refines the shared look instead of replacing it.
+Two rules keep scopes predictable. A definition applies only where it is referenced or scoped, wherever it is written. And scopes add up instead of overriding one another: a shot with its own style still receives the film-wide style, so the local choice refines the shared look instead of replacing it.
 
 ### Resolving a shot
 
-Definitions can be nested and can depend on other definitions. For example, a photo of a character on a train platform depends on both the character and the platform. These references form a dependency graph, so resolving a shot means walking that graph. In the shot below, a close-up of three photos on a shop counter, each photo is a definition that references other definitions:
+Definitions can be nested and can depend on other definitions. A photo of a character on a train platform, for example, depends on both the character and the platform. The references form a dependency graph, and resolving a shot means walking that graph. In the shot below, a close-up of three photos on a shop counter, each photo is a definition that references others:
 
 <ResolveFigure />
 
-The agent walks the graph depth-first, starting from the shot's own references and every film-wide or part-level definition in scope. It outputs each definition after the definitions it depends on:
+The agent walks the graph depth-first, from the shot's own references and every film-wide or part-level definition in scope, and outputs each definition after the ones it depends on:
 
 ```ts
 const resolve = (def: Definition) => {
@@ -84,16 +84,16 @@ const resolve = (def: Definition) => {
 ;[...shot.references, ...inScope(shot)].forEach(resolve)
 ```
 
-This order matters because the prompt lists the definitions in the same order. By the time the model reads that a photo shows a character on a train, it has already read who that character is. The graph is also worth keeping. Read in reverse, it shows what a change affects. If a character changes, every shot that uses that character, directly or through a photo of them, is out of date (Section 3).
+The prompt lists the definitions in this order, so by the time the model reads that a photo shows a character on a train, it already knows who that character is. Keep the graph, too. Read in reverse, it shows what a change affects: if a character changes, every shot that uses them, directly or through a photo, is out of date (Section 3).
 
 ### Choosing the reference images
 
-A shot can use more definitions than a model accepts as reference images, and video models currently accept four to six. So the agent must choose which images to send. Two rules worked well:
+A shot can use more definitions than a model accepts reference images (currently four to six for video models), so the agent must choose. Two rules worked well:
 
-- **The scene so far.** When generating a new image, include the images of the earlier shots in the same scene, so the place, lighting and people stay the same. This was the largest consistency improvement I measured: it cut continuity errors by more than half.
-- **What the first frame does not show.** A video starts from its first frame, which already shows everyone and everything on screen. Use the remaining slots for what that frame leaves out, such as a person who is about to enter or the place a cut leads to.
+- **The scene so far.** When generating a new image, include the images of the scene's earlier shots, so the place, lighting and people stay the same. This was the largest consistency improvement I measured: it cut continuity errors by more than half.
+- **What the first frame does not show.** A video starts from its first frame, which already shows everyone on screen. Spend the remaining slots on what that frame leaves out, such as a person about to enter or the place a cut leads to.
 
-Each reference image also needs a label that says what the model should take from it. A style reference without a label gets its content copied into the shot:
+Each image also needs a label that says what the model should take from it. A style reference without a label gets its content copied into the shot:
 
 <Prompt from="Doki's image prompt writer">
   An image that is "the overall style" [...] gives only that quality ("in the
@@ -102,7 +102,7 @@ Each reference image also needs a label that says what the model should take fro
 
 ### What gets a definition
 
-Anything that appears more than once and must look the same needs a definition, however small or plain it is. A coin, a takeout bag or a scarf without a definition is redrawn from its words in every shot, and it comes out different each time. So the agent should not be the one to decide which items are important enough. Doki's agent prompt makes this clear by explaining how the models behave:
+Anything that appears more than once and must look the same needs a definition, however small or plain. Without one, a coin, a takeout bag or a scarf is redrawn from its words in every shot and comes out different each time. So do not leave it to the agent to decide which items are important enough. Tell it how the models behave instead:
 
 <Prompt from="Doki's agent prompt">
   Without one, they get only its text, and each picture draws it anew - each
@@ -113,13 +113,13 @@ Anything that appears more than once and must look the same needs a definition, 
   with a reference shot.
 </Prompt>
 
-A reference image also locks in every visual detail it shows. If a shop's reference image shows the outside of the building, every shot that uses it is pulled toward an exterior view, even when the shot is set inside the shop. So a building's interior, a costume from another time period, and a new form that a character transforms into each need a definition of their own.
+A reference image also locks in everything it shows. If a shop's reference shows its exterior, every shot that uses it is pulled toward an exterior view, even a shot set inside. So an interior, a costume from another period, or what a character transforms into each needs a definition of its own.
 
 ### Text overrides images
 
-When the text prompt and a reference image disagree, image models follow the text. If the prompt says a character wears yellow boots, the red boots in her reference image disappear. Models also sometimes ignore the reference images and draw from the text alone, so a grandmother described only by her cardigan can come out as a different woman in a cardigan. The prompt should therefore never add visual details to anything that has a reference image. It should describe each person by who they are (age, face, hair and build) before their clothing.
+When the text and a reference image disagree, image models follow the text. If the prompt gives a character yellow boots, the red boots in her reference disappear. And when the text names only what someone wears, the model may ignore the reference and draw a stranger in those clothes. So the prompt should never add visual details to anything that has a reference, and it should describe each person by who they are (age, face, hair and build) before what they wear.
 
-The same is true at the cuts inside a multi-shot clip. The video model draws each shot after a cut from scratch, so the film's look drifts: a black-and-white scene can turn to color right after the first cut. The video prompt should restate the look at every cut:
+The same holds at the cuts inside a multi-shot clip. The video model draws each shot after a cut afresh, so the look drifts: a black-and-white scene can turn to color right after the first cut. The video prompt should restate the look at every cut:
 
 <Prompt from="Doki's video prompt writer">
   The video model draws each later shot afresh and drifts from the film's look
@@ -129,71 +129,67 @@ The same is true at the cuts inside a multi-shot clip. The video model draws eac
 
 <Takeaways>
 
-- Create a definition with a reference image for everything that appears more than once and should look the same, and do not let the agent judge which items are important enough.
-- Scope definitions to the whole film, a part of it or a single shot, and make scopes add together rather than override one another.
-- Walk the definition graph depth-first and list the definitions in dependency order. Keep the graph, so you can trace a change in reverse.
-- Spend the reference image slots on the scene so far and on what the first frame leaves out, and label every image with what to take from it.
+- Give everything that appears more than once and should look the same a definition with a reference image, and do not let the agent judge what is important enough.
+- Scope definitions to the film, a part of it or a single shot, and let scopes add up rather than override.
+- Resolve definitions depth-first, list them in dependency order, and keep the graph to trace changes in reverse.
+- Spend the reference slots on the scene so far and on what the first frame leaves out, and label each image with what to take from it.
 - Never add appearance details in text to something that has a definition, and restate the look at every cut.
 
 </Takeaways>
 
 ## 2. Shot Planning
 
-This section uses a few filmmaking terms. A **shot** is one continuous view from a single camera position until a **cut** switches to the next view. A **scene** is a sequence of shots in one place and time, such as a dinner-table conversation that cuts back and forth between two speakers a dozen times. A **clip** is the video that one generation returns.
+A few filmmaking terms first. A **shot** is one continuous view from a single camera position, until a **cut** switches to the next. A **scene** is a run of shots in one place and time, such as a dinner-table conversation that cuts back and forth between two speakers. A **clip** is the video that one generation returns.
 
-Most video agents make films that look like a slideshow, because they generate one clip per shot and stitch the clips together. Each clip starts from a still image, so its motion and sound start from zero, and it tends to slow to a stop before its cut. A video agent needs a shot planner instead. The planner decides which shots to generate together in one clip and where to split a long scene into several clips, and the clip prompts keep the motion going across each cut.
+Most video agents make films that look like a slideshow, because they generate one clip per shot and stitch the clips together. A shot planner decides instead which shots to generate together in one clip, and where to split a long scene into several clips.
 
 ### Film the scene, not the shot
 
-On a real film set, a crew also films a scene one shot at a time, yet all those shots share the same physical world. The set, the actors and the lighting stay the same from shot to shot. A continuity supervisor checks that props stay where they were, and the editor cuts in the middle of an action, so a movement that starts in one shot finishes in the next. That shared world makes separate shots feel like one continuous moment.
+On a film set, a scene is also filmed one shot at a time, but every shot shares one physical world. The set, the actors and the light stay the same, a continuity supervisor keeps the props in place, and the editor cuts in the middle of an action, so a movement that starts in one shot finishes in the next. That shared world makes separate shots feel like one moment.
 
-A video model has no shared world across separate generations. Each generation invents a new world from scratch, so generating one clip per shot pieces together several slightly different worlds. The lighting and background shift at every cut, movements restart from a standstill, and the sound restarts from silence.
+A video model has no such world. Each generation invents its own, so one clip per shot stitches together several slightly different worlds: the light and background shift at every cut, movements restart from a standstill, and the sound restarts from silence.
 
-Recent video models can generate several shots in one pass and cut between them, which gives those shots a shared world again. After each cut, the model keeps the people, the place and the lighting it just drew, and movement and sound carry across the cut. Multi-shot generation also handles reverse angles better. When the camera turns around to show the other side of a room, separately generated images often fail, because image models tend to copy the camera angle of the previous shot.
+Recent video models can generate several shots in one pass and cut between them, which gives those shots a shared world again. After each cut, the people, the place and the light are the ones the model just drew, and movement and sound carry across.
 
 <SceneFigure />
 
-The basic unit of video generation should therefore be the scene, not the single shot. In my tests, generating a scene as one multi-shot clip beat generating its shots separately in most head-to-head comparisons, with about a third fewer continuity breaks.
+So the unit of generation should be the scene, not the shot. In my tests, a scene generated as one clip beat the same shots generated separately in most head-to-head comparisons, with about a third fewer continuity breaks.
 
 ### Why a scene still needs a plan
 
-Generating a scene as one clip is not free, and it is not always possible:
+One clip per scene is not always possible, and it has costs of its own. Models generate only 10 to 30 seconds at a time, and many scenes run longer. Inside a clip, only the first shot opens exactly on its storyboard frame. The model draws every later shot itself, so those shots only come close to their frames. A new clip opens exactly on its own frame, but its motion and sound start over.
 
-- **Length.** A model can only generate so much at once, currently 10 to 30 seconds, and many scenes run longer.
-- **Drift from the storyboard.** A clip starts exactly on its first shot's storyboard frame. The model then draws every later shot itself, guided by the text and the reference images, so those shots only come close to their frames.
-- **A fresh start at each boundary.** A new clip opens exactly on its own first frame, but its motion, its people and its sound start over.
-
-So every cut poses a question: is it worse to break the take here, or to let the next shot drift from its frame? The answer depends on the cut and the shot. Breaking a line of dialogue from its reply hurts, while breaking where the story jumps to a new place costs nothing. A reaction shot works fine if it only comes close to its storyboard frame, while a reveal, a product shot or the user's own photo must open exactly on its frame. Every extra clip also costs money.
+So every cut poses a question: is it worse to break the take here, or to let the next shot drift from its frame? The answer depends on the cut and the shot, and every extra clip also costs money.
 
 ### A model judges, an algorithm decides
 
-The planning problem has two parts, and they suit different tools. Rating what each cut and each shot needs is a matter of taste: it requires reading the story and looking at the frames. A language model does this well. Choosing the best split is an optimization with hard limits, and the choice at one cut changes what every other cut costs. A language model does this poorly, but a short algorithm does it exactly. On 11 hard scenes, Doki's plans made this way passed 32 of 32 editing checks, while plans that Gemini wrote directly passed 79 to 85% of them.
+The problem has two parts, and they suit different tools. Rating what each cut and shot needs is a matter of taste: it takes reading the story and looking at the frames, which a language model does well. Choosing the best split is an optimization with hard limits, where the choice at one cut changes what the others cost. A language model does this poorly, but a short algorithm does it exactly. On 11 hard scenes, plans made this way passed 32 of 32 editing checks, while plans that Gemini wrote directly passed 79 to 85% of them.
 
-**Reading the scene.** Before a scene's video is made, a model reads the scene, both the shots' text and their storyboard frames, and rates each cut and each shot from 0 to 3:
+**Reading the scene.** Before a scene's video is made, a model reads its shots, both the text and the storyboard frames, and rates each cut and each shot from 0 to 3:
 
 <Rubric />
 
-The frames matter. They show details the text may leave out, such as an engraving that must be legible, or two shots in a row with nearly the same view. Rated from the words alone, the same scenes passed 28 of the 32 checks. The levels also describe the film, not the video model, so one reading works for any model. What each level costs is measured separately for each model.
+The frames matter: rated from the words alone, the same scenes passed 28 of the 32 checks. The levels also describe the film, not the video model, so one reading serves every model, and what each level costs is measured for each model.
 
-**Choosing the split.** Each cut in a scene either becomes a clip boundary or does not, so a scene of n shots can be split 2<sup>n−1</sup> ways. A small dynamic program finds the best split without trying them all. Let best[j] be the lowest loss of any plan for the first j shots. The last clip of that plan covers shots i+1 through j for some i, so best[j] is the best value of best[i] plus what that last clip loses:
+**Choosing the split.** Each cut either becomes a clip boundary or does not, so a scene of n shots can be split 2<sup>n−1</sup> ways. A small dynamic program finds the best split without trying them all. Let best[j] be the lowest loss of any plan for the first j shots. If that plan's last clip covers shots i+1 through j, then best[j] is the best value of best[i] plus what that clip loses:
 
 <Formula />
 
-The clip pays a penalty S at the cut before it, based on how much that cut needs to stay in one continuous clip. It pays a penalty F for each shot after the first, based on how much each shot needs to open exactly on its storyboard frame. It also pays its price, at half a point per dollar. A clip longer than the model allows is never considered, a dissolve or a fade always starts a new clip, and a continuous take with no cut is split only when no clip can hold it. When two plans tie, the longer clip wins.
+S and F depend on the levels from the reading, and the price is weighed at half a point per dollar. Clips longer than the model allows are never considered, and a dissolve or a fade always starts a new clip.
 
-**Measuring the costs.** S and F are measured in the same unit, points on a judge's 1-to-10 rating, so the planner can weigh one directly against the other. To measure them, I generated each test scene twice, once in as few clips as the length limit allows and once with a separate clip for every shot. A model then rated every cut and shot that differed between the two versions, side by side. For MiniMax H3, a cut rated 2 or 3 scored 1.2 points better inside one clip, while a cut rated 0 or 1 scored no better. A shot rated 2 or 3 lost 1.2 points when it came later in a clip instead of starting its own, while one rated 0 or 1 lost nothing. With this table, the planner predicted which whole film the judge preferred in 8 of 10 scenes. A model that has not been measured gets a flat table: every clip boundary costs the same, and drifting from a frame costs nothing. Its plans are simply the fewest clips that fit.
+**Measuring the costs.** S and F are measured in the same unit, points on a judge's 1-to-10 rating, so the planner can weigh one against the other. I generated each test scene both ways, in the fewest clips that fit and with a clip for every shot, and had a model compare each cut and shot that differed. For MiniMax H3, a cut rated 2 or 3 lost 1.2 points when a clip boundary fell on it, and a shot rated 2 or 3 lost 1.2 points when it did not open its own clip. Levels 0 and 1 cost nothing. With this table, the planner predicted which whole film the judge preferred in 8 of 10 scenes. A model that has not been measured simply gets the fewest clips that fit.
 
-Here is the planner on the whole platform scene from Fig. 2. The scene runs 20 seconds, longer than MiniMax's limit of 15, so it needs at least two clips. Of the 16 possible splits, 13 fit. The best one breaks before s4, at a cut rated 2, so s4 opens exactly on its frame, which it needs. Breaking one cut earlier, as the camera starts to fall, would split a moment rated 3 and lose more:
+Here is the planner on the whole platform scene from Fig. 2. At 20 seconds, the scene is longer than MiniMax's limit of 15, so it needs at least two clips. The best split breaks before s4, at a cut rated 2, so that s4 opens exactly on its frame. Breaking one cut earlier, as the camera starts to fall, would split a moment rated 3:
 
 <PlanFigure />
 
-The agent that writes the script never sees any of this. It writes each scene at the length the story needs, and the planner decides how the scene becomes clips. Generation limits stay out of the story.
+The agent that writes the script never sees any of this. It writes each scene at the length the story needs, and the planner decides how the scene becomes clips.
 
 ### Writing the clip
 
-Once the clips are planned, each one needs two prompts: an image prompt for its first frame and a video prompt for its motion. Both must give the model something to play and keep it moving.
+Each planned clip gets two prompts, one for its first frame and one for its motion. Both must give the model something to play and keep it moving.
 
-**Open on the first instant.** Image models draw any action the prompt names as already done. "She walks to the porch, crouches and watches the kitten" comes out with her already crouched, and the clip has nothing left to play. So the image prompt should describe a still photograph of the shot's first instant, in states rather than actions. Doki's prompt writer first names that instant on its own line (`OPENING: she reaches the porch steps`), which forces the writer to commit to a single moment:
+**Open on the first instant.** Image models draw any action the prompt names as already done. "She walks to the porch, crouches and watches the kitten" comes out with her already crouched, and the clip has nothing left to play. So Doki's prompt writer first names the opening instant on its own line (`OPENING: she reaches the porch steps`), then describes the frame as a still photograph of it:
 
 <Prompt from="Doki's image prompt writer">
   The image model draws whatever the prompt names as done: an action's verb,
@@ -203,7 +199,7 @@ Once the clips are planned, each one needs two prompts: an image prompt for its 
   hands, gaze and weight are, and where each object is.
 </Prompt>
 
-**Keep moving through the cut.** Video models tend to slow to a stop at the end of a clip. Doki's video prompt writer is told what that does to the film:
+**Keep moving through the cut.** Video models tend to slow to a stop at the end of a clip, so the video prompt writer is told what that does to the film:
 
 <Prompt from="Doki's video prompt writer">
   A clip that slows to a stop before its cut makes the film halt there, and when
@@ -211,7 +207,7 @@ Once the clips are planned, each one needs two prompts: an image prompt for its 
   none, keep the action and the camera moving through the last second [...]
 </Prompt>
 
-**Translate the plan for each model.** Keep the plan itself independent of the model: a list of shots with their timings. Then write it out in each video model's own syntax, because models read prompts differently. MiniMax ignores timed spans such as `[2-4s] cut to …` and often cuts at around two seconds regardless. Written in its own shot-list syntax, it cuts within a few hundredths of a second of each timestamp:
+**Translate the plan for each model.** Keep the plan independent of the model, as a list of shots with their timings, and write it out in each model's own syntax. MiniMax, for example, ignores timed spans such as `[2-4s] cut to …` and often cuts at about two seconds regardless. Written in its own shot-list syntax, it cuts within a few hundredths of a second of each timestamp:
 
 <ShotList />
 
@@ -220,23 +216,23 @@ Once the clips are planned, each one needs two prompts: an image prompt for its 
 - Generate a scene's shots together in one clip whenever the model supports it.
 - Let a model rate what each cut and shot needs, and let an algorithm choose the split, with costs measured for each video model.
 - Write each first frame as a still photograph of the opening instant, and keep each clip moving through its cuts.
-- Keep the plan independent of the model, write it in each model's own syntax, and keep generation limits out of the script.
+- Keep the plan independent of the model, and keep generation limits out of the script.
 
 </Takeaways>
 
 ## 3. Incremental Editing
 
-A long film is never right on the first try. Details keep changing during production: a character's hairstyle, a planet that should be frozen, a new line of dialogue. The obvious response is to regenerate every shot a change touches, but regeneration is a gamble. In my logs, regenerating a shot fixed the flagged problem only about half the time. It also throws away what was already right: the camera angle, the faces, the take the user approved.
+A long film is never right on the first try. A character's hair changes, a planet should be frozen, a line of dialogue is added. The obvious response is to regenerate every shot a change touches, but regeneration is a gamble: in my logs, it fixed the flagged problem only about half the time. It also throws away what was already right, such as the camera angle, the faces and the take the user approved.
 
-A video agent should instead treat the film like a software build. It tracks exactly which assets are out of date and rebuilds as little as possible, editing wherever it can. Current image and video models support editing: given an image or a clip and an instruction, they change what was asked and keep the rest.
+A video agent should instead treat the film like a software build. It tracks exactly which assets are out of date and rebuilds as little as possible, editing wherever it can. Current image and video models can edit: given an image or a clip and an instruction, they change what was asked and keep the rest.
 
 ### Staleness is a diff
 
-For every image and clip, record the inputs that made it: the shot's text, the resolved definitions, the versions of the reference images, and for a video, its first frame, its timing and the clip it shares with other shots. An asset is stale when its record differs from the current state of the film, and the difference is the reason ("<T>@Mars</T> changed"). Because definitions are resolved through the graph from Section 1, a change to one definition reaches every shot that depends on it, directly or indirectly. Write the record only after a generation succeeds, so a failed run never marks a shot as up to date.
+For every image and clip, record the inputs that made it: the shot's text, the resolved definitions, the versions of the reference images, and for a video, its first frame, its timing and the clip it shares with other shots. An asset is stale when its record differs from the current film, and the difference is the reason ("<T>@Mars</T> changed"). Because definitions are resolved through the graph from Section 1, a change to one definition reaches every shot that depends on it.
 
 ### Keep, edit or remake
 
-For each stale image or clip, a fast model compares the recorded inputs with the shot's new state and chooses one of three actions: keep the asset, edit it, or remake it:
+For each stale image or clip, a fast model compares the recorded inputs with the shot's new state and chooses to keep the asset, edit it or remake it:
 
 <UpdateFigure />
 
@@ -251,15 +247,11 @@ Most of the judge's prompt describes what an edit can and cannot change:
   video it can't change what is said, the voices or the timing.
 </Prompt>
 
-The edit model sees only the image or video, not the script, so the judge writes its instruction in visual terms ("the woman in the red coat") rather than definition names. On 62 labeled cases, Doki's judge chose correctly 61 times. Rules that must always hold stay in code rather than in the judge: a failed edit falls back to a remake, and a photo the user uploaded is never overwritten.
-
-Send every video edit to an editing model that preserves the original footage, regardless of which model generated the clip. Doki uses [Gemini Omni](https://ai.google.dev/gemini-api/docs/omni), which changes what was asked and keeps the motion frame for frame.
+The edit model sees only the picture, not the script, so the judge writes its instruction in visual terms ("the woman in the red coat") rather than definition names. On 62 labeled cases, Doki's judge chose correctly 61 times. Rules that must always hold stay in code: a failed edit falls back to a remake, and a photo the user uploaded is never overwritten. Every video edit goes to a model that keeps the original take, whichever model made the clip. Doki uses [Gemini Omni](https://ai.google.dev/gemini-api/docs/omni), which changes what was asked and keeps the motion frame for frame.
 
 ### Remake the smallest run
 
-When several shots share one clip, changing one of them should not regenerate the whole scene. If the change can be an edit, cut that shot's segment out of the clip, edit it, and keep the result as that shot's own video. If the shot needs a remake, regenerate only the run of neighboring shots that need new video, and leave the rest of the clip as it is. The cost is a new clip boundary where there was none before.
-
-Trimming is cheaper still. Cutting out the half second in which a hand warps costs nothing. Give the agent a trim tool, and have it fix a shared clip from the cheapest option to the most expensive: trim first, then reword the change so an edit can make it, and remake only as a last resort. Keep every version of every asset, so a remake that turns out worse can be undone.
+When several shots share one clip, changing one of them should not regenerate the whole scene. An edit can run on that shot's segment alone. A remake regenerates only the run of neighboring shots that need new video, at the cost of a new clip boundary there. Trimming is cheaper still: cutting out the half second in which a hand warps costs nothing. So give the agent a trim tool and have it fix a clip in order of cost, trimming first, then editing, and remaking only as a last resort. Keep every version, so a remake that turns out worse can be undone.
 
 <Takeaways>
 
@@ -272,11 +264,11 @@ Trimming is cheaper still. Cutting out the half second in which a hand warps cos
 
 ## 4. Review Loop
 
-A video agent cannot fix problems it never sees, and even a multimodal agent rarely watches the film it is making. The agent writes the script long before any images or clips exist, it does not check the results on its own, and many language models still cannot watch video with sound (in Doki, Gemini watches the clips for the agent). Yet almost every problem in this post shows up only in the images and videos. The harness therefore needs a review loop that checks the output automatically at fixed points and sends its findings back to the agent as tool results.
+A video agent cannot fix problems it never sees, and even a multimodal agent rarely watches the film it is making. It writes the script long before any image or clip exists, it does not check the results on its own, and many language models still cannot watch video with sound (in Doki, Gemini watches the clips for the agent). Yet almost every problem in this post shows up only on screen. So the harness needs a review loop that checks the output automatically at fixed points and sends its findings back to the agent as tool results.
 
 ### Reviews the harness runs
 
-An agent will not inspect its own work unprompted. I gave Doki's agent a tool that let a vision model watch any shot and answer questions about it, and across sixteen writing runs, the agent used it zero times. So the reviews run in the harness, the code around the agent that runs its tools:
+An agent will not inspect its own work unprompted. I gave Doki's agent a tool that let a vision model watch any shot and answer questions about it, and in sixteen writing runs the agent used it zero times. So the reviews run in the harness:
 
 <ReviewFigure />
 
@@ -296,10 +288,10 @@ The most useful check is what I call the first-time viewer. A separate model wat
 ### What makes reviews work
 
 - **Watch clips, not frames.** Findings from watching whole clips with sound held up almost every time, while findings from three still frames per clip held up only about two times in three. Only whole clips revealed a bicycle rolling backward, a hand that never lets go of a cup, or a voice that changes between shots.
-- **Check the output, not the script.** Most continuity errors happen during generation: a cut inside a clip forgets where someone was standing, or a prop changes shape. A checker that reads only the script cannot see these. In my tests, a text-only continuity checker flagged many issues in the scripts and changed nothing in the films.
-- **Fixes must fit the film.** Left alone, the agent responds to story feedback by adding more events to the script, and clips with too much happening break more often. Every review should say that a fix "has to fit in the shots the film has [...] and never add a shot, a part or a cut."
+- **Check the output, not the script.** Most continuity errors happen during generation, such as a cut that forgets where someone was standing or a prop that changes shape, so a checker that reads only the script cannot see them. In my tests, a text-only continuity checker flagged many issues in the scripts and changed nothing in the films.
+- **Fixes must fit the film.** Left alone, the agent answers story feedback by adding events to the script, and clips with too much happening break more often. Every review should say that a fix "has to fit in the shots the film has [...] and never add a shot, a part or a cut."
 - **Cap the loop.** Review each shot at most three times per request. Without a cap, the agent can keep remaking a shot to satisfy its own critiques.
-- **Evaluate the agent on films.** The same holds when you test a change to the agent itself. Judge finished films, watched blind, rather than the prompts the agent wrote. A prompt change can look much better to a judge reading the prompts, yet make no difference to the clips those prompts produce.
+- **Evaluate the agent on films.** The same holds when you test a change to the agent itself: judge finished films, watched blind, not the prompts the agent wrote. A prompt change can look much better on paper and make no difference to the clips.
 
 <Takeaways>
 
@@ -321,9 +313,9 @@ Prescriptions fail in predictable ways:
 - **Numbers become targets.** Told that a scene becomes "one clip, of up to 15s", the agent cut its scenes to fit, even scenes set in one place.
 - **Categories invite judgment calls.** Asked to define "characters and key places or objects", the agent decided that a coin and a scarf were not key.
 
-The fixes in this post describe how the system behaves instead. The agent prompt explains that the models redraw anything without a definition from scratch every time, however small or plain it is. The video prompt writer is told that stopping before a cut makes the film halt there. It is also told when a stop is right: at the end of a scene, or during a deliberate pause. The update judge is told what an edit can and cannot change, and it decides each case itself.
+Each fix in this post is a description instead. The agent prompt explains that the models redraw anything without a definition. The video prompt writer learns what a stop before a cut does to the film, and when a stop is right. The update judge learns what an edit can and cannot change. In each case, the agent decides for itself.
 
-There is one exception. Facts alone failed when a habit's payoff was invisible to the agent. Told only what a reference image does and what it costs, the agent created almost none, because the benefit shows up only in images and videos it never sees while it writes. A habit like this has to be stated outright, or enforced in code. A comment at the top of Doki's agent prompt records why:
+There is one exception. Facts alone fail when the payoff of a habit is invisible to the agent. Told only what a reference image does and what it costs, the agent created almost none, because the benefit shows up only in images and videos it never sees while it writes. A habit like this has to be stated outright, or enforced in code. A comment at the top of Doki's agent prompt records why:
 
 <Prompt from="Doki's agent prompt, its opening comment">
   [...] the habits whose payoff shows only in images and videos it never sees:
@@ -342,7 +334,7 @@ There is one exception. Facts alone failed when a habit's payoff was invisible t
 
 ## Looking ahead
 
-None of these ideas is tied to Doki. Whether the agent is a chat agent calling a video API, a node-based canvas or a timeline editor, making a long film means coordinating dozens of separate generations. So it needs a definition system, a shot planner, incremental editing and a review loop. Video models will take over parts of this as clips grow longer, reference limits rise and editing improves. Even so, a film will still be made of many separate generations, and the agent will still not watch the result unless the harness makes it.
+None of these ideas is tied to Doki. Whether the agent is a chat agent calling a video API, a node-based canvas or a timeline editor, making a long film means coordinating dozens of separate generations, so it needs a definition system, a shot planner, incremental editing and a review loop. Video models will take over parts of this as clips grow longer, reference limits rise and editing improves. Even so, a film will still be made of many separate generations, and the agent will still not watch the result unless the harness makes it.
 
 I am still working through many of these problems. If you are building a video agent too, I would like to hear what has worked for you. You can try Doki with your own API keys at [doki.mov](https://doki.mov), and our paper with [Mira Dontcheva](https://research.adobe.com/person/mira-dontcheva) and [Dingzeyu Li](https://dingzeyu.li/) appears [at UIST 2026](https://dl.acm.org/doi/10.1145/3830398.3830715).
 
