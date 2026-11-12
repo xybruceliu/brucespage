@@ -271,31 +271,57 @@ function Dots({
   )
 }
 
-/** Two levels of the scene reader's rubric for a cut, with the dots the planner figure uses */
+/** The scene reader's two scales, word for word, with the dots the planner figure uses */
+const SCALES: {
+  kind: 'seam' | 'frame'
+  title: string
+  levels: string[]
+}[] = [
+  {
+    kind: 'seam',
+    title: 'Each cut: how much the two shots need to run on as one take',
+    levels: [
+      "one moment that can't break - a line of dialogue answered, an action caught mid-way, a sound that runs across the cut, or two nearly identical views that would jump if made apart",
+      'the same moment and place, closely linked - a reaction, a detail of what was just shown',
+      'the same scene, but a cut there could start afresh - a new beat, a new angle on a calmer moment',
+      'a new place or time, or a deliberate break - nothing needs to carry over',
+    ],
+  },
+  {
+    kind: 'frame',
+    title:
+      'Each shot: how much it needs to open exactly on its storyboard frame',
+    levels: [
+      'it must be exact - a photo the user supplied, text or a logo that must read, a product shot',
+      'a key image - a reveal, an entrance, a composition the story relies on',
+      'it helps - a clear new framing worth keeping',
+      'any close framing will do - a reaction, an insert, a continuation of the shot before',
+    ],
+  },
+]
+
+/** The scene reader's rubric: both scales, from 3 down to 0 */
 export function Rubric() {
-  const levels = [
-    {
-      level: 3,
-      text: "one moment that can't break - a line of dialogue answered, an action caught mid-way, a sound that runs across the cut, or two nearly identical views that would jump if made apart",
-    },
-    {
-      level: 0,
-      text: 'a new place or time, or a deliberate break - nothing needs to carry over',
-    },
-  ]
   return (
-    <Excerpt label="Doki's scene reader, how much a cut needs one take">
-      <ul className="space-y-2">
-        {levels.map(({ level, text }) => (
-          <li key={level} className="flex items-baseline gap-3">
-            <span className="flex shrink-0 items-center gap-2 font-mono text-[12px]">
-              <Dots level={level} kind="seam" />
-              {level}
-            </span>
-            <span>{text}</span>
-          </li>
+    <Excerpt label="Doki's scene reader">
+      <div className="space-y-4">
+        {SCALES.map(({ kind, title, levels }) => (
+          <div key={kind}>
+            <p className="text-foreground mb-1.5 font-medium">{title}</p>
+            <ul className="space-y-1.5">
+              {levels.map((text, i) => (
+                <li key={i} className="flex items-baseline gap-3">
+                  <span className="flex shrink-0 items-center gap-2 font-mono text-[12px]">
+                    <Dots level={3 - i} kind={kind} />
+                    {3 - i}
+                  </span>
+                  <span>{text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
-      </ul>
+      </div>
     </Excerpt>
   )
 }
