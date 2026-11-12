@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 // The figures of "Designing a Video Agent That Can Actually Make a Long Film".
 // Pictures and data come from Doki's example film The Last Three and from the
@@ -9,24 +9,63 @@ import { useMemo, useState, type ReactNode } from 'react'
 
 const IMG = '/img/blog/video-agent'
 
+// A figure is wider than the text on a large screen: it reaches out by BREAKOUT
+// on each side of the text column (608px), so it's up to FIGURE_MAX wide, while
+// its caption stays in line with the text. A figure laid out for a width is
+// drawn for the width it gets, never under FIGURE_MIN: narrower than that, as on
+// a phone, it scrolls sideways.
+const FIGURE_MIN = 600
+const FIGURE_MAX = 784
+const BREAKOUT = 'min-[880px]:-mx-[88px]'
+const BACK_IN = 'min-[880px]:mx-[88px]'
+
+/** The width a figure has to draw in, from its scroller's (minus its padding) */
+function useFigureWidth() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(FIGURE_MIN)
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    const measure = () =>
+      setWidth(
+        Math.max(FIGURE_MIN, Math.min(FIGURE_MAX, element.clientWidth - 32)),
+      )
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return [ref, width] as const
+}
+
 /** A figure that keeps its layout and scrolls sideways on a narrow screen */
 function Figure({
   children,
   caption,
   fixed = true,
 }: {
-  children: ReactNode
+  /** What it shows - or, for a figure laid out for a width, what it shows at a width */
+  children: ReactNode | ((width: number) => ReactNode)
   caption: ReactNode
   fixed?: boolean
 }) {
+  const [ref, width] = useFigureWidth()
   return (
-    <figure className="not-prose my-10">
+    <figure className={`not-prose my-10 ${BREAKOUT}`}>
       <div
+        ref={ref}
         className={fixed ? '-mx-4 overflow-x-auto overflow-y-hidden px-4' : ''}
       >
-        <div className={fixed ? 'mx-auto w-[600px]' : ''}>{children}</div>
+        <div
+          className={fixed ? 'mx-auto' : ''}
+          style={fixed ? { width } : undefined}
+        >
+          {typeof children === 'function' ? children(width) : children}
+        </div>
       </div>
-      <figcaption className="text-muted-foreground mt-4 text-sm leading-relaxed">
+      <figcaption
+        className={`text-muted-foreground mt-4 text-sm leading-relaxed ${BACK_IN}`}
+      >
         {caption}
       </figcaption>
     </figure>
@@ -134,17 +173,16 @@ interface DefNode {
   order: number
   image?: string
   says?: ReactNode
-  x: number
-  y: number
+  /** Its column, of four, and its row: the shot's own definitions, or the ones they use */
+  col: number
+  row: 0 | 1
 }
 
-const NODE_W = 138
-const ROW_A = 164
-const ROW_B = 272
+const NODE_GAP = 16
 const NODE_H = 78
 
 const NODES: DefNode[] = [
-  { key: 'shop', name: '@PhotoShop', order: 1, image: 'shop', x: 0, y: ROW_A },
+  { key: 'shop', name: '@PhotoShop', order: 1, image: 'shop', col: 0, row: 0 },
   {
     key: 'platform-photo',
     name: '@PlatformPhoto',
@@ -155,8 +193,8 @@ const NODES: DefNode[] = [
         <T>@Mio</T> on the <T>@Platform</T>
       </>
     ),
-    x: 154,
-    y: ROW_A,
+    col: 1,
+    row: 0,
   },
   {
     key: 'road-photo',
@@ -168,8 +206,8 @@ const NODES: DefNode[] = [
         <T>@Mio</T> on a snowy road
       </>
     ),
-    x: 308,
-    y: ROW_A,
+    col: 2,
+    row: 0,
   },
   {
     key: 'window-photo',
@@ -181,19 +219,19 @@ const NODES: DefNode[] = [
         <T>@Mio</T> on a train, <T>#BlueHour</T>
       </>
     ),
-    x: 462,
-    y: ROW_A,
+    col: 3,
+    row: 0,
   },
-  { key: 'mio', name: '@Mio', order: 2, image: 'mio', x: 154, y: ROW_B },
+  { key: 'mio', name: '@Mio', order: 2, image: 'mio', col: 1, row: 1 },
   {
     key: 'platform',
     name: '@Platform',
     order: 3,
     image: 'platform',
-    x: 308,
-    y: ROW_B,
+    col: 2,
+    row: 1,
   },
-  { key: 'blue', name: '#BlueHour', order: 6, x: 462, y: ROW_B },
+  { key: 'blue', name: '#BlueHour', order: 6, col: 3, row: 1 },
 ]
 
 const EDGES: [string, string][] = [
@@ -225,9 +263,19 @@ function Badge({ n }: { n: number }) {
 }
 
 export function ResolveFigure() {
+  // Laid out for the width it's drawn at: four columns of definitions, under
+  // the shot, whose picture grows with the figure
+  const layout = (width: number) => {
+    const nodeW = (width - 3 * NODE_GAP) / 4
+    const imageW = Math.round(width * 0.3)
+    const imageH = Math.round(imageW * 0.56)
+    const cardH = imageH + 18
+    const rowY = [cardH + 46, cardH + 46 + NODE_H + 30]
+    const x = (n: DefNode) => n.col * (nodeW + NODE_GAP)
+    const y = (n: DefNode) => rowY[n.row]
+    return { nodeW, imageW, imageH, cardH, height: rowY[1] + NODE_H, x, y }
+  }
   const node = (key: string) => NODES.find((n) => n.key === key)!
-  const top = (n: DefNode) => [n.x + NODE_W / 2, n.y] as const
-  const bottom = (n: DefNode) => [n.x + NODE_W / 2, n.y + NODE_H] as const
   const curve = ([x1, y1]: readonly number[], [x2, y2]: readonly number[]) => {
     const mid = (y1 + y2) / 2
     return `M${x1} ${y1} C ${x1} ${mid}, ${x2} ${mid}, ${x2} ${y2}`
@@ -246,145 +294,162 @@ export function ResolveFigure() {
         </>
       }
     >
-      <div className="relative h-[350px] text-[13px]">
-        <svg
-          className="text-border absolute inset-0"
-          width="600"
-          height="350"
-          aria-hidden="true"
-        >
-          {NODES.filter((n) => n.y === ROW_A).map((n) => (
-            <path
-              key={n.key}
-              d={curve([300, 118], top(n))}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-          ))}
-          {EDGES.map(([from, to]) => (
-            <path
-              key={from + to}
-              d={curve(bottom(node(from)), top(node(to)))}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-          ))}
-        </svg>
-
-        <div className="border-border bg-background absolute top-0 left-0 flex w-[600px] gap-4 rounded-[var(--radius-xl)] border p-2">
-          <img
-            src={`${IMG}/counter.jpg`}
-            alt="Overhead close-up of a shop counter with three photos"
-            className="h-[100px] w-[179px] rounded-[var(--radius-md)] object-cover"
-          />
-          <div className="py-1 pr-2">
-            <p className="text-foreground leading-snug">
-              Overhead close-up of <T>@PhotoShop</T>&rsquo;s counter: the last
-              three photos, <T>@PlatformPhoto</T>, <T>@RoadPhoto</T> and{' '}
-              <T>@WindowPhoto</T>.
-            </p>
-            <p className="text-muted-foreground relative mt-2 inline-block pl-5 text-[12px]">
-              <span className="bg-foreground text-background absolute top-0 left-0 flex size-[16px] items-center justify-center rounded-full text-[9px] font-semibold">
-                8
-              </span>
-              + <T>#ALL</T>, in every shot
-            </p>
-          </div>
-        </div>
-
-        {NODES.map((n) => (
-          <div
-            key={n.key}
-            className="border-border bg-background absolute rounded-[var(--radius-lg)] border px-2 py-1.5"
-            style={{ left: n.x, top: n.y, width: NODE_W, height: NODE_H }}
-          >
-            <Badge n={n.order} />
-            <p className="mb-1 pl-1.5 text-[12.5px]">
-              <T>{n.name}</T>
-            </p>
-            <div className="flex items-center gap-2">
-              {n.image ? (
-                <img
-                  src={`${IMG}/${n.image}.jpg`}
-                  alt=""
-                  className="size-[44px] shrink-0 rounded-[var(--radius-sm)] object-cover"
-                />
-              ) : (
-                <span className="bg-muted text-muted-foreground flex size-[44px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-lg">
-                  #
-                </span>
-              )}
-              {n.says && (
-                <p className="text-muted-foreground text-[11px] leading-snug">
-                  {n.says}
-                </p>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="text-[13px]">
-        <div className="border-border mt-6 grid w-[600px] grid-cols-[1fr_236px] gap-6 rounded-[var(--radius-xl)] border p-4">
-          <div>
-            <p className="text-muted-foreground mb-2 font-mono text-[11px] tracking-wide uppercase">
-              Prompt
-            </p>
-            <ol className="space-y-[3px] text-[12px]">
-              {RESOLVED.map((name, i) => (
-                <li key={name} className="flex items-center gap-2">
-                  <span className="text-muted-foreground w-3 text-right tabular-nums">
-                    {i + 1}
-                  </span>
-                  <T>{name}</T>
-                  <span className="text-muted-foreground">=</span>
-                  <span
-                    className="bg-muted h-[7px] rounded-full"
-                    style={{ width: 60 + ((i * 37) % 70) }}
+      {(width: number) => {
+        const { nodeW, imageW, imageH, cardH, height, x, y } = layout(width)
+        const top = (n: DefNode) => [x(n) + nodeW / 2, y(n)] as const
+        const bottom = (n: DefNode) =>
+          [x(n) + nodeW / 2, y(n) + NODE_H] as const
+        return (
+          <>
+            <div className="relative text-[13px]" style={{ height }}>
+              <svg
+                className="text-border absolute inset-0"
+                width={width}
+                height={height}
+                aria-hidden="true"
+              >
+                {NODES.filter((n) => n.row === 0).map((n) => (
+                  <path
+                    key={n.key}
+                    d={curve([width / 2, cardH], top(n))}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
                   />
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div>
-            <p className="text-muted-foreground mb-2 font-mono text-[11px] tracking-wide uppercase">
-              Images
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                'shop',
-                'photo-platform',
-                'photo-road',
-                'photo-window',
-                'mio',
-                'platform',
-              ].map((image) => (
+                ))}
+                {EDGES.map(([from, to]) => (
+                  <path
+                    key={from + to}
+                    d={curve(bottom(node(from)), top(node(to)))}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                ))}
+              </svg>
+
+              <div
+                className="border-border bg-background absolute top-0 left-0 flex gap-4 rounded-[var(--radius-xl)] border p-2"
+                style={{ width }}
+              >
                 <img
-                  key={image}
-                  src={`${IMG}/${image}.jpg`}
-                  alt=""
-                  className="size-[46px] rounded-[var(--radius-sm)] object-cover"
+                  src={`${IMG}/counter.jpg`}
+                  alt="Overhead close-up of a shop counter with three photos"
+                  className="shrink-0 rounded-[var(--radius-md)] object-cover"
+                  style={{ width: imageW, height: imageH }}
                 />
+                <div className="self-center pr-2">
+                  <p className="text-foreground leading-snug">
+                    Overhead close-up of <T>@PhotoShop</T>&rsquo;s counter: the
+                    last three photos, <T>@PlatformPhoto</T>, <T>@RoadPhoto</T>{' '}
+                    and <T>@WindowPhoto</T>.
+                  </p>
+                  <p className="text-muted-foreground relative mt-2 inline-block pl-5 text-[12px]">
+                    <span className="bg-foreground text-background absolute top-0 left-0 flex size-[16px] items-center justify-center rounded-full text-[9px] font-semibold">
+                      8
+                    </span>
+                    + <T>#ALL</T>, in every shot
+                  </p>
+                </div>
+              </div>
+
+              {NODES.map((n) => (
+                <div
+                  key={n.key}
+                  className="border-border bg-background absolute rounded-[var(--radius-lg)] border px-2 py-1.5"
+                  style={{
+                    left: x(n),
+                    top: y(n),
+                    width: nodeW,
+                    height: NODE_H,
+                  }}
+                >
+                  <Badge n={n.order} />
+                  <p className="mb-1 pl-1.5 text-[12.5px]">
+                    <T>{n.name}</T>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    {n.image ? (
+                      <img
+                        src={`${IMG}/${n.image}.jpg`}
+                        alt=""
+                        className="size-[44px] shrink-0 rounded-[var(--radius-sm)] object-cover"
+                      />
+                    ) : (
+                      <span className="bg-muted text-muted-foreground flex size-[44px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-lg">
+                        #
+                      </span>
+                    )}
+                    {n.says && (
+                      <p className="text-muted-foreground text-[11px] leading-snug">
+                        {n.says}
+                      </p>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
-            <p className="text-muted-foreground mt-3 mb-1.5 text-[11px]">
-              The scene so far
-            </p>
-            <div className="flex gap-1.5">
-              {['slope', 'owner'].map((image) => (
-                <img
-                  key={image}
-                  src={`${IMG}/${image}.jpg`}
-                  alt=""
-                  className="h-[46px] w-[82px] rounded-[var(--radius-sm)] object-cover"
-                />
-              ))}
+
+            <div className="border-border mt-6 grid grid-cols-[1fr_auto] gap-8 rounded-[var(--radius-xl)] border p-4 text-[13px]">
+              <div>
+                <p className="text-muted-foreground mb-2 font-mono text-[11px] tracking-wide uppercase">
+                  Prompt
+                </p>
+                <ol className="space-y-[3px] text-[12px]">
+                  {RESOLVED.map((name, i) => (
+                    <li key={name} className="flex items-center gap-2">
+                      <span className="text-muted-foreground w-3 text-right tabular-nums">
+                        {i + 1}
+                      </span>
+                      <T>{name}</T>
+                      <span className="text-muted-foreground">=</span>
+                      <span
+                        className="bg-muted h-[7px] rounded-full"
+                        style={{ width: 60 + ((i * 37) % 70) }}
+                      />
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div className="w-[236px]">
+                <p className="text-muted-foreground mb-2 font-mono text-[11px] tracking-wide uppercase">
+                  Images
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    'shop',
+                    'photo-platform',
+                    'photo-road',
+                    'photo-window',
+                    'mio',
+                    'platform',
+                  ].map((image) => (
+                    <img
+                      key={image}
+                      src={`${IMG}/${image}.jpg`}
+                      alt=""
+                      className="size-[46px] rounded-[var(--radius-sm)] object-cover"
+                    />
+                  ))}
+                </div>
+                <p className="text-muted-foreground mt-3 mb-1.5 text-[11px]">
+                  The scene so far
+                </p>
+                <div className="flex gap-1.5">
+                  {['slope', 'owner'].map((image) => (
+                    <img
+                      key={image}
+                      src={`${IMG}/${image}.jpg`}
+                      alt=""
+                      className="h-[46px] w-[82px] rounded-[var(--radius-sm)] object-cover"
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </>
+        )
+      }}
     </Figure>
   )
 }
@@ -445,21 +510,26 @@ const planScene = (seams: number[], frames: number[]) => {
   return { best, weighed, clips }
 }
 
-const PX = 26
 const GAP = 14
 const LEFT0 = 12
-const LEFTS = SCENE.reduce<number[]>((lefts, shot, i) => {
-  lefts.push(i === 0 ? LEFT0 : lefts[i - 1] + SCENE[i - 1].seconds * PX + GAP)
-  return lefts
-}, [])
-const rightOf = (i: number) => LEFTS[i] + SCENE[i].seconds * PX
-/** Where the planner can start a clip: before shot j (j = 0..5) */
-const cutX = (j: number) =>
-  j === 0
-    ? LEFTS[0]
-    : j === SCENE.length
-      ? rightOf(SCENE.length - 1)
-      : LEFTS[j] - GAP / 2
+
+/** The scene's shots laid out across a width: seconds to pixels, and where each shot and cut sits */
+const timeline = (width: number) => {
+  const px = (width - 2 * LEFT0 - (SCENE.length - 1) * GAP) / 20
+  const lefts = SCENE.reduce<number[]>((all, shot, i) => {
+    all.push(i === 0 ? LEFT0 : all[i - 1] + SCENE[i - 1].seconds * px + GAP)
+    return all
+  }, [])
+  const rightOf = (i: number) => lefts[i] + SCENE[i].seconds * px
+  /** Where the planner can start a clip: before shot j (j = 0..5) */
+  const cutX = (j: number) =>
+    j === 0
+      ? lefts[0]
+      : j === SCENE.length
+        ? rightOf(SCENE.length - 1)
+        : lefts[j] - GAP / 2
+  return { px, lefts, rightOf, cutX, imageH: Math.round(px * 2) }
+}
 
 function Pips({
   level,
@@ -518,175 +588,184 @@ export function PlanFigure() {
         </>
       }
     >
-      <div className="relative h-[346px] text-[12px]">
-        {plan.clips.map(([start, end]) => {
-          const seconds = SCENE.slice(start, end).reduce(
-            (sum, shot) => sum + shot.seconds,
-            0,
-          )
-          return (
+      {(width: number) => {
+        const { px, lefts, rightOf, cutX, imageH } = timeline(width)
+        return (
+          <div className="relative h-[346px] text-[12px]">
+            {plan.clips.map(([start, end]) => {
+              const seconds = SCENE.slice(start, end).reduce(
+                (sum, shot) => sum + shot.seconds,
+                0,
+              )
+              return (
+                <div
+                  key={`${start}-${end}`}
+                  className="bg-muted absolute top-0 rounded-[var(--radius-lg)] transition-all duration-300"
+                  style={{
+                    left: lefts[start] - 6,
+                    width: rightOf(end - 1) - lefts[start] + 12,
+                    height: 178,
+                  }}
+                >
+                  <p className="text-muted-foreground px-2 pt-1.5 text-[11px]">
+                    One generation, {seconds} s
+                  </p>
+                </div>
+              )
+            })}
+
+            {SCENE.map((shot, i) => (
+              <div
+                key={shot.image}
+                className="absolute"
+                style={{ left: lefts[i], top: 26, width: shot.seconds * px }}
+              >
+                <p className="mb-1 flex justify-between">
+                  <span className="font-medium">s{i + 1}</span>
+                  <span className="text-muted-foreground tabular-nums">
+                    {shot.seconds} s
+                  </span>
+                </p>
+                <img
+                  src={`${IMG}/${shot.image}.jpg`}
+                  alt={shot.says}
+                  className="w-full rounded-[var(--radius-sm)] object-cover"
+                  style={{ height: imageH }}
+                />
+                <div className="mt-1 -ml-1">
+                  <Pips
+                    level={frames[i]}
+                    label={`How much s${i + 1} needs its exact frame`}
+                    onClick={() => setFrames(cycle(frames, i))}
+                  />
+                </div>
+                <p className="text-muted-foreground text-[11px] leading-snug">
+                  {shot.says}
+                </p>
+              </div>
+            ))}
+
+            {seams.map((level, i) => (
+              <div
+                key={i}
+                className="absolute -translate-x-1/2"
+                style={{ left: cutX(i + 1), top: 44 + imageH / 2 - 13 }}
+              >
+                <Pips
+                  vertical
+                  level={level}
+                  label={`How much the cut after s${i + 1} needs one take`}
+                  onClick={() => setSeams(cycle(seams, i))}
+                />
+              </div>
+            ))}
+
+            <svg
+              className="pointer-events-none absolute top-0 left-0"
+              width={width}
+              height="346"
+              aria-hidden="true"
+            >
+              <line
+                x1={cutX(0)}
+                x2={cutX(SCENE.length)}
+                y1={DP_Y}
+                y2={DP_Y}
+                className="stroke-border"
+                strokeWidth="1"
+              />
+              {plan.weighed.map((w) => {
+                const x1 = cutX(w.start)
+                const x2 = cutX(w.end)
+                const depth = 14 + (x2 - x1) * 0.12
+                const pull = DP_Y + (depth * 4) / 3
+                const on = chosen(w)
+                const d = `M${x1} ${DP_Y} C ${x1} ${pull}, ${x2} ${pull}, ${x2} ${DP_Y}`
+                const hovered = hover?.start === w.start && hover?.end === w.end
+                return (
+                  <g key={`${w.start}-${w.end}`}>
+                    <path
+                      d={d}
+                      fill="none"
+                      strokeWidth={on ? 2 : 1.25}
+                      className={`transition-colors ${on ? 'stroke-foreground' : hovered ? 'stroke-muted-foreground' : 'stroke-border'}`}
+                    />
+                    <path
+                      d={d}
+                      fill="none"
+                      stroke="transparent"
+                      strokeWidth="10"
+                      className="pointer-events-auto cursor-pointer"
+                      style={{ pointerEvents: 'stroke' }}
+                      onMouseEnter={() => setHover(w)}
+                      onMouseLeave={() => setHover(null)}
+                    />
+                  </g>
+                )
+              })}
+              {plan.weighed.filter(chosen).map((w) => {
+                const x1 = cutX(w.start)
+                const x2 = cutX(w.end)
+                const depth = 14 + (x2 - x1) * 0.12
+                return (
+                  <text
+                    key={`label-${w.start}-${w.end}`}
+                    x={(x1 + x2) / 2}
+                    y={DP_Y + depth + 14}
+                    textAnchor="middle"
+                    className="fill-foreground text-[11px] tabular-nums"
+                  >
+                    s{w.start + 1}
+                    {w.end - 1 > w.start ? `–s${w.end}` : ''}
+                  </text>
+                )
+              })}
+              {plan.best.map(({ loss }, j) => (
+                <g key={j}>
+                  <circle
+                    cx={cutX(j)}
+                    cy={DP_Y}
+                    r="4"
+                    className="fill-background stroke-foreground"
+                    strokeWidth="1.5"
+                  />
+                  <text
+                    x={cutX(j)}
+                    y={DP_Y - 10}
+                    textAnchor="middle"
+                    className="fill-muted-foreground text-[10px] tabular-nums"
+                  >
+                    {loss.toFixed(2)}
+                  </text>
+                </g>
+              ))}
+            </svg>
+
             <div
-              key={`${start}-${end}`}
-              className="bg-muted absolute top-0 rounded-[var(--radius-lg)] transition-all duration-300"
-              style={{
-                left: LEFTS[start] - 6,
-                width: rightOf(end - 1) - LEFTS[start] + 12,
-                height: 178,
-              }}
+              className="text-muted-foreground absolute top-[324px] left-0 flex items-center justify-between px-3 text-[11px]"
+              style={{ width }}
             >
-              <p className="text-muted-foreground px-2 pt-1.5 text-[11px]">
-                One generation, {seconds} s
-              </p>
-            </div>
-          )
-        })}
-
-        {SCENE.map((shot, i) => (
-          <div
-            key={shot.image}
-            className="absolute"
-            style={{ left: LEFTS[i], top: 26, width: shot.seconds * PX }}
-          >
-            <p className="mb-1 flex justify-between">
-              <span className="font-medium">s{i + 1}</span>
-              <span className="text-muted-foreground tabular-nums">
-                {shot.seconds} s
+              <span className="tabular-nums">
+                {hover
+                  ? `Clip s${hover.start + 1}${hover.end - 1 > hover.start ? `–s${hover.end}` : ''}: best[${hover.start}] + its losses = ${hover.loss.toFixed(2)}`
+                  : 'Hover an arc to see what that clip would lose.'}
               </span>
-            </p>
-            <img
-              src={`${IMG}/${shot.image}.jpg`}
-              alt={shot.says}
-              className="h-[52px] w-full rounded-[var(--radius-sm)] object-cover"
-            />
-            <div className="mt-1 -ml-1">
-              <Pips
-                level={frames[i]}
-                label={`How much s${i + 1} needs its exact frame`}
-                onClick={() => setFrames(cycle(frames, i))}
-              />
+              {changed && (
+                <button
+                  type="button"
+                  className="text-foreground cursor-pointer underline underline-offset-2"
+                  onClick={() => {
+                    setSeams(READ_SEAMS)
+                    setFrames(READ_FRAMES)
+                  }}
+                >
+                  Reset
+                </button>
+              )}
             </div>
-            <p className="text-muted-foreground text-[11px] leading-snug">
-              {shot.says}
-            </p>
           </div>
-        ))}
-
-        {seams.map((level, i) => (
-          <div
-            key={i}
-            className="absolute -translate-x-1/2"
-            style={{ left: cutX(i + 1), top: 56 }}
-          >
-            <Pips
-              vertical
-              level={level}
-              label={`How much the cut after s${i + 1} needs one take`}
-              onClick={() => setSeams(cycle(seams, i))}
-            />
-          </div>
-        ))}
-
-        <svg
-          className="pointer-events-none absolute top-0 left-0"
-          width="600"
-          height="346"
-          aria-hidden="true"
-        >
-          <line
-            x1={cutX(0)}
-            x2={cutX(SCENE.length)}
-            y1={DP_Y}
-            y2={DP_Y}
-            className="stroke-border"
-            strokeWidth="1"
-          />
-          {plan.weighed.map((w) => {
-            const x1 = cutX(w.start)
-            const x2 = cutX(w.end)
-            const depth = 14 + (x2 - x1) * 0.12
-            const pull = DP_Y + (depth * 4) / 3
-            const on = chosen(w)
-            const d = `M${x1} ${DP_Y} C ${x1} ${pull}, ${x2} ${pull}, ${x2} ${DP_Y}`
-            const hovered = hover?.start === w.start && hover?.end === w.end
-            return (
-              <g key={`${w.start}-${w.end}`}>
-                <path
-                  d={d}
-                  fill="none"
-                  strokeWidth={on ? 2 : 1.25}
-                  className={`transition-colors ${on ? 'stroke-foreground' : hovered ? 'stroke-muted-foreground' : 'stroke-border'}`}
-                />
-                <path
-                  d={d}
-                  fill="none"
-                  stroke="transparent"
-                  strokeWidth="10"
-                  className="pointer-events-auto cursor-pointer"
-                  style={{ pointerEvents: 'stroke' }}
-                  onMouseEnter={() => setHover(w)}
-                  onMouseLeave={() => setHover(null)}
-                />
-              </g>
-            )
-          })}
-          {plan.weighed.filter(chosen).map((w) => {
-            const x1 = cutX(w.start)
-            const x2 = cutX(w.end)
-            const depth = 14 + (x2 - x1) * 0.12
-            return (
-              <text
-                key={`label-${w.start}-${w.end}`}
-                x={(x1 + x2) / 2}
-                y={DP_Y + depth + 14}
-                textAnchor="middle"
-                className="fill-foreground text-[11px] tabular-nums"
-              >
-                s{w.start + 1}
-                {w.end - 1 > w.start ? `–s${w.end}` : ''}
-              </text>
-            )
-          })}
-          {plan.best.map(({ loss }, j) => (
-            <g key={j}>
-              <circle
-                cx={cutX(j)}
-                cy={DP_Y}
-                r="4"
-                className="fill-background stroke-foreground"
-                strokeWidth="1.5"
-              />
-              <text
-                x={cutX(j)}
-                y={DP_Y - 10}
-                textAnchor="middle"
-                className="fill-muted-foreground text-[10px] tabular-nums"
-              >
-                {loss.toFixed(2)}
-              </text>
-            </g>
-          ))}
-        </svg>
-
-        <div className="text-muted-foreground absolute top-[324px] left-0 flex w-[600px] items-center justify-between px-3 text-[11px]">
-          <span className="tabular-nums">
-            {hover
-              ? `Clip s${hover.start + 1}${hover.end - 1 > hover.start ? `–s${hover.end}` : ''}: best[${hover.start}] + its losses = ${hover.loss.toFixed(2)}`
-              : 'Hover an arc to see what that clip would lose.'}
-          </span>
-          {changed && (
-            <button
-              type="button"
-              className="text-foreground cursor-pointer underline underline-offset-2"
-              onClick={() => {
-                setSeams(READ_SEAMS)
-                setFrames(READ_FRAMES)
-              }}
-            >
-              Reset
-            </button>
-          )}
-        </div>
-      </div>
+        )
+      }}
     </Figure>
   )
 }
