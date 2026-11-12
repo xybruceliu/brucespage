@@ -40,7 +40,7 @@ I have been working on these problems in [Doki Agent](https://doki.mov) (Doki's 
 3. **Incremental Editing**: how a change reaches the film without re-rolling it.
 4. **Review Loop**: how the agent checks what it made and improves it on its own.
 
-The examples below come from building Doki: the actual prompts, what failed, and what fixed it.
+A closing section covers the principle behind all four: describe to the agent how the models behave and what the film needs, rather than prescribing rules. The examples below come from building Doki: the actual prompts, what failed, and what fixed it.
 
 ## 1. Definition System
 
@@ -279,19 +279,6 @@ The check I value most is the first-time viewer: a model that watches the finish
 
 Reviewing the script instead of the images does not work. A text-only continuity checker flagged many issues in the scripts and changed nothing in the films, because most continuity errors arise during generation: a cut within a clip that forgets where someone was standing, or a prop that morphs. Only inspecting the output catches them.
 
-### What the agent is told
-
-Reviews show the agent its work after the fact; its prompt must cover what it cannot see while it writes. In general, an agent prompt should state what exists and what it costs, not what to do. Rules are applied mechanically: a rule to "fade in and out of the whole video" also faded a tense dialogue scene in and out. Examples are copied: one sample scene that opened wide and then cut close made the agent open twice as many scenes that way. Facts alone sufficed for most behaviors, but not for consistency: told only what a reference image does and costs, the agent created almost none. A comment at the top of Doki's agent prompt records the reason for this exception:
-
-<Prompt from="Doki's agent prompt, its opening comment">
-  [...] the habits whose payoff shows only in images and videos it never sees:
-  the three that keep a film consistent (a scene in one paragraph, reference
-  shots, an ALL for the shared look) [...] Told only what those do, the agent
-  left them out: its films were rows of long single takes.
-</Prompt>
-
-Where the agent cannot see a habit's payoff, state the habit explicitly or enforce it in code. Keep numbers out of the prompt as well: a number is read as a target, as the 15-second clip limit showed.
-
 ### Evaluating the agent itself
 
 The same principle applies to whoever builds the agent: evaluate the film, not the text. A prompt change that won 15 to 6 when a judge read the prompts tied 3 to 4 on the clips they produced. The only evaluation I now trust is watching finished films, blind and in both orders, counting a win only when both orders agree. Run identical code against itself to measure the noise, which across eight films is large. Rerun the baseline on the same day as the experiment, since hosted models drift. To test a single decision, replay saved runs up to that point rather than regenerating whole films.
@@ -301,8 +288,30 @@ The same principle applies to whoever builds the agent: evaluate the film, not t
 - Trigger reviews from the harness, and return their findings in tool results.
 - Review whole clips with their sound, review the assembled film, and include a viewer who has not seen the script.
 - Treat a refusal as a failed check, cap the review loop, and keep fixes within the existing shots.
-- State the habits whose payoff the agent cannot see. Everywhere else, give it facts rather than rules, examples or numbers.
 - Evaluate changes on finished films, never on prompts.
+
+## Describe, Don't Prescribe
+
+One principle runs through all four components: tell the agent how the models behave and what the film needs, rather than giving it rules, examples or heuristics to follow. A prompt that describes the system lets the agent reason about cases the prompt never anticipated; a prompt that prescribes is followed literally, including where it no longer applies.
+
+Prescriptions fail in predictable ways. Rules are applied mechanically: a rule to "fade in and out of the whole video" also faded a tense dialogue scene in and out. Examples are copied: one sample scene that opened wide and then cut close made the agent open twice as many scenes that way. Numbers become targets: told that a scene becomes "one clip, of up to 15s", the agent cut its scenes to fit (Section 2). Categories invite the agent to judge them: "characters and key places or objects" left it to decide that a coin or a scarf was not key (Section 1).
+
+The fixes in this post are descriptions instead. The agent prompt explains that each picture draws an undefined thing anew, however small or plain (Section 1). The video prompt writer is told what a stop before the cut does to the film, and when a stop is right: at the end of a scene, or on a held moment (Section 2). The update judge is told what an edit can and cannot change, and decides each case itself (Section 3).
+
+There is one exception. Facts alone failed for consistency: told only what a reference image does and costs, the agent created almost none, because the payoff appears only in images and videos it never sees while it writes. A habit whose payoff the agent cannot observe has to be stated outright, or enforced in code. A comment at the top of Doki's agent prompt records the reasoning:
+
+<Prompt from="Doki's agent prompt, its opening comment">
+  [...] the habits whose payoff shows only in images and videos it never sees:
+  the three that keep a film consistent (a scene in one paragraph, reference
+  shots, an ALL for the shared look) [...] Told only what those do, the agent
+  left them out: its films were rows of long single takes.
+</Prompt>
+
+**If you're building one**
+
+- Tell the agent what exists, how the models behave and what each choice costs, not what to do.
+- Leave out rules, examples, numbers and categories the agent would have to interpret: each is followed literally.
+- State outright the habits whose payoff the agent cannot see, or enforce them in code.
 
 ## Looking ahead
 
