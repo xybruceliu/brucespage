@@ -708,7 +708,168 @@ export function ResolveFigure() {
 }
 
 // -----------------------------------------------------------------------------
-// Figure 2: planning a scene's clips
+// Figure 2: one clip a shot, or one clip a scene
+// -----------------------------------------------------------------------------
+
+/** The platform scene's first three shots, which Figure 3's plan makes one clip */
+const OPENING = [
+  { image: 'b1', says: 'A girl raises her camera' },
+  { image: 'b2', says: 'A boy looks back, and it slips' },
+  { image: 'b3', says: 'The camera falls into the snow' },
+]
+const SHOT_GAP = 14
+const WAVE_H = 40
+const WAVE_PAD = 10
+
+const smooth = (u: number) => u * u * (3 - 2 * u)
+
+/**
+ * A clip's motion and sound, as a line from x0 to x1. A clip of one shot starts
+ * from a still and slows to a stop before its cut, so its swing rises from flat
+ * and falls back; a clip of the whole scene keeps swinging through its cuts.
+ */
+const wave = (x0: number, x1: number, settles: boolean) => {
+  const mid = WAVE_H / 2
+  const points: string[] = []
+  for (let x = x0; x <= x1 + 0.01; x += 1.5) {
+    const t = (x - x0) / (x1 - x0)
+    const envelope = settles
+      ? smooth(Math.min(1, t / 0.22)) * smooth(Math.min(1, (1 - t) / 0.32))
+      : 1
+    const swing = envelope * (0.78 + 0.22 * Math.sin(x / 29)) * (mid - 7)
+    const y = mid - swing * Math.sin(((x - x0) / 14) * Math.PI)
+    points.push(`${x.toFixed(1)} ${y.toFixed(1)}`)
+  }
+  return `M${points.join(' L')}`
+}
+
+const GENERATIONS = [
+  {
+    label: 'One clip per shot',
+    note: 'Motion and sound restart at every cut',
+    clips: [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
+  },
+  {
+    label: 'One clip per scene',
+    note: 'Motion and sound carry across the cuts',
+    clips: [[0, 3]],
+  },
+]
+
+export function SceneFigure() {
+  return (
+    <Figure
+      number={2}
+      caption={
+        <>
+          Three shots of one scene, on a snowy train platform. Generated one
+          clip per shot, each clip starts from a still and slows to a stop
+          before its cut. Generated as one clip, the scene keeps moving through
+          its cuts (dashed).
+        </>
+      }
+    >
+      {(width: number) => {
+        const imageW = (width - 2 * SHOT_GAP) / OPENING.length
+        const left = (i: number) => i * (imageW + SHOT_GAP)
+        const right = (i: number) => left(i) + imageW
+        return (
+          <div className="text-[12px]">
+            <div className="flex" style={{ gap: SHOT_GAP }}>
+              {OPENING.map((shot, i) => (
+                <div key={shot.image} style={{ width: imageW }}>
+                  <p className="mb-1 font-medium">Shot {i + 1}</p>
+                  <img
+                    src={`${IMG}/${shot.image}.jpg`}
+                    alt={shot.says}
+                    className="w-full rounded-[var(--radius-sm)] object-cover"
+                    style={{ height: Math.round(imageW * 0.5625) }}
+                  />
+                  <p className="text-muted-foreground mt-1 text-[11px] leading-snug">
+                    {shot.says}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-muted-foreground mt-2 flex items-end gap-2 text-[11px] leading-none">
+              <span className="border-border mb-[5px] h-2 flex-1 rounded-bl-[3px] border-b border-l" />
+              One scene
+              <span className="border-border mb-[5px] h-2 flex-1 rounded-br-[3px] border-r border-b" />
+            </div>
+
+            {GENERATIONS.map((row) => {
+              const whole = row.clips.length === 1
+              return (
+                <div key={row.label} className="mt-5">
+                  <p className="mb-1.5 flex items-baseline justify-between">
+                    <span className="font-medium">{row.label}</span>
+                    <span className="text-muted-foreground text-[11px]">
+                      {row.note}
+                    </span>
+                  </p>
+                  <svg
+                    width={width}
+                    height={WAVE_H}
+                    className="block"
+                    aria-hidden="true"
+                  >
+                    {row.clips.map(([a, b]) => (
+                      <g key={a}>
+                        <rect
+                          x={left(a)}
+                          width={right(b - 1) - left(a)}
+                          height={WAVE_H}
+                          rx="8"
+                          className="fill-muted"
+                        />
+                        <path
+                          d={wave(
+                            left(a) + WAVE_PAD,
+                            right(b - 1) - WAVE_PAD,
+                            !whole,
+                          )}
+                          fill="none"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className={
+                            whole
+                              ? 'stroke-[var(--doki-sky)]'
+                              : 'stroke-muted-foreground'
+                          }
+                        />
+                      </g>
+                    ))}
+                    {whole &&
+                      OPENING.slice(1).map((shot, i) => (
+                        <line
+                          key={shot.image}
+                          x1={left(i + 1) - SHOT_GAP / 2}
+                          x2={left(i + 1) - SHOT_GAP / 2}
+                          y1="3"
+                          y2={WAVE_H - 3}
+                          strokeDasharray="2 3"
+                          className="stroke-muted-foreground"
+                        />
+                      ))}
+                  </svg>
+                </div>
+              )
+            })}
+          </div>
+        )
+      }}
+    </Figure>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Figure 3: planning a scene's clips
 // -----------------------------------------------------------------------------
 
 const SCENE = [
@@ -833,15 +994,16 @@ export function PlanFigure() {
 
   return (
     <Figure
-      number={2}
+      number={3}
       caption={
         <>
-          A scene of <i>The Last Three</i>, planned for MiniMax H3 Max. Between
-          shots, the dots say how much a cut needs one take; under each shot,
-          how much it needs its exact frame. Below, every clip the planner
-          weighs, with best[j] at each node and the plan it picks drawn dark.
-          The scene is 20 s, over the model&rsquo;s 15, and it splits before s4,
-          which has to open on its frame. Click the dots to change a level.
+          The platform scene of Fig. 2, all five shots, planned for MiniMax H3
+          Max. Between shots, the dots say how much a cut needs one take; under
+          each shot, how much it needs its exact frame. Below, every clip the
+          planner weighs, with best[j] at each node and the plan it picks drawn
+          dark. The scene is 20 s, over the model&rsquo;s 15, and it splits
+          before s4, which has to open on its frame. Click the dots to change a
+          level.
         </>
       }
     >
@@ -1152,7 +1314,7 @@ export function Formula() {
 }
 
 // -----------------------------------------------------------------------------
-// Figure 3: keep, edit or remake
+// Figure 4: keep, edit or remake
 // -----------------------------------------------------------------------------
 
 function Shot({
@@ -1231,7 +1393,7 @@ const CASES: {
 export function UpdateFigure() {
   return (
     <Figure
-      number={3}
+      number={4}
       fixed={false}
       caption={
         <>
@@ -1304,7 +1466,7 @@ export function UpdateFigure() {
 }
 
 // -----------------------------------------------------------------------------
-// Figure 4: where the reviews run
+// Figure 5: where the reviews run
 // -----------------------------------------------------------------------------
 
 const REVIEWS = [
@@ -1333,7 +1495,7 @@ const REVIEWS = [
 export function ReviewFigure() {
   return (
     <Figure
-      number={4}
+      number={5}
       caption={
         <>
           The reviews in one request, as the agent works from left to right.
