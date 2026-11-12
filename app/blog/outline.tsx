@@ -157,7 +157,7 @@ export function Outline() {
                 />
                 {section && (
                   <span
-                    className={`pointer-events-none absolute top-1/2 left-full ml-2 -translate-y-1/2 text-[12.5px] whitespace-nowrap opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] group-focus-within/outline:pointer-events-auto group-focus-within/outline:opacity-100 group-hover/outline:pointer-events-auto group-hover/outline:opacity-100 motion-reduce:transition-none ${
+                    className={`pointer-events-none absolute top-1/2 left-full ml-2 origin-left -translate-y-1/2 text-[12.5px] whitespace-nowrap opacity-0 transition-[opacity,scale,color] duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] group-focus-within/outline:pointer-events-auto group-focus-within/outline:opacity-100 group-hover/item:scale-110 group-hover/outline:pointer-events-auto group-hover/outline:opacity-100 motion-reduce:transition-none ${
                       reading
                         ? 'text-foreground'
                         : 'text-muted-foreground group-hover/item:text-foreground'
