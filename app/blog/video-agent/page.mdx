@@ -3,6 +3,7 @@ import {
   Formula,
   PlanFigure,
   Prompt,
+  PromptStyleFigure,
   ResolveFigure,
   ResultFigure,
   ReviewFigure,
@@ -312,19 +313,18 @@ Reviews can also make a film worse. Left alone, the agent answers story feedback
 
 ## 5. Describe, Don't Prescribe
 
-Looking back over the four components, one principle connects them: describe to the agent how the models behave and what the film needs, instead of prescribing rules. When a prompt explains how things work, the agent can reason about situations the prompt never anticipated. When a prompt gives a rule, the agent follows it literally, even where it no longer applies.
+Looking back over the four components, one principle connects them: describe to the agent how the models behave and what the film needs, instead of prescribing rules. When a prompt explains how things work, the agent can reason about situations the prompt never anticipated. When a prompt gives a rule, the agent follows it literally, even where it no longer applies. Here is the difference on one choice the agent makes in every film, how one shot gives way to the next:
 
-Prescriptions backfire in a few predictable ways. Rules get applied blindly: a rule to fade in and out of the whole video also put fades around a single tense dialogue scene. Examples get copied: one sample scene that cut from a wide shot to a close-up made the agent open twice as many scenes that way. Numbers become targets: told that a scene could run up to 15 seconds, the agent cut its scenes to fit. And categories invite judgment calls: asked to define the key objects, the agent decided that a coin and a scarf were not key.
+<PromptStyleFigure />
+
+The rule works for most films, until it meets one it was not written for. Prescriptions backfire in a few predictable ways. Rules get applied blindly, like the fade rule above. Examples get copied: one sample scene that cut from a wide shot to a close-up made the agent open twice as many scenes that way. Numbers become targets: told that a scene could run up to 15 seconds, the agent cut its scenes to fit. And categories invite judgment calls: asked to define the key objects, the agent decided that a coin and a scarf were not key.
 
 So each fix in this post is a description instead. The agent learns that the models redraw anything without a definition, what a stop before a cut does to the film, and what an edit can and cannot change. Then it decides for itself.
-
-There is one exception. Facts alone are not enough when the agent cannot see the payoff of a habit. Told only what a reference image does and what it costs, the agent created almost none, because the benefit shows up only in images and videos it never sees while it writes. A habit like this has to be stated outright, or enforced in code.
 
 <Takeaways>
 
 - Tell the agent how the models behave and what each choice costs, instead of telling it what to do.
 - Avoid rules, examples, numbers and categories that the agent would have to interpret, because it follows each one literally.
-- State outright the habits whose payoff the agent cannot see, or enforce them in code.
 
 </Takeaways>
 

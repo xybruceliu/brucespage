@@ -1862,3 +1862,95 @@ export function ReviewFigure() {
     </Figure>
   )
 }
+
+// -----------------------------------------------------------------------------
+// Figure 7: one choice, prescribed and described
+// -----------------------------------------------------------------------------
+
+/**
+ * How one shot gives way to the next, told to the agent two ways: the earlier
+ * rule (paraphrased) and Doki's transition guide (lib/transition.ts, shortened),
+ * compared on the same requests in October 2026
+ */
+const PROMPT_STYLES = [
+  {
+    title: 'Prescribe',
+    says: 'a rule',
+    good: false,
+    lines: [
+      { text: 'Use a straight cut unless the story needs a transition.' },
+      {
+        text: 'Fade in at the start of the video and fade out at the end.',
+      },
+    ],
+    note: 'A video of one tense dialogue scene fades in and out too',
+  },
+  {
+    title: 'Describe',
+    says: 'what each option does',
+    good: true,
+    lines: [
+      {
+        text: 'How one shot gives way to the next is an editor’s choice. Without one, it’s a straight cut.',
+      },
+      {
+        term: 'DISSOLVE TO:',
+        text: 'the shots blend into each other over 1s, overlapping, so the video gets 1s shorter.',
+      },
+      {
+        term: 'FADE TO:',
+        text: 'through black. Before the first shot it fades the video in, and after the last shot it fades it out.',
+      },
+    ],
+    note: 'No misplaced transitions on the same requests',
+  },
+]
+
+export function PromptStyleFigure() {
+  return (
+    <Figure
+      number={7}
+      fixed={false}
+      caption={
+        <>
+          The same choice, how one shot gives way to the next, told to the agent
+          two ways and tried on the same requests. The rule is paraphrased from
+          an earlier version of Doki&rsquo;s prompt; the description is its
+          current guide, shortened.
+        </>
+      }
+    >
+      <div className="grid gap-6 sm:grid-cols-2 sm:gap-4">
+        {PROMPT_STYLES.map((style) => (
+          <div key={style.title} className="flex flex-col">
+            <p className="mb-2.5 flex items-baseline gap-2 text-[14px] font-medium">
+              <span className={style.good ? SKY : 'text-foreground'}>
+                {style.title}
+              </span>
+              <span className="text-muted-foreground text-[13px] font-normal">
+                {style.says}
+              </span>
+            </p>
+            <div className="border-border bg-muted/40 text-foreground/90 flex-1 space-y-2 rounded-[var(--radius-lg)] border px-4 py-3 text-[13px] leading-relaxed">
+              {style.lines.map((line) => (
+                <p key={line.text}>
+                  {line.term && (
+                    <span className="font-mono text-[12px] font-medium">
+                      {line.term}{' '}
+                    </span>
+                  )}
+                  {line.text}
+                </p>
+              ))}
+            </div>
+            <p className="mt-3 leading-snug">
+              <Mark good={style.good}>
+                {style.good ? '✓' : '✗'} {style.note}
+              </Mark>
+            </p>
+          </div>
+        ))}
+      </div>
+    </Figure>
+  )
+}
