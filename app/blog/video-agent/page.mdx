@@ -52,7 +52,7 @@ Let's start with consistency. A long film has to keep its people, places, object
 
 ### Definitions
 
-A definition has four parts: a type (character, place, object or look), a name that the script can refer to (written with an @ in Doki), a text description, and a reference image generated from that description. Here are two from a short film made in Doki:
+A definition has four parts: a type (character, place, object or look), a name that the script can refer to (written with an @ here), a text description, and a reference image generated from that description. Here are two from a short film made in Doki:
 
 <Definitions />
 
@@ -162,7 +162,7 @@ So this is a planning problem: keep shots in one generation where the story flow
 
 ### How the planner works
 
-The planner uses a vision-language model (VLM) and a dynamic programming algorithm, each for what it does well. The VLM (Gemini, in Doki) looks at the keyframes and judges what each cut and shot needs, which takes taste. Dynamic programming then picks the grouping, an optimization with hard limits that language models are bad at. On 11 hard scenes, plans made this way passed 32 of 32 editing checks, while plans that Gemini wrote directly passed 79 to 85%. It works in three steps.
+The planner uses a vision-language model (VLM) and a dynamic programming algorithm, each for what it does well. The VLM (we use Gemini) looks at the keyframes and judges what each cut and shot needs, which takes taste. Dynamic programming then picks the grouping, an optimization with hard limits that language models are bad at. On 11 hard scenes, plans made this way passed 32 of 32 editing checks, while plans that Gemini wrote directly passed 79 to 85%. It works in three steps.
 
 **1. A VLM reads the shot list.** It reads each shot's words and keyframe, and rates two needs from 0 to 3: how much each cut needs the shots on both sides to flow together, and how much each shot needs a fresh start on its own keyframe.
 
@@ -194,7 +194,7 @@ A longer scene shows the same logic at a larger scale. It has ten shots in three
 
 With the plan set, the agent can finally generate the images and videos. Each generation needs two prompts: an image prompt for the keyframe it opens on, and a video prompt for its motion. We learned a few things that make a big difference in how these turn out.
 
-The keyframe should show the first instant of the shot, not its most telling moment, because image models draw any action the prompt names as already done. "She walks to the porch, crouches and watches the kitten" comes out with her already crouched, and the clip has nothing left to play. So Doki's prompt writer first names the opening instant on its own line (`OPENING: she reaches the porch steps`), and then describes the keyframe as a still photograph of it:
+The keyframe should show the first instant of the shot, not its most telling moment, because image models draw any action the prompt names as already done. "She walks to the porch, crouches and watches the kitten" comes out with her already crouched, and the clip has nothing left to play. One fix is to have the prompt writer first name the opening instant on its own line (`OPENING: she reaches the porch steps`), and then describe the keyframe as a still photograph of it:
 
 <Prompt from="Doki's image prompt writer">
   The image model draws whatever the prompt names as done: an action's verb,
@@ -252,7 +252,7 @@ To make that call, the judge has to know what an edit can do, so most of its pro
   video it can't change what is said, the voices or the timing.
 </Prompt>
 
-On 62 labeled cases, the judge chose correctly 61 times. For video edits, Doki uses [Gemini Omni](https://ai.google.dev/gemini-api/docs/omni), which changes what was asked and keeps the motion frame for frame.
+On 62 labeled cases, the judge chose correctly 61 times. For video edits, use a model that keeps the original take, such as [Gemini Omni](https://ai.google.dev/gemini-api/docs/omni), which changes what was asked and keeps the motion frame for frame.
 
 ### Start with the smallest fix
 
@@ -272,11 +272,11 @@ So give the agent a trim tool, and have it try the fixes in this order. And keep
 
 ## 4. Review Loop
 
-Most agents, video agents included, already have some kind of review loop: a model checks the output, and the agent fixes what it flags. What matters for a long film is how the loop is designed. In Doki, three choices made the biggest difference: when the reviews run, what they watch, and how their findings reach the agent.
+Most agents, video agents included, already have some kind of review loop: a model checks the output, and the agent fixes what it flags. What matters for a long film is how the loop is designed, and three choices matter most: when the reviews run, what they watch, and how their findings reach the agent.
 
 ### Reviews the harness runs
 
-The first choice is who starts a review. It seems natural to give the agent a review tool and let it check its work when it wants to. But the agent will not inspect its own work unprompted. I gave Doki's agent a tool that let a VLM watch any shot and answer questions about it, and in sixteen writing runs the agent used it zero times. So in Doki, the harness runs the reviews, each one set off by what the agent just did. There are four: on the script, on each new image or video, on the whole storyboard, and on the finished film. Many language models still cannot watch video with sound, so Gemini does the watching for the agent. Each review's findings come back in the result of the tool call that set it off, so the agent reads them right away:
+The first choice is who starts a review. It seems natural to give the agent a review tool and let it check its work when it wants to. But the agent will not inspect its own work unprompted. I gave our agent a tool that let a VLM watch any shot and answer questions about it, and in sixteen writing runs the agent used it zero times. So the harness should run the reviews itself, each one set off by what the agent just did. Four points work well: the script, each new image or video, the whole storyboard, and the finished film. Many language models still cannot watch video with sound, so a model that can, such as Gemini, does the watching for the agent. Each review's findings come back in the result of the tool call that set it off, so the agent reads them right away:
 
 <ReviewFigure />
 
@@ -303,7 +303,7 @@ For the same reason, the reviews should check the output, not the script. Most c
 
 Fixes also have to fit the film. Left alone, the agent answers story feedback by adding events to the script, and clips with too much happening break more often. So every review tells the agent that a fix "has to fit in the shots the film has [...] and never add a shot, a part or a cut."
 
-The loop needs a cap, too. In Doki, each shot is reviewed at most three times per request. Without a cap, the agent can keep remaking a shot to satisfy its own critiques.
+The loop needs a cap, too, such as at most three reviews per shot for each request. Without a cap, the agent can keep remaking a shot to satisfy its own critiques.
 
 The same goes for testing a change to the agent itself: judge the finished films, watched blind, not the prompts the agent wrote. A prompt change can look much better on paper and make no difference to the clips.
 
@@ -320,7 +320,7 @@ The same goes for testing a change to the agent itself: judge the finished films
 
 Looking back over the four components, one principle connects them: describe to the agent how the models behave and what the film needs, instead of prescribing rules, examples or rules of thumb. When a prompt explains how things work, the agent can reason about situations the prompt never anticipated. When a prompt gives a rule, the agent follows it literally, even where it no longer applies.
 
-In Doki, each kind of prescription backfired in its own way. A rule to "fade in and out of the whole video" also put fades around a single tense dialogue scene. One sample scene that opened on a wide shot and cut to a close-up made the agent open twice as many scenes that way. Told that a scene becomes "one clip, of up to 15s", the agent cut its scenes to fit, even scenes set in one place. And asked to define "characters and key places or objects", the agent decided that a coin and a scarf were not key. Rules get applied blindly, examples get copied, numbers become targets, and categories invite judgment calls.
+Each kind of prescription backfires in its own way. A rule to "fade in and out of the whole video" also put fades around a single tense dialogue scene. One sample scene that opened on a wide shot and cut to a close-up made the agent open twice as many scenes that way. Told that a scene becomes "one clip, of up to 15s", the agent cut its scenes to fit, even scenes set in one place. And asked to define "characters and key places or objects", the agent decided that a coin and a scarf were not key. Rules get applied blindly, examples get copied, numbers become targets, and categories invite judgment calls.
 
 So each fix in this post is a description instead. The agent prompt explains that the models redraw anything without a definition. The video prompt writer learns what a stop before a cut does to the film, and when a stop is right. The update judge learns what an edit can and cannot change. In each case, the agent decides for itself.
 
