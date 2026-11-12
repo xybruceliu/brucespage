@@ -29,11 +29,11 @@ However, making a whole film is still hard, even a one-minute one. Most people m
 
 What comes out tends to play like a **slideshow**.
 
-Try making a one-minute film with Claude Code and a video model, and you'll see what I mean. Each shot looks fine on its own, but it doesn't belong to the one before it. Every clip starts from a still and eases to a stop before its cut, the motion and the sound don't carry across, and the shots have no rhythm: nobody decided which moment gets a close-up, which one holds, or where a cut should fall. Consistency slips too, so an old woman's face, or the scarf she knits, changes from shot to shot.
+Try making a one-minute film with Claude Code and a video model, and you'll see what I mean. Each shot looks fine on its own but doesn't belong with the one before it. Clips start from a still and stop before the cut, motion and sound don't carry across, and no one planned the rhythm: which moment gets a close-up, which holds, where to cut. Consistency slips too: an old woman's face, or the scarf she knits, changes from shot to shot.
 
 The clips aren't the problem. Today's video agents weren't built for long videos, and their harnesses leave the problems specific to film unsolved: how to plan a scene's shots, what the agent needs to know about film to pace them and write the storyboard, how to keep people, places and looks consistent and the motion continuous across cuts, and how to let the story flow from one scene to the next.
 
-I've been working on these problems in the [Doki](https://doki.mov) agent (Doki's interface is also super interesting, but I'll save it for another post). This post is about the four parts that did most of the work of turning many clips into one film, which I think any video agent needs, however it's built:
+I've been working on these problems in [Doki Agent](https://doki.mov) (Doki's interface is also super interesting, but I'll save it for another post). This post is about the four parts that did most of the work of turning many clips into one film, which I think any video agent needs, however it's built:
 
 1. **Memory**: what has to look the same, and how each generation is told.
 2. **Planning**: how a scene is split into generations.
