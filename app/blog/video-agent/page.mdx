@@ -6,6 +6,7 @@ import {
   ReviewFigure,
   UpdateFigure,
 } from './figures'
+import { Cite, References } from './references'
 
 export const metadata = {
   title: 'Designing a Video Agent That Can Actually Tell a Story',
@@ -18,11 +19,15 @@ export const metadata = {
 
 <p className="text-muted-foreground text-sm">November 2026</p>
 
-Video models are good at ten seconds now. Ask for a fox crossing a snowy field and you get something that could pass for footage.
+Honestly, video models are good now. A single clip often passes for footage, and the newest models film several shots in one go: Seedance 2.5 makes up to 30 seconds in a single generation <Cite k="seedance" />, and MiniMax's H3 cuts between shots inside one 15-second clip <Cite k="minimax" />.
 
-Ask for a film and the problem changes. Five minutes is around a hundred shots, made in dozens of separate generations, and each one is made from its own prompt and the few images attached to it. None of them knows what the others drew. So the old woman's face changes between shots. The scarf she knits is red, then brown, then gone. Every clip eases to a stop before its cut, and the film plays like a slideshow. When you regenerate the one shot that's wrong, you lose the angle you liked.
+A whole film is still hard, though, even a one-minute one, let alone five. People who make them today mostly work shot by shot. They generate images and clips on an infinite canvas such as Firefly Boards or FLORA <Cite k="boards flora" />, pick the takes that work, and stitch them together in an editor by hand. Coding agents can drive the same models now, breaking an idea into shots, generating each one and stitching the clips <Cite k="creativeclaw" />.
 
-I've been building [Doki](https://doki.mov), a video editor where you write a film as a script and an agent writes and makes it with you. Doki's interface is opinionated, and this post isn't about it. It's about four parts that ended up doing most of the work of turning many clips into one film, and that I think any video agent needs, however its pipeline is built:
+What comes out tends to have the same problems. Each clip starts from a still frame and eases to a stop before its cut, and nothing carries from one clip into the next (not the motion, not the sound, not where someone was standing), so the film plays like a slideshow. Consistency breaks too: an old woman's face changes between shots, and the scarf she knits is red, then brown, then gone. And when you regenerate the one shot that's wrong, you lose the angle you liked. Research has been working on these problems for a while, with language-model planners that keep characters consistent across scenes <Cite k="videodirectorgpt movieagent" /> and models trained to generate several shots together <Cite k="lct holocine" />.
+
+The reason is structural. A five-minute film is around a hundred shots, made in dozens of separate generations, and each generation sees only its own prompt and the few images attached to it. None of them knows what the others drew. The clips are good. Getting dozens of them to agree is the hard part, and it's what this post is about.
+
+I've been building [Doki](https://doki.mov) <Cite k="doki" />, a video editor where you write a film as a script and an agent writes and makes it with you. Doki's interface is opinionated, and this post isn't about it. It's about four parts that ended up doing most of the work of turning many clips into one film, and that I think any video agent needs, however its pipeline is built:
 
 1. **Memory**: what has to look the same, and how each generation is told.
 2. **Planning**: how a scene is split into generations.
@@ -35,7 +40,16 @@ The examples and prompt excerpts are from Doki. The tests behind them were small
 
 Image and video models remember nothing. A shot's image is made from its prompt and the images that go with it, and so is each clip. If a character exists only as words, every generation draws a new person who fits the words. This holds inside a single clip too: when a video model cuts to a close-up, it draws the close-up afresh.
 
-So the first thing a video agent needs is a registry of what the film reuses: the people, places, objects and looks, each with a name, a description and a reference image that every generation using it is given.
+Most models do take a few images along with the prompt, called reference images, and draw what's in them. That is the only memory there is, so the first thing a video agent needs is a registry of what the film reuses: the people, places, objects and looks, each with a name, a description and a reference image that every generation using it is given. In Doki an entry is a line in the script, and the 🎬 in it makes its reference image:
+
+<Prompt from="Two entries from The Last Three, translated from Japanese">
+  {`Ingredient @Camera = 🎬 an old silver-and-black 35mm film SLR, a well-worn brown leather strap, and on its back a strip of masking tape with "3 left" written by hand
+
+Character @Mio = 🎬 a high-school senior, 17, a black bob to her chin, pale skin with cheeks red from the cold, shy and gentle eyes; a navy duffle coat over a navy blazer and a gray check skirt, black tights, brown snow boots, a red knit scarf and red mittens`}
+
+</Prompt>
+
+Every shot that tags @Camera is drawn with that image, so the tape that says "3 left" reads the same in all of them.
 
 **What gets a reference image.** An earlier version of Doki's prompt said that "characters and key places or objects" get one, and the agent decided what was key. A coin, a takeout bag and an orange were simple enough to describe in words. A scarf an old woman knits on a train, which a girl wears at the end, "changes form", so it got nothing. Each of them was drawn anew in every shot. What fixed it was explaining how the models work instead of naming a category:
 
@@ -98,7 +112,7 @@ The same goes for cuts within a clip. A video model that films several shots at 
 
 ## 2. Planning
 
-The obvious pipeline makes one image and one clip per shot and cuts them together. Each clip starts from a still, its motion and sound start from nothing, and left alone it slows down toward the end. Early on, our agent's films looked to me like a beginner splicing clips: a row of slides.
+Most video agents, Doki included, make a film in two steps. First comes an image of each shot, a storyboard frame that's cheap to check and redo. Then comes a clip that starts on that image and plays the shot from it. The obvious pipeline makes one image and one clip per shot and cuts them together. Each clip starts from a still, its motion and sound start from nothing, and left alone it slows down toward the end. Early on, our agent's films looked to me like a beginner splicing clips: a row of slides.
 
 **The image is the opening instant.** About 40% of our first frames showed a later moment than the start of the shot. "She walks to the porch, crouches and watches the kitten" got an image of her already crouched, and the clip had nothing left to play. Image models draw whatever the prompt names as done. So the prompt writer now describes the frame as a photograph, and its answer starts with the opening moment on a line of its own (`OPENING: she reaches the porch steps`), which forces it to pick one moment:
 
@@ -118,7 +132,7 @@ The other end of the clip needs the same care. The video prompt writer is told w
   none, keep the action and the camera moving through the last second [...]
 </Prompt>
 
-**The scene is the unit.** Newer video models can film several shots in one generation and cut between them. People, light, motion and sound carry on across those cuts, and a reverse angle can show the other side of the room, which separate images can't (image models tend to copy the earlier shot's camera position). So Doki films a scene's shots together wherever the model can. In my tests, a scene made as one clip beat the same shots made separately in most pairs, with about a third fewer breaks.
+**The scene is the unit.** Newer video models can film several shots in one generation and cut between them <Cite k="minimax seedance" />, which research has been pushing toward too <Cite k="lct holocine" />. People, light, motion and sound carry on across those cuts, and a reverse angle can show the other side of the room, which separate images can't (image models tend to copy the earlier shot's camera position). So Doki films a scene's shots together wherever the model can. In my tests, a scene made as one clip beat the same shots made separately in most pairs, with about a third fewer breaks.
 
 Each model has its own dialect for this. MiniMax ignored timed spans like `[2-4s] cut to …` and often cut at around two seconds whatever we wrote. Written as its own shot list, it cut within a few hundredths of a second of where we asked:
 
@@ -130,7 +144,7 @@ Each model has its own dialect for this. MiniMax ignored timed spans like `[2-4s
 
 Going the other way, a model that wasn't told "Single continuous shot" and "No scene cuts." cut on its own, especially in dialogue.
 
-**Where to split.** A scene can run longer than one generation (10 to 15 seconds for now), and even when it fits, one clip isn't free. Only a clip's first shot opens exactly on its storyboard frame; the shots after it open close to theirs. A clip boundary, on the other hand, restarts the motion and the sound. Which costs more depends on the cut and the shot. A line of dialogue and its answer shouldn't be split, and a reveal or a product shot should open on its exact frame.
+**Where to split.** A scene can run longer than one generation (10 to 30 seconds for now), and even when it fits, one clip isn't free. Only a clip's first shot opens exactly on its storyboard frame; the shots after it open close to theirs. A clip boundary, on the other hand, restarts the motion and the sound. Which costs more depends on the cut and the shot. A line of dialogue and its answer shouldn't be split, and a reveal or a product shot should open on its exact frame.
 
 So before a scene is filmed, a model reads its shots (the words and the storyboard frames) and rates two things from 0 to 3: for each cut, how much the two sides need to be one take, and for each shot, how much it needs its exact frame. Two lines of the rubric:
 
@@ -162,7 +176,7 @@ The clip has to fit the model's longest generation, a dissolve or fade forces a 
 
 A five-minute film has dozens of clips, and many will be wrong on the first try. The film also changes as you work: a character's hair, a planet that should be frozen, a new line of dialogue. The default answer is to regenerate. In our logs, when a check flagged a problem and the shot was made again, the remake fixed it about half the time, and a second try did no better than the first. A remake also throws away whatever was right: the angle, the faces, the take the user approved.
 
-So the third part treats the film like a build: know exactly what's out of date, and rebuild as little as possible.
+Image and video models can edit now, too. Given a picture and an instruction, they change what's asked and keep the rest <Cite k="omni" />. So the third part treats the film like a build: know exactly what's out of date, and rebuild as little as possible.
 
 **Record what each output was made from.** When a picture is made, Doki writes down its inputs: the words, the definitions it resolved, the versions of the reference images it got and, for a video, the image it starts on, its timing and the clip it shares. Staleness is a diff of that record against the film as it is now, and it comes with reasons ("@Mars changed"). A record is written only when a generation succeeds, so a failure never leaves a shot looking up to date.
 
@@ -198,7 +212,7 @@ The cheapest fix of all is a trim. Cutting the half second where a hand warps co
 
 ## 4. Feedback
 
-The agent at the center reads and writes text, and almost everything above pays off in pixels it never sees. That has two consequences.
+The agent at the center is a language model. It reads and writes text, and almost everything above pays off in pixels it never sees. That has two consequences.
 
 **It has to be told the habits whose payoff it can't see.** I prefer agent prompts that say what exists and what it costs, not what to do. Rules get applied mechanically: a "fade in and out of the whole video" rule faded out a tense dialogue scene too. Examples get copied: one example scene that opened wide and then cut close made the agent open twice as many scenes that way. Facts alone worked for most things, but they failed for consistency. Told only what a reference image does and costs, the agent made one for almost nothing. The comment at the top of Doki's agent prompt keeps the reason:
 
@@ -211,7 +225,7 @@ The agent at the center reads and writes text, and almost everything above pays 
 
 If the agent can't see the payoff, state the habit, or have the system do it. And keep numbers out of the prompt: a number reads as a target, as the 15-second clip did.
 
-**It has to be shown what it made.** We gave the agent a tool to look at any shot, and in sixteen writing runs it called it zero times on its own. So the reviews are set off by the harness, and what they find comes back inside tool results, where the agent can't miss it.
+**It has to be shown what it made.** We gave the agent a tool to look at any shot, which has a vision model watch it and answer, and in sixteen writing runs it called it zero times on its own. So the reviews are set off by the harness, the code around the agent that runs its tools, and what they find comes back inside tool results, where the agent can't miss it.
 
 <ReviewFigure />
 
@@ -251,3 +265,7 @@ Checking text instead of pixels didn't work. A continuity checker that read the 
 None of this depends on Doki's document. A chat agent driving a video model, a node graph and a timeline editor all make many generations that have to agree, so they all need a memory, a plan, a way to change one thing without remaking the rest, and eyes. Models will take over some of it as clips get longer, references more numerous and edits better. What I don't expect to change is that a film is many generations, and that the agent writing it can't see it.
 
 You can try Doki at [doki.mov](https://doki.mov) with your own API keys. The paper, with Mira Dontcheva and Dingzeyu Li, is [at UIST 2026](https://dl.acm.org/doi/10.1145/3830398.3830715).
+
+## References
+
+<References />
