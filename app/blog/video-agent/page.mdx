@@ -27,13 +27,13 @@ export const metadata = {
 
 <PostMeta post="video-agent" date="November 2026" />
 
-Video models are now genuinely good. A single clip often looks like real footage, and the newest models can film several shots in one generation. [Seedance 2.5](https://seed.bytedance.com/en/blog/one-take-creation-flexible-referencing-introducing-seedance-2-5) produces up to 30 seconds in a single pass, and [MiniMax H3](https://minimax.io/blog/minimax-h3) cuts between shots within one clip.
+Video models are now genuinely good. They create stunning, high-quality visuals, and the newest ones, such as [Seedance 2.5](https://seed.bytedance.com/en/blog/one-take-creation-flexible-referencing-introducing-seedance-2-5) and [MiniMax H3](https://minimax.io/blog/minimax-h3), can generate several shots, with cuts between them, in a single clip.
 
 However, making a whole film remains hard, even for a one-minute video. Most people still work shot by shot. They generate images and clips on an infinite canvas such as [Firefly Boards](https://www.adobe.com/products/firefly/features/boards.html), [FLORA](https://www.florafauna.ai/), [TapNow](https://www.tapnow.ai/) or [LibTV](https://www.liblib.tv/), or in research tools such as [VideOrigami](https://arxiv.org/abs/2503.04103) that add a script and a scene planner. Then they assemble the takes that work. Some people hand this workflow to a coding agent such as [Claude Code](https://www.anthropic.com/product/claude-code), or to the built-in agents in these tools.
 
 The result tends to play like a **slideshow**.
 
-If you try to make a one-minute film with Claude Code and a video model, you will quickly see the problem. Each shot looks fine on its own, yet it does not connect to the shot before it. Clips start from a still image and stop before the cut, so motion and sound do not carry across. Nothing plans the rhythm: which moment gets a close-up, which shot holds, and where each cut falls. And an old woman's face, or the scarf she knits, changes from shot to shot.
+If you try to make a one-minute film with Claude Code and a video model, you will quickly see the problem: the film doesn't look continuous. Each shot looks fine on its own, but the motion stops and restarts at every cut, nothing plans the pacing of the shots, and an old woman's face, or the scarf she knits, changes from shot to shot.
 
 Individual clip quality is no longer the bottleneck. Current video agents were not designed for long videos, so their harnesses (the code that runs the agent and its tools) leave the problems specific to film unsolved: planning and pacing the shots of a scene, keeping people, places and looks consistent, keeping motion continuous across cuts, and making the story flow from one scene to the next.
 
