@@ -208,7 +208,7 @@ The cheapest fix of all is a trim. Snipping out the half second where a hand war
 
 ## 4. Feedback
 
-The agent orchestrating all of this is a language model. It lives entirely in text, while almost everything discussed above pays off in pixels it never sees. That blindness has two consequences.
+Even a multimodal agent rarely sees the film it's making. It writes each shot long before that shot exists, it doesn't look at what comes back unless something makes it, and many models still can't watch a video with its sound (in Doki, Gemini does the watching for the agent). Yet almost everything above pays off on screen. So the loop that shows the agent its work has to be designed, and that has two consequences.
 
 **Tell it the habits whose payoff it can't see.** In general, I prefer agent prompts that state what exists and what it costs, rather than prescribing rules. Explicit rules get applied mechanically: a rule to "fade in and out of the whole video" faded a tense dialogue scene in and out too. Examples get mimicked blindly: including one sample scene that opened wide and cut close caused the agent to open twice as many scenes that exact way. Giving facts alone worked well for most tasks, except visual consistency. Told only what a reference image does and costs, the agent created almost none. A comment at the top of Doki's agent prompt records why we made an exception:
 
