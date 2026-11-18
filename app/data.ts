@@ -9,6 +9,22 @@ type Project = {
   id: string
 }
 
+// Live demos, shown as a row of cards above the research
+type Demo = {
+  title: string
+  summary: string
+  /** Still image in public/; the video's poster when there is a video */
+  image: string
+  /** Muted, looping video in public/, played in place of the image */
+  video?: string
+  /** The video's own background color, filling the frame around it so it
+   *  fits the 16:10 card without visible bars (default #fcfcfc) */
+  background?: string
+  /** Where the whole card goes when clicked: the live demo or product */
+  link: string
+  id: string
+}
+
 type BlogPost = {
   title: string
   description: string
@@ -36,13 +52,33 @@ export const PERSONAL_INFO = {
   title: 'Research Scientist @ Adobe',
   // Shown in search results and link previews.
   description:
-    'Xingyu Bruce Liu is a Research Scientist at Adobe Research working on human-AI interaction. Papers, CV, and contact.',
+    'Xingyu Bruce Liu is a Research Scientist at Adobe Research, designing new paradigms of human-AI interaction beyond turn-taking and building them end to end.',
   // Used for search engines' structured data about you.
   jobTitle: 'Research Scientist',
   affiliation: { name: 'Adobe Research', url: 'https://research.adobe.com/' },
 }
 
 export const HIGHLIGHTED_AUTHORS = ['Xingyu Bruce Liu', 'Xingyu Liu']
+
+export const DEMOS: Demo[] = [
+  {
+    title: 'Intra-Turn Interaction',
+    summary: 'AI interaction beyond turn-taking.',
+    image: '/img/projects/liu2026feedforward.jpg',
+    video: '/video/feedforward.mp4',
+    link: 'https://demos.liubruce.me/intra-turn/',
+    id: 'feedforward',
+  },
+  {
+    title: 'Doki',
+    summary: 'Make generative video by writing.',
+    image: '/img/projects/liu2026doki-launch.jpg',
+    video: '/video/doki.mp4',
+    background: '#f3f3f1',
+    link: 'https://doki.mov/',
+    id: 'doki',
+  },
+]
 
 export const PROJECTS: Project[] = [
   {
@@ -241,7 +277,7 @@ export const PROJECTS: Project[] = [
     ],
     year: 2023,
     image: '/img/projects/du2023rapsai.png',
-    selected: true,
+    selected: false,
     award: 'Best Paper Honorable Mention',
     links: {
       'CHI 2023': 'https://dl.acm.org/doi/10.1145/3544548.3581338',

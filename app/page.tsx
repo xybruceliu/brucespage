@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { FileText, Twitter, Linkedin, GraduationCap } from 'lucide-react'
 import { Magnetic } from '@/components/ui/magnetic'
 import { AnimatedLink } from '@/components/ui/animated-link'
@@ -22,6 +22,7 @@ import Link from 'next/link'
 import { AnimatedBackground } from '@/components/ui/animated-background'
 import {
   BLOG_POSTS,
+  DEMOS,
   PROJECTS,
   EMAIL,
   SOCIAL_LINKS,
@@ -102,6 +103,26 @@ function MagneticSocialLink({
   )
 }
 
+// A small outlined link, used for a project's paper, code, video and demos.
+// The arrow draws itself in on hover.
+function LinkPill({ label, href }: { label: string; href: string }) {
+  return (
+    <motion.a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="draw-arrow-trigger group ring-border hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent relative inline-flex items-center rounded-full px-2.5 py-1 text-xs ring-1 shadow-sm transition-colors after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] focus-visible:outline-2 sm:after:hidden"
+      whileTap={{ scale: 0.95 }}
+    >
+      {label}
+      {/* Opens to make room, then the arrow draws itself */}
+      <span className="flex max-w-0 items-center overflow-hidden transition-[max-width,margin] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:ml-0.5 group-hover:max-w-3 group-focus-visible:ml-0.5 group-focus-visible:max-w-3 motion-reduce:transition-none">
+        <DrawArrow className="h-3 w-3 shrink-0" />
+      </span>
+    </motion.a>
+  )
+}
+
 // A gallery thumbnail that opens the photo in a lightbox. The lightbox image
 // is resized for the screen (not the multi-megabyte original) and fetched as
 // soon as the pointer or keyboard focus lands on the thumbnail, so it's
@@ -175,6 +196,9 @@ function GalleryPhoto({ photo, label }: { photo: string; label: string }) {
 
 export default function Personal() {
   const [showAllProjects, setShowAllProjects] = React.useState(false)
+  // With reduced motion the featured video waits for a click instead of
+  // playing on its own
+  const reduceMotion = useReducedMotion()
 
   return (
     <motion.main
@@ -187,7 +211,7 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
-        <div className="flex-1 space-y-5 sm:space-y-6">
+        <div className="flex-1 space-y-5 text-pretty sm:space-y-6">
           <p className="text-muted-foreground">
             Hi! <WaveEmoji /> I&apos;m a Research Scientist at{' '}
             <AnimatedLink
@@ -214,7 +238,14 @@ export default function Personal() {
               isStatic={true}
               imageSrc="/img/hci-prof.webp"
             >
-              Xiang &lsquo;Anthony&rsquo; Chen
+              Anthony Chen
+            </AnimatedLink>
+            , with a thesis on{' '}
+            <AnimatedLink
+              href="https://escholarship.org/uc/item/28d8b7wd"
+              showPreview={false}
+            >
+              <em>Beyond Taking Turns in Human-AI Interaction</em>
             </AnimatedLink>
             . My work was recognized by an{' '}
             <AnimatedLink
@@ -269,8 +300,64 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
+        <h3 className="mb-5 text-lg font-medium">Demos</h3>
+        <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2">
+          {DEMOS.map((item) => (
+            // The whole card is one link to the live demo or product
+            <a
+              key={item.id}
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+            >
+              {/* Filled with the video's own background, so videos of any
+                  shape sit in the 16:10 frame without visible bars */}
+              <div
+                className="relative aspect-[16/10] overflow-hidden rounded-sm shadow-lg"
+                style={{ backgroundColor: item.background ?? '#fcfcfc' }}
+              >
+                {item.video ? (
+                  // With reduced motion it stays on its poster frame
+                  <video
+                    src={item.video}
+                    poster={item.image}
+                    autoPlay={!reduceMotion}
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    aria-hidden="true"
+                    className="absolute inset-0 h-full w-full object-contain"
+                  />
+                ) : (
+                  <Image
+                    src={item.image}
+                    alt=""
+                    fill
+                    sizes="(min-width: 640px) 300px, 100vw"
+                    className="object-cover"
+                  />
+                )}
+              </div>
+              <h4 className="text-foreground mt-4 flex items-center gap-1 font-medium">
+                {item.title}
+                <ArrowUpRightIcon className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none" />
+              </h4>
+              <p className="text-muted-foreground mt-1 text-sm">
+                {item.summary}
+              </p>
+            </a>
+          ))}
+        </div>
+      </motion.section>
+
+      <motion.section
+        variants={VARIANTS_SECTION}
+        transition={TRANSITION_SECTION}
+      >
         <div className="mb-5 flex items-baseline gap-2">
-          <h3 className="text-lg font-medium">Projects</h3>
+          <h3 className="text-lg font-medium">Research</h3>
           <span className="text-sm">
             <button
               type="button"
@@ -350,20 +437,7 @@ export default function Personal() {
                   {pub.links && (
                     <div className="col-span-2 row-start-2 flex flex-wrap items-center gap-2 sm:col-span-1 sm:mt-3">
                       {Object.entries(pub.links).map(([type, url]) => (
-                        <motion.a
-                          key={type}
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="draw-arrow-trigger group ring-border hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent relative inline-flex items-center rounded-full px-2.5 py-1 text-xs ring-1 shadow-sm transition-colors after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] focus-visible:outline-2 sm:after:hidden"
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          {type}
-                          {/* Opens to make room, then the arrow draws itself */}
-                          <span className="flex max-w-0 items-center overflow-hidden transition-[max-width,margin] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:ml-0.5 group-hover:max-w-3 group-focus-visible:ml-0.5 group-focus-visible:max-w-3 motion-reduce:transition-none">
-                            <DrawArrow className="h-3 w-3 shrink-0" />
-                          </span>
-                        </motion.a>
+                        <LinkPill key={type} label={type} href={url} />
                       ))}
                     </div>
                   )}
