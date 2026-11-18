@@ -22,6 +22,13 @@ type AnimatedLinkProps = {
   | { isStatic?: false; imageSrc?: never }
 )
 
+// The link stays inline so a long one wraps like the words around it. The
+// hover underline is a background on the text, which follows the wrap; an
+// absolutely placed bar would need inline-block, and an inline-block link
+// can't break mid-phrase, leaving ragged lines in a paragraph.
+const LINK_CLASSES =
+  'text-foreground relative inline bg-[linear-gradient(currentColor,currentColor)] bg-[length:0%_1px] bg-[position:0_100%] bg-no-repeat transition-[background-size] duration-200 hover:bg-[length:100%_1px] focus-visible:bg-[length:100%_1px] motion-reduce:transition-none'
+
 export function AnimatedLink({
   href,
   children,
@@ -72,7 +79,7 @@ export function AnimatedLink({
   if (!showPreview) {
     return (
       <motion.a
-        className={`group text-foreground relative inline-block ${className}`}
+        className={cn('group', LINK_CLASSES, className)}
         href={href}
         target="_blank"
         rel="noopener noreferrer"
@@ -80,7 +87,6 @@ export function AnimatedLink({
         whileHover="hover"
       >
         {children}
-        <span className="bg-foreground absolute bottom-0.5 left-0 block h-[1px] w-full max-w-0 transition-all duration-200 group-hover:max-w-full"></span>
       </motion.a>
     )
   }
@@ -105,16 +111,12 @@ export function AnimatedLink({
       >
         <HoverCardPrimitive.Trigger
           onMouseMove={handleMouseMove}
-          className={cn(
-            'group text-foreground relative inline-block',
-            className,
-          )}
+          className={cn('group', LINK_CLASSES, className)}
           href={href}
           target="_blank"
           rel="noopener noreferrer"
         >
           {children}
-          <span className="bg-foreground absolute bottom-0.5 left-0 block h-[1px] w-full max-w-0 transition-all duration-200 group-hover:max-w-full"></span>
         </HoverCardPrimitive.Trigger>
 
         <HoverCardPrimitive.Portal>
