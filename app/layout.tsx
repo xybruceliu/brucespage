@@ -4,8 +4,9 @@ import { MotionConfig } from 'motion/react'
 import './globals.css'
 import { Header } from './header'
 import { Footer } from './footer'
-import { ThemeProvider } from 'next-themes'
-import { ThemeColor } from './theme-color'
+import { Sunlight } from '@/components/sunlight'
+import { paintSky } from '@/components/sunlight/sky'
+import { place } from '@/components/sunlight/place'
 import {
   HIGHLIGHTED_AUTHORS,
   PERSONAL_INFO,
@@ -16,8 +17,8 @@ import {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  // Matches --background in each theme, so the browser chrome is right before
-  // hydration. ThemeColor takes over when a visitor picks a theme manually.
+  // Only until the first paint: the sky script below then points it at the
+  // colour of the hour
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
@@ -90,25 +91,28 @@ export default function RootLayout({
             __html: JSON.stringify(PERSON_JSON_LD).replace(/</g, '\\u003c'),
           }}
         />
-        <ThemeProvider
-          enableSystem={true}
-          attribute="class"
-          storageKey="theme"
-          defaultTheme="system"
-        >
-          <ThemeColor />
-          {/* Visitors who ask for reduced motion get fades instead of
-              movement across every motion component. */}
-          <MotionConfig reducedMotion="user">
-            <div className="flex min-h-screen w-full flex-col font-[family-name:var(--font-geist)]">
-              <div className="relative mx-auto w-full max-w-screen-sm flex-1 px-4 pt-10 sm:pt-20">
-                <Header />
-                {children}
-                <Footer />
-              </div>
+        {/* There is no light or dark mode to pick: the site follows the
+            visitor's sky, and the home page is a wall that takes the colour
+            of the hour. Work out roughly where they are from their time zone
+            and set both before the first frame, so nothing flashes; Sunlight
+            keeps them up to date after that. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `var p;try{p=window.__sunPlace=(${place.toString()})()}catch(e){}try{(${paintSky.toString()})(undefined,location.pathname==='/',true,p)}catch(e){}`,
+          }}
+        />
+        <Sunlight />
+        {/* Visitors who ask for reduced motion get fades instead of
+            movement across every motion component. */}
+        <MotionConfig reducedMotion="user">
+          <div className="flex min-h-screen w-full flex-col font-[family-name:var(--font-geist)]">
+            <div className="relative mx-auto w-full max-w-screen-sm flex-1 px-4 pt-10 sm:pt-20">
+              <Header />
+              {children}
+              <Footer />
             </div>
-          </MotionConfig>
-        </ThemeProvider>
+          </div>
+        </MotionConfig>
       </body>
     </html>
   )

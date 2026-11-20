@@ -318,3 +318,57 @@
   --doki-rose-line: oklch(0.62 0.15 17);
   --doki-cyan: oklch(0.8 0.09 215);
 }
+
+/* ---------- The sun's path, in the footer of the home page ---------- */
+
+.sun-path-suffix {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.sun-path-time {
+  /* A hidden "00:00" and the time share one cell, so the box is exactly as
+     wide as the widest time and shorter ones sit to the right */
+  display: inline-grid;
+  justify-items: end;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sun-path-time > * {
+  grid-area: 1 / 1;
+}
+
+/* Pictures on the home page take the light of the room (see sky.ts). In a
+   layer, so an element's own transition utilities still win. */
+@layer components {
+  .sky-media {
+    filter: var(--media-filter, none);
+    transition: filter 0.6s ease;
+  }
+}
+
+/* The photo strip fades in at one edge and out at the other. A mask, not a
+   gradient in the wall's colour, because the wall behind it changes with
+   the light */
+.edge-fade {
+  --fade: min(64px, 14%);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade),
+    #000 calc(100% - var(--fade)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade),
+    #000 calc(100% - var(--fade)),
+    transparent
+  );
+}

@@ -103,15 +103,16 @@ function MagneticSocialLink({
   )
 }
 
-// A small outlined link, used for a project's paper, code, video and demos.
-// The arrow draws itself in on hover.
+// A small filled link, used for a project's paper, code, video and demos,
+// lighter than the wall like the links under Connect. The arrow draws itself
+// in on hover.
 function LinkPill({ label, href }: { label: string; href: string }) {
   return (
     <motion.a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="draw-arrow-trigger group ring-border hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent relative inline-flex items-center rounded-full px-2.5 py-1 text-xs ring-1 shadow-sm transition-colors after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] focus-visible:outline-2 sm:after:hidden"
+      className="draw-arrow-trigger group bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent relative inline-flex items-center rounded-full px-2.5 py-1 text-xs shadow-sm transition-colors after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] focus-visible:outline-2 sm:after:hidden"
       whileTap={{ scale: 0.95 }}
     >
       {label}
@@ -165,7 +166,7 @@ function GalleryPhoto({ photo, label }: { photo: string; label: string }) {
             alt=""
             width={180}
             height={120}
-            className="h-24 w-auto rounded-sm object-cover shadow-sm transition duration-300 ease-out will-change-transform group-hover:scale-[1.04] group-hover:shadow-lg group-focus-visible:scale-[1.04] group-focus-visible:shadow-lg sm:h-[120px]"
+            className="sky-media h-24 w-auto rounded-sm object-cover shadow-sm transition duration-300 ease-out will-change-transform group-hover:scale-[1.04] group-hover:shadow-lg group-focus-visible:scale-[1.04] group-focus-visible:shadow-lg sm:h-[120px]"
             quality={85}
             draggable={false}
           />
@@ -314,7 +315,7 @@ export default function Personal() {
               {/* Filled with the video's own background, so videos of any
                   shape sit in the 16:10 frame without visible bars */}
               <div
-                className="relative aspect-[16/10] overflow-hidden rounded-sm shadow-lg"
+                className="sky-media relative aspect-[16/10] overflow-hidden rounded-sm shadow-lg"
                 style={{ backgroundColor: item.background ?? '#fcfcfc' }}
               >
                 {item.video ? (
@@ -448,7 +449,7 @@ export default function Personal() {
                         alt={pub.title}
                         width={192}
                         height={128}
-                        className="h-auto w-full rounded-sm shadow-lg"
+                        className="sky-media h-auto w-full rounded-sm shadow-lg"
                       />
                     </div>
                   )}
