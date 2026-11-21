@@ -141,7 +141,7 @@ export function AnimatedLink({
                     },
                   }}
                   exit={{ opacity: 0, y: 20, scale: 0.6 }}
-                  className="rounded-xl"
+                  className="rounded-lg"
                   style={{
                     x: translateX,
                   }}
