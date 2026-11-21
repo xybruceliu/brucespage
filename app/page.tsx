@@ -159,14 +159,14 @@ function GalleryPhoto({ photo, label }: { photo: string; label: string }) {
           aria-label={`Open ${label.toLowerCase()}`}
           onPointerEnter={prefetch}
           onFocus={prefetch}
-          className="group shrink-0 cursor-pointer rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="group shrink-0 cursor-pointer rounded-[calc(var(--radius)+2px)] focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           <Image
             src={`/img/photos/${photo}`}
             alt=""
             width={180}
             height={120}
-            className="sky-media h-24 w-auto rounded-sm object-cover shadow-sm transition duration-300 ease-out will-change-transform group-hover:scale-[1.04] group-hover:shadow-lg group-focus-visible:scale-[1.04] group-focus-visible:shadow-lg sm:h-[120px]"
+            className="sky-media h-24 w-auto rounded-lg object-cover shadow-sm transition duration-300 ease-out will-change-transform group-hover:scale-[1.04] group-hover:shadow-lg group-focus-visible:scale-[1.04] group-focus-visible:shadow-lg sm:h-[120px]"
             quality={85}
             draggable={false}
           />
@@ -186,7 +186,7 @@ function GalleryPhoto({ photo, label }: { photo: string; label: string }) {
         <Image
           {...fullSize}
           alt={fullSize.alt}
-          className="max-h-[80vh] max-w-[92vw] rounded-md sm:max-h-[70vh] sm:max-w-[70vw]"
+          className="max-h-[80vh] max-w-[92vw] rounded-lg sm:max-h-[70vh] sm:max-w-[70vw]"
           style={{ width: 'auto', height: 'auto' }}
           draggable={false}
         />
@@ -310,12 +310,12 @@ export default function Personal() {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="group rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+              className="group rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4"
             >
               {/* Filled with the video's own background, so videos of any
                   shape sit in the 16:10 frame without visible bars */}
               <div
-                className="sky-media relative aspect-[16/10] overflow-hidden rounded-sm shadow-lg"
+                className="sky-media relative aspect-[16/10] overflow-hidden rounded-lg shadow-lg"
                 style={{ backgroundColor: item.background ?? '#fcfcfc' }}
               >
                 {item.video ? (
@@ -449,7 +449,7 @@ export default function Personal() {
                         alt={pub.title}
                         width={192}
                         height={128}
-                        className="sky-media h-auto w-full rounded-sm shadow-lg"
+                        className="sky-media h-auto w-full rounded-lg shadow-lg"
                       />
                     </div>
                   )}
@@ -469,7 +469,7 @@ export default function Personal() {
           <div className="-mx-3 flex flex-col">
             <AnimatedBackground
               enableHover
-              className="bg-muted h-full w-full rounded-[var(--radius-lg)]"
+              className="bg-muted h-full w-full rounded-lg"
               transition={{
                 type: 'spring',
                 bounce: 0,
@@ -481,7 +481,7 @@ export default function Personal() {
                   key={post.uid}
                   href={post.link}
                   data-id={post.uid}
-                  className="w-full rounded-[var(--radius-lg)] px-3 py-2.5 focus-visible:outline-2 [&>div]:flex-1"
+                  className="w-full rounded-lg px-3 py-2.5 focus-visible:outline-2 [&>div]:flex-1"
                 >
                   <div className="flex items-baseline justify-between gap-6">
                     <span className="text-foreground">{post.title}</span>

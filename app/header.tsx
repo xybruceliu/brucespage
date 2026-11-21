@@ -34,7 +34,7 @@ function ProfilePhoto() {
   return (
     <Tilt rotationFactor={10} isRevese>
       <div
-        className="relative overflow-hidden rounded-md"
+        className="relative overflow-hidden rounded-lg"
         onMouseMove={handleMove}
         onMouseEnter={() => setLit(true)}
         onMouseLeave={() => setLit(false)}
@@ -47,18 +47,18 @@ function ProfilePhoto() {
           alt={PERSONAL_INFO.name.english}
           width={128}
           height={128}
-          className="h-20 w-20 rounded-md object-cover sm:h-28 sm:w-28 dark:hidden"
+          className="h-20 w-20 rounded-lg object-cover sm:h-28 sm:w-28 dark:hidden"
         />
         <Image
           src="/img/profile-dark.png"
           alt={PERSONAL_INFO.name.english}
           width={128}
           height={128}
-          className="hidden h-20 w-20 rounded-md object-cover sm:h-28 sm:w-28 dark:block"
+          className="hidden h-20 w-20 rounded-lg object-cover sm:h-28 sm:w-28 dark:block"
         />
         <motion.div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-md"
+          className="pointer-events-none absolute inset-0 rounded-lg"
           style={{ background: sheen, mixBlendMode: 'soft-light' }}
           animate={{ opacity: lit ? 1 : 0 }}
           transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
